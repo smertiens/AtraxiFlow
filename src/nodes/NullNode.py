@@ -6,7 +6,7 @@ class NullNode(ProcessorNode):
         
     }
 
-    def getNodeType(self):
+    def getNodeClass(self):
         return 'NullNode'
 
     def run(self, stream):

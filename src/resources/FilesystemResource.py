@@ -1,12 +1,19 @@
 from resources.Resource import *
 
+"""
+Provides access to the filesysmtem.
+
+Properties:
+    sourcePattern - a qualified a qualified path to a file folder, can include wildcards 
+"""
 class FilesystemResource(Resource):
     
     type = 'FilesystemResource'
-    path = ''
 
-    def __init__(self, new_path):
-        self.path = new_path
+    def getPrefix(self):
+        return 'FS'
 
-    def getPath(self):
-        return self.path
+    def getData(self, key):
+        # ignore key - we only hold one single resource, and that is a file/folder
+        return self.getProperty("sourcePattern")
+

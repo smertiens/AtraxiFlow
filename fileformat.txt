@@ -1,0 +1,8 @@
+Res::Filesystem(pattern="./playground/*") >> 
+    Node::FSCopy(dest="./playground/new_folder", createIfNotExists="true")
+        > Node::SendEMail(subject="Demo", address="sean@sean.com")
+        > sendSomething() >> demo() > adoskdo > asdsodok
+
+>> Nächster Hauptnode folgt
+> bezieht sich auf den aktuellen Hauptnode (der letzte der nach >> kam)
+        

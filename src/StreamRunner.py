@@ -16,7 +16,7 @@ class StreamRunner:
 
     def _runNode (self, node):
         self._nodeCount += 1
-        logging.info("Running {0}".format(node.getNodeType()))
+        logging.info("Running {0}".format(node.getNodeClass()))
         node.run(self._stream)
 
         # Run child nodes

@@ -2,20 +2,18 @@ import logging
 
 class Node:
 
-    children = []
-    properties = {}
-    _known_properties = {}
-    hasErrors = False
+    def getName(self):
+        return self.name
 
-    def getNodeType(self):
+    def getNodeClass(self):
         raise Exception("Node class must implement getNodeType-method")
 
     def setProperty(self, key, value):
         self.properties[key] = value
-    
-    def getProperty(self, key):
+
+    def getProperty(self, key, default=""):
         if not key in self.properties:
-            return None
+            return default
         else:
             return self.properties[key]
 
@@ -23,22 +21,22 @@ class Node:
         self.children.append(node)
 
     def removeChild(self, index):
-            self.children.remove(index)
+        self.children.remove(index)
 
     def checkProperties(self):
         # check for property integrity
         for name, opt in self._known_properties.items():
-            
+
             if (opt['required'] == True) and (not name in self.properties):
-                logging.error("Missing property: " + name + " in " + self.getNodeType())
+                logging.error("Missing property: " + name + " in " + self.getNodeClass())
                 self.hasErrors = True
                 continue
-            
-            if (not name in self.properties):
+
+            if (not name in self.properties) and "default" in opt:
                 self.setProperty(name, opt['default'])
 
-
-    def __init__(self, props = {}):
+    def __init__(self, name="", props={}):
+        self.name = name
         self.properties = props
 
     def run(self, stream):

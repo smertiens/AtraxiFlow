@@ -1,24 +1,31 @@
 from pathlib import Path
 import shutil
+import logging
 from nodes.ProcessorNode import *
 from resources.FilesystemResource import *
 
-class FSCopyNode(ProcessorNode):
 
+class FSCopyNode(ProcessorNode):
     _known_properties = {
         'dest' : {
             'type': str,
             'required' : True,
             'hint': 'The destination on the filesystem to copy the source to',
             'default': ''
-        }
+        },
+        'create_if_missing': {
+            'type': bool,
+            'required': False,
+            'hint': 'Creates the destination path if it is missing',
+            'default': True
+        },
     }
 
-    def getNodeType(self):
+    def getNodeClass(self):
         return 'FSCopyNode'
 
     def _doCopy(self, src, dest):
-        #check if src and dest exist
+        # check if src and dest exist
         src_p = Path(src)
         dest_p = Path(dest)
 
@@ -41,7 +48,6 @@ class FSCopyNode(ProcessorNode):
 
             logging.info("Copying directory {0} to {1}".format(src_p, dest_p))
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
-
 
     def run(self, stream):
         self.checkProperties()

@@ -2,31 +2,35 @@ import unittest, logging
 from nodes.Node import Node
 from Stream import Stream
 
+
 # Test Data
 class NodeNoType(Node):
     def run(self, stream):
         pass
 
+
 class NodeNoRun(Node):
-    def getNodeType(self):
+    def getNodeClass(self):
         return 'NodeNoRun'
 
-class NodeProps(Node):
 
+class NodeProps(Node):
     _known_properties = {
-        'hello' : {
-            'required' : True,
+        'hello': {
+            'required': True,
             'hint': 'Demo1',
             'default': ''
         },
-        'world' : {
-            'required' : False,
+        'world': {
+            'required': False,
             'hint': 'Demo2',
             'default': 'defaultValue'
         }
     }
-    def getNodeType(self):
+
+    def getNodeClass(self):
         return 'NodeProps'
+
     def run(self, stream):
         pass
 
@@ -38,13 +42,13 @@ class test_Node(unittest.TestCase):
 
     def test_node_inheritance(self):
         node = NodeNoType()
-        self.assertRaises(Exception, node.getNodeType)
+        self.assertRaises(Exception, node.getNodeClass)
 
         node = NodeNoRun()
         self.assertRaises(Exception, node.run)
 
     def test_prop_set_at_init(self):
-        test = {'hello' : 'world'}
+        test = {'hello': 'world'}
         node = NodeProps(test)
         self.assertEqual(test, node.properties)
 
