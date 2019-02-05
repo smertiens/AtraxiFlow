@@ -4,13 +4,13 @@ class test_FSCopyNode(unittest.TestCase):
 
     def setUp(self):
         pass
-    
+
     def tearDown(self):
         pass
 
-    def test_copy_file(self):
+    def test_copy_file_makedir(self):
         pass
-        
+
     def test_copy_dir(self):
         pass
 

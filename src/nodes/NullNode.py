@@ -6,6 +6,8 @@ class NullNode(ProcessorNode):
         
     }
 
+    children = []
+
     def getNodeClass(self):
         return 'NullNode'
 

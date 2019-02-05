@@ -1,5 +1,5 @@
 import logging, sys
-from nodes import FSCopyNode, CLIInputNode,EchoOutputNode,NullNode
+from nodes import FSCopyNode, CLIInputNode,EchoOutputNode,GUIInputNode
 from resources.FilesystemResource import *
 from Stream import *
 from StreamRunner import *

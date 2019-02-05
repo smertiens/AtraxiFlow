@@ -40,6 +40,7 @@ class test_Node(unittest.TestCase):
     def setUp(self):
         logging.disable(logging.FATAL)
 
+
     def test_node_inheritance(self):
         node = NodeNoType()
         self.assertRaises(Exception, node.getNodeClass)
@@ -47,13 +48,20 @@ class test_Node(unittest.TestCase):
         node = NodeNoRun()
         self.assertRaises(Exception, node.run)
 
-    def test_prop_set_at_init(self):
+    def test_prop_merge(self):
         test = {'hello': 'world'}
-        node = NodeProps(test)
+        node = NodeProps("Node", test)
+
+        print (node.properties)
+
+    def test_prop_set_at_init(self):
+        test = {'hello': 'world', 'world':'heythere'}
+        node = NodeProps("Node", test)
+        node.mergeProperties()
         self.assertEqual(test, node.properties)
 
     def test_prop_get_set(self):
-        node = NodeProps()
+        node = NodeProps("Node")
         node.setProperty('hello', 'world')
         self.assertEqual(node.getProperty('hello'), 'world')
 
@@ -61,18 +69,18 @@ class test_Node(unittest.TestCase):
         st = Stream()
 
         # should be okay
-        node = NodeProps({'hello': 'world'})
-        node.checkProperties()
+        node = NodeProps("Node", {'hello': 'world'})
+        node.mergeProperties()
         self.assertFalse(node.hasErrors)
 
         # missing
-        node = NodeProps({'world', ''})
-        node.checkProperties()
+        node = NodeProps("Node", {'world': ''})
+        node.mergeProperties()
         self.assertTrue(node.hasErrors)
 
         # set default
-        node = NodeProps({'hello': 'required'})
-        node.checkProperties()
+        node = NodeProps("Node", {'hello': 'required'})
+        node.mergeProperties()
         self.assertFalse(node.hasErrors)
         self.assertEqual(node.getProperty('world'), 'defaultValue')
 

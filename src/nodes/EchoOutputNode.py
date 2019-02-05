@@ -16,6 +16,6 @@ class EchoOutputNode(OutputNode):
         return 'EchoOutput'
 
     def run(self, stream):
-        self.checkProperties()
+        self.mergeProperties()
         stp = StringProcessor(stream)
         print(stp.parse(self.getProperty("text")) + "\n")

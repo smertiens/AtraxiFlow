@@ -5,4 +5,7 @@ Res::Filesystem(pattern="./playground/*") >>
 
 >> Nächster Hauptnode folgt
 > bezieht sich auf den aktuellen Hauptnode (der letzte der nach >> kam)
-        
+
+
+
+Node::CLIInput(prompt="Dein Name", save_to="username") >> Node::Echo(text="Du heißt {Res::Text:username}")

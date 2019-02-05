@@ -1,5 +1,5 @@
 from pathlib import Path
-import shutil
+import shutil, os
 import logging
 from nodes.ProcessorNode import *
 from resources.FilesystemResource import *
@@ -34,9 +34,11 @@ class FSCopyNode(ProcessorNode):
             return False
 
         if src_p.is_file():
-            if not dest_p.exists():
+            if not dest_p.exists() and self.getProperty("create_if_missing") != True:
                 logging.error("Destination does not exist")
                 return False
+            elif not dest_p.exists() and self.getProperty("create_if_missing") == True:
+                os.makedirs(dest_p.absolute())
 
             logging.info("Copying file {0} to {1}".format(src_p, dest_p))
             shutil.copy(str(src_p.absolute()), str(dest_p.absolute()))
@@ -50,7 +52,7 @@ class FSCopyNode(ProcessorNode):
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
 
     def run(self, stream):
-        self.checkProperties()
+        self.mergeProperties()
         
         if self.hasErrors:
             logging.error("Cannot proceed because of previous errors")

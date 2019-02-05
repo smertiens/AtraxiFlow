@@ -1,5 +1,6 @@
 import logging
 
+
 class Node:
 
     def getName(self):
@@ -23,21 +24,24 @@ class Node:
     def removeChild(self, index):
         self.children.remove(index)
 
-    def checkProperties(self):
-        # check for property integrity
-        for name, opt in self._known_properties.items():
+    def mergeProperties(self):
 
-            if (opt['required'] == True) and (not name in self.properties):
-                logging.error("Missing property: " + name + " in " + self.getNodeClass())
+        # check and merge properties
+        for name, opt in self._known_properties.items():
+            if ("required" in opt and opt["required"] is True) and (name not in self._user_properties):
+                logging.error("Missing property: {0} in {1}::{2}".format(name, self.getNodeClass(), self.getName()))
                 self.hasErrors = True
                 continue
+            elif name not in self._user_properties and "default" in opt:
+                self.properties[name] = opt['default']
+            else:
+                self.properties[name] = self._user_properties[name]
 
-            if (not name in self.properties) and "default" in opt:
-                self.setProperty(name, opt['default'])
-
-    def __init__(self, name="", props={}):
+    def __init__(self, name="", props=dict()):
         self.name = name
-        self.properties = props
+        self._user_properties = props
+        self.properties = {}
+        self.hasErrors = False
 
     def run(self, stream):
         raise Exception("Node class must implement run-method")
