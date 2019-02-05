@@ -54,13 +54,25 @@ class Stream:
         results = []
 
         for resource in self.resource_map[prefix]:
+            # check if additional value is requested or whole resource
+            requestedVal = None
+            if key.find(".") > -1:
+                requestedVal = key[key.find(".") + 1:]
+                key = key[0:key.find(".")]
+
             # find one resource by name
             if key.find("*") == -1 and resource.getName() == key:
-                return resource
-            elif key.startswith("*") and resource.getName().endswith(key[1:]):
-                results.append(resource)
-            elif key.endswith("*") and resource.getName().startswith(key[0:-1]):
-                results.append(resource)
+                if requestedVal is None:
+                    return resource
+                else:
+                    return resource.getData(requestedVal)
+            elif (key.startswith("*") and resource.getName().endswith(key[1:])) or \
+                    (key.endswith("*") and resource.getName().startswith(key[0:-1])):
+
+                if requestedVal is None:
+                    results.append(resource)
+                else:
+                    results.append(resource.getData(requestedVal))
 
         return results
 

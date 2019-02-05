@@ -6,6 +6,9 @@ class Resource:
     def getPrefix(self):
         raise Exception("Resources must overwrite getPrefix()")
 
+    def getData(self, key):
+        return self.getProperty(key, None)
+
     def setProperty(self, key, value):
         self.properties[key] = value
 

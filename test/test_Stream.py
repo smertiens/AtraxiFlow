@@ -1,5 +1,6 @@
 import unittest
 import Stream, StreamRunner
+from resources import TextResource
 from resources.FilesystemResource import *
 
 class test_Stream(unittest.TestCase):
@@ -31,6 +32,15 @@ class test_Stream(unittest.TestCase):
 
          st.removeResource("FS:fs1")
          self.assertEqual(0, len(st.getResource("FS:*")))
+
+    def test_stream_get_resource_prop(self):
+        st = Stream.Stream()
+        res = TextResource.TextResource("textres")
+        res.setText("demo")
+        st.addResource(res)
+
+        self.assertEqual("demo", res.getProperty("text"))
+        self.assertEqual("demo", st.getResource("Text:textres.text"))
 
 
 if __name__ == '__main__':

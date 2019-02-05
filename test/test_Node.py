@@ -14,6 +14,27 @@ class NodeNoRun(Node):
         return 'NodeNoRun'
 
 
+class NodePrimaryProp(Node):
+    _known_properties = {
+        'hello': {
+            'required': True,
+            'hint': 'Demo1',
+            'default': '',
+            'primary': True
+        },
+        'world': {
+            'required': False,
+            'hint': 'Demo2',
+            'default': 'defaultValue'
+        }
+    }
+
+    def getNodeClass(self):
+        return 'NodeProps'
+
+    def run(self, stream):
+        pass
+
 class NodeProps(Node):
     _known_properties = {
         'hello': {
@@ -83,6 +104,11 @@ class test_Node(unittest.TestCase):
         node.mergeProperties()
         self.assertFalse(node.hasErrors)
         self.assertEqual(node.getProperty('world'), 'defaultValue')
+
+    def test_node_primary_arg(self):
+        node = NodePrimaryProp("primaryProp", "world");
+        node.mergeProperties()
+        self.assertEqual("world", node.getProperty("hello"))
 
 
 if __name__ == '__main__':

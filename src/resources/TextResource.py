@@ -10,3 +10,4 @@ class TextResource(Resource):
 
     def toString(self):
         return self.getProperty('text')
+

@@ -18,10 +18,9 @@ create inherit one of the node classes (InputNode, OutputNode, ProcessorNode).
 
 A basic node looks like this:
 
-.. highlight:: python
+.. code-block:: python
 
     from nodes.OutputNode import *
-    from StringProcessor import StringProcessor
 
     class EchoOutputNode(OutputNode):
         _known_properties = {
@@ -41,3 +40,12 @@ A basic node looks like this:
             self.mergeProperties()
             print(self.getProperty("text"))
 
+
+
+Add the usage of primaryProperties
+
+Get data from stream:
+
+Stream.getResource("ResType::*") -> gets all of ResType
+Stream.getResource("ResType::resname") -> gets resource with name "resname"
+Stream.getResource("ResType::resname.value") -> gets property with name "value". Can be changed by overwriting getData() in Node (e.g. Database)
