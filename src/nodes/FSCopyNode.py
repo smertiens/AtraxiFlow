@@ -1,15 +1,13 @@
 from pathlib import Path
 import shutil, os
-import logging
 from nodes.ProcessorNode import *
-from resources.FilesystemResource import *
 
 
 class FSCopyNode(ProcessorNode):
     _known_properties = {
-        'dest' : {
+        'dest': {
             'type': str,
-            'required' : True,
+            'required': True,
             'hint': 'The destination on the filesystem to copy the source to',
             'default': ''
         },
@@ -53,12 +51,12 @@ class FSCopyNode(ProcessorNode):
 
     def run(self, stream):
         self.mergeProperties()
-        
+
         if self.hasErrors:
             logging.error("Cannot proceed because of previous errors")
             return False
 
-        resources = stream.getResources(FilesystemResource.type)
+        resources = stream.getResources("FS:*")
 
         for res in resources:
             src = res.getPath()

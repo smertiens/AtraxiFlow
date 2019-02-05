@@ -1,7 +1,8 @@
 import unittest
-import Stream, StreamRunner
+import Stream
 from resources import TextResource
 from resources.FilesystemResource import *
+from nodes.NullNode import NullNode
 
 class test_Stream(unittest.TestCase):
 
@@ -41,6 +42,17 @@ class test_Stream(unittest.TestCase):
 
         self.assertEqual("demo", res.getProperty("text"))
         self.assertEqual("demo", st.getResource("Text:textres.text"))
+
+
+    def test_stream_run_nodes(self):
+        st = Stream.Stream()
+        st.appendNode(NullNode("demo1"))
+        st.appendNode(NullNode("demo2"))
+        st.appendNode(NullNode("demo3"))
+        st.run()
+
+        self.assertEqual(3, len(st._nodes))
+
 
 
 if __name__ == '__main__':

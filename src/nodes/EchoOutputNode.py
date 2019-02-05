@@ -6,7 +6,8 @@ class EchoOutputNode(OutputNode):
         'text': {
             'type': str,
             'required': True,
-            'hint': 'Text to output'
+            'hint': 'Text to output',
+            'primary': True
         }
     }
 
