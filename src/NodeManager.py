@@ -1,10 +1,12 @@
 from nodes.Node import Node as baseNode
+from resources.Resource import Resource as baseResource
 import pkgutil, importlib
 
 class NodeManager:
 
     def findAvailableNodes(self, includeResources = True):
 
+        # find Nodes
         import nodes
         importlib.import_module("nodes.Node")
 
@@ -18,6 +20,20 @@ class NodeManager:
 
                 if issubclass(cls, baseNode):
                     found_nodes.append(cls)
+
+        # find Resources
+        if includeResources is True:
+            import resources
+
+            ignore = ['Resource']
+
+            for importer, modname, ispkg in pkgutil.iter_modules(resources.__path__):
+                if not ispkg and modname not in ignore:
+                    module = importlib.import_module("resources." + modname)
+                    cls = getattr(module, modname)
+
+                    if issubclass(cls, baseResource):
+                        found_nodes.append(cls)
 
 
         return found_nodes

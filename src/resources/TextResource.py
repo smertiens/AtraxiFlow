@@ -2,6 +2,16 @@ from resources.Resource import *
 
 class TextResource(Resource):
 
+    _known_properties = {
+        'text': {
+            'label': "Text",
+            'type': "text",
+            'required': False,
+            'hint': 'A simple text',
+            'default': ''
+        }
+    }
+
     def getPrefix(self):
         return 'Text'
 

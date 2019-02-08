@@ -1,4 +1,7 @@
-class Resource:
+from PropertyObject import PropertyObject
+
+
+class Resource (PropertyObject):
 
     def getName(self):
         return self.name;
@@ -8,15 +11,6 @@ class Resource:
 
     def getData(self, key):
         return self.getProperty(key, None)
-
-    def setProperty(self, key, value):
-        self.properties[key] = value
-
-    def getProperty(self, key, default = ""):
-        if not key in self.properties:
-            return default
-        else:
-            return self.properties[key]
 
     def __init__(self, name = "", properties = {}):
         self.name = name

@@ -1,18 +1,37 @@
 import argparse
 import NodeManager
 import json
+from nodes import Node, InputNode, ProcessorNode, OutputNode
+from resources import  Resource
 
 def dump_nodes(outputfile, format):
     nm = NodeManager.NodeManager()
     nodes = nm.findAvailableNodes()
-    data = {"nodes": {}}
+    data = {"nodes": []}
 
     for node in nodes:
         n = node()
+        props = []
+        nodeType = ""
 
-        data['nodes'][n.getNodeClass()] = {
-            'props': n.getKnownProperties()
-        }
+        for name, opts in n.getKnownProperties().items():
+            opts['name'] = name
+            props.append(opts)
+
+        if issubclass(node, InputNode.InputNode):
+            nodeType = 'input'
+        elif issubclass(node, OutputNode.OutputNode):
+            nodeType = 'output'
+        elif issubclass(node, ProcessorNode.ProcessorNode):
+            nodeType = 'processor'
+        elif issubclass(node, Resource.Resource):
+            nodeType = 'resource'
+
+        data['nodes'].append({
+            'nodeClass': n.__class__.__name__,
+            'nodeType': nodeType,
+            'props': props
+        })
 
     fp = open(outputfile, "w+")
 

@@ -9,6 +9,15 @@ Properties:
 class FilesystemResource(Resource):
     
     type = 'FilesystemResource'
+    _known_properties = {
+        'sourcePattern': {
+            'label': "Source",
+            'type': "file",
+            'required': True,
+            'hint': 'A file or folder',
+            'default': ''
+        }
+    }
 
     def getPrefix(self):
         return 'FS'
