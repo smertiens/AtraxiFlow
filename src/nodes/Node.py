@@ -7,7 +7,7 @@ class Node:
         return self.name
 
     def getNodeClass(self):
-        raise Exception("Node class must implement getNodeType-method")
+        raise Exception("Node class must implement getNodeClass-method")
 
     def setProperty(self, key, value):
         self.properties[key] = value
@@ -55,5 +55,9 @@ class Node:
         self.properties = {}
         self.hasErrors = False
 
+    def getKnownProperties(self):
+        return self._known_properties
+
     def run(self, stream):
         raise Exception("Node class must implement run-method")
+

@@ -4,7 +4,7 @@ from StringProcessor import StringProcessor
 class EchoOutputNode(OutputNode):
     _known_properties = {
         'text': {
-            'type': str,
+            'type': "string",
             'required': True,
             'hint': 'Text to output',
             'primary': True

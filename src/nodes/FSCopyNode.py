@@ -6,13 +6,13 @@ from nodes.ProcessorNode import *
 class FSCopyNode(ProcessorNode):
     _known_properties = {
         'dest': {
-            'type': str,
+            'type': "string",
             'required': True,
             'hint': 'The destination on the filesystem to copy the source to',
             'default': ''
         },
         'create_if_missing': {
-            'type': bool,
+            'type': "bool",
             'required': False,
             'hint': 'Creates the destination path if it is missing',
             'default': True

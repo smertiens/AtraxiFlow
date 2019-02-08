@@ -5,14 +5,14 @@ class ShellExecNode(ProcessorNode):
 
     _known_properties = {
         "cmd": {
-            'type': str,
+            'type': "string",
             'required': True,
             'hint': 'Command to execute',
             'primary': True
         }
     }
 
-    children =[]
+    children = []
 
     def getNodeClass(self):
         return 'ShellExec'

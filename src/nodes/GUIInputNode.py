@@ -6,12 +6,12 @@ from tkinter import simpledialog
 class GUIInputNode(InputNode):
     _known_properties = {
         'save_to': {
-            'type': str,
+            'type': "string",
             'required': False,
             'hint': 'THe name of the text resource to save the input to.'
         },
         'prompt': {
-            'type': str,
+            'type': "string",
             'required': False,
             'hint': 'The text to display when prompting the user for input.'
         }
