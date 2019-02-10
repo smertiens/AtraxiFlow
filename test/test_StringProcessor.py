@@ -1,5 +1,5 @@
-import unittest, logging
-from StringProcessor import StringProcessor
+import unittest
+from common.StringProcessor import StringProcessor
 from Stream import Stream
 from resources.TextResource import TextResource
 

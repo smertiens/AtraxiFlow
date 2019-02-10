@@ -5,7 +5,7 @@ class TextResource(Resource):
     _known_properties = {
         'text': {
             'label': "Text",
-            'type': "text",
+            'type': "string",
             'required': False,
             'hint': 'A simple text',
             'default': ''

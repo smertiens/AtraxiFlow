@@ -1,4 +1,7 @@
 from resources.Resource import *
+from common.FSObject import FSObject
+
+import glob
 
 """
 Provides access to the filesysmtem.
@@ -18,11 +21,22 @@ class FilesystemResource(Resource):
             'default': ''
         }
     }
+    _fsobjects = []
 
     def getPrefix(self):
         return 'FS'
 
-    def getData(self, key):
-        # ignore key - we only hold one single resource, and that is a file/folder
-        return self.getProperty("sourcePattern")
+    def _resolve(self):
+        items = glob.glob(self.getProperty("sourcePattern"))
+
+        for item in items:
+            self._fsobjects.append(FSObject(item))
+
+
+    def getData(self, key = ""):
+        if "" == key:
+            self._resolve()
+            return self._fsobjects
+        else:
+            return self.getProperty(key)
 

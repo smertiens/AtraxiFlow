@@ -1,5 +1,5 @@
 from nodes.OutputNode import *
-from StringProcessor import StringProcessor
+from common.StringProcessor import StringProcessor
 
 class EchoOutputNode(OutputNode):
     _known_properties = {

@@ -1,6 +1,4 @@
-import logging
-
-from PropertyObject import PropertyObject
+from common.PropertyObject import PropertyObject
 
 
 class Node (PropertyObject):

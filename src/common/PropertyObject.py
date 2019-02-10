@@ -1,3 +1,5 @@
+import logging
+
 class PropertyObject:
 
     def mergeProperties(self):

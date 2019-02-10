@@ -1,4 +1,4 @@
-from PropertyObject import PropertyObject
+from common.PropertyObject import PropertyObject
 
 
 class Resource (PropertyObject):
