@@ -18,13 +18,16 @@ class PropertyObject:
 
         # check and merge properties
         for name, opt in self._known_properties.items():
-            if ("required" in opt and opt["required"] is True) and (name not in self._user_properties):
+            if ("required" in opt and opt["required"] is True) \
+                    and (name not in self._user_properties) \
+                    and (name not in self.properties):
+
                 logging.error("Missing property: {0} in {1}::{2}".format(name, self.getNodeClass(), self.getName()))
                 self.hasErrors = True
                 return
-            elif name not in self._user_properties and "default" in opt:
+            elif (name not in self._user_properties) and (name not in self.properties) and ("default" in opt):
                 self.properties[name] = opt['default']
-            else:
+            elif (name not in self.properties) and (name in self._user_properties):
                 self.properties[name] = self._user_properties[name]
 
 

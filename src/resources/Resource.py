@@ -12,7 +12,11 @@ class Resource (PropertyObject):
     def getData(self, key):
         return self.getProperty(key, None)
 
-    def __init__(self, name = "", properties = {}):
+    def __init__(self, name = "", props = {}):
         self.name = name
-        self.properties = properties
+        self._user_properties = props
+        self.properties = {}
+
+    def getNodeClass(self):
+        return "STUB"
 

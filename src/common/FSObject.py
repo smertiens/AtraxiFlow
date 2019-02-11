@@ -36,3 +36,15 @@ class FSObject:
 
     def getBasename(self):
         return os.path.basename(self.path)
+
+    def getFilesize(self):
+        return os.path.getsize(self.path)
+
+    def getLastModified(self):
+        return os.path.getmtime(self.path)
+
+    def getLastAccessed(self):
+        return os.path.getatime(self.path)
+
+    def getCreated(self):
+        return os.path.getctime(self.path)

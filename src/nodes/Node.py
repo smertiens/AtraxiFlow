@@ -20,7 +20,7 @@ class Node (PropertyObject):
     def __init__(self, name="", props=dict()):
         self.name = name
         self._user_properties = props
-        self.properties = {}
+        #self.properties = {}
         self.hasErrors = False
 
 

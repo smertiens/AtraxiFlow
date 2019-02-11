@@ -1,7 +1,7 @@
 from pathlib import Path
 import shutil, os
 from nodes.ProcessorNode import *
-
+import logging
 
 class FSCopyNode(ProcessorNode):
     _known_properties = {
