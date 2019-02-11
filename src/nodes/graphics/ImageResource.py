@@ -1,17 +1,18 @@
 from nodes.foundation import Resource
 from common.graphics import ImageObject
 from common.propertyobject import PropertyObject
+import logging
 
 class ImageResource(Resource):
 
     def __init__(self, name="", props=None):
         self.name = name
         self._known_properties = {
-            'file': {
+            'src': {
                 'label': "Source",
-                'type': "file",
+                'type': "file,image",
                 'required': True,
-                'hint': 'An image file',
+                'hint': 'An image file or object',
                 'default': '',
                 'primary': True
             }
@@ -27,11 +28,22 @@ class ImageResource(Resource):
         # node specific
         self._imgobject = None
 
-        self.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self.event_property_changed)
+        self.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self._ev_property_changed)
+        self.add_listener(PropertyObject.EVENT_PROPERTIES_CHECKED, self._ev_properties_checked)
 
-    def event_property_changed(self, data):
-        if data == 'file':
-            self._imgobject = ImageObject(self.get_property('file'))
+    def _process_src(self):
+        if isinstance(self.get_property('src'), ImageObject):
+            self._imgobject = self.get_property('src')
+        else:
+            self._imgobject = ImageObject(self.get_property('src'))
+
+    def _ev_property_changed(self, data):
+        if data == 'src':
+            self._process_src()
+
+    def _ev_properties_checked(self, data):
+        if data is True:
+            self._process_src()
 
     def get_prefix(self):
         return 'Img'
@@ -39,7 +51,13 @@ class ImageResource(Resource):
     def remove_data(self, obj):
         self._imgobject = None
 
-    def get_data(self, key=""):
+    def get_data(self):
         self.check_properties()
-
         return self._imgobject
+
+    def update_data(self, data):
+        if not isinstance(data, ImageObject):
+            logging.error("Expected ImageObject, got {0}".format(type(data)))
+            return
+
+        self._imgobject = data

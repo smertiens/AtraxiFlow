@@ -23,6 +23,17 @@ class test_Stream(unittest.TestCase):
         self.assertEqual(2, len(st.get_resources("FS:*_world")))
         self.assertEqual(3, len(st.get_resources("FS:res*")))
 
+    def test_stream_get_resources_properties(self):
+        st = Stream.Stream()
+
+        res1 = FilesystemResource("res1")
+        res1.set_property('hello', 'world')
+        res1.set_property('lorem', 'ipsum')
+        st.add_resource(res1)
+
+        self.assertEqual('world', st.get_resources("FS:res1.hello"))
+        self.assertEqual('ipsum', st.get_resources("FS:res1.lorem"))
+
 
     def test_stream_add_remove_resource(self):
          st = Stream.Stream()

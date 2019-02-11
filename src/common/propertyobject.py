@@ -4,6 +4,7 @@ from common.events import EventObject
 class PropertyObject(EventObject):
 
     EVENT_PROPERTY_CHANGED = 'property_changed'
+    EVENT_PROPERTIES_CHECKED = 'properties_checked'
 
     def check_properties(self):
 
@@ -18,12 +19,14 @@ class PropertyObject(EventObject):
 
             if foundMatch is not True:
                 logging.error("Single argument given, but no primary property defined that will take it.")
+                self.fire_event(self.EVENT_PROPERTIES_CHECKED, False)
                 return False
 
         # check and merge properties
         for name, opt in self._known_properties.items():
             if ("required" in opt and opt["required"] is True) and (name not in self.properties):
                 logging.error("Missing property: {0} in {1}".format(name, self.__class__.__name__))
+                self.fire_event(self.EVENT_PROPERTIES_CHECKED, False)
                 return False
 
             elif (name not in self.properties) and ("default" in opt):
@@ -32,8 +35,10 @@ class PropertyObject(EventObject):
 
             elif name in self.properties:
                 # this will fire when property has been set via the constructor's prop-argument
-                self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
+                #self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
+                pass
 
+        self.fire_event(self.EVENT_PROPERTIES_CHECKED, True)
         return True
 
     def set_property(self, key, value):

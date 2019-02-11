@@ -19,9 +19,16 @@ class test_ImageResizeNode(unittest.TestCase):
         st = Stream()
         st.add_resource(FilesystemResource(props={'sourcePattern': os.path.join(self.get_test_folder(), 'img1.jpg')}))
         st.add_resource(FilesystemResource(props={'sourcePattern': os.path.join(self.get_test_folder(), 'img2.jpg')}))
-        st.add_resource(ImageResource(props={'file': os.path.join(self.get_test_folder(), 'img3.jpg')}))
+        st.add_resource(ImageResource(props={'src': os.path.join(self.get_test_folder(), 'img3.jpg')}))
+        self.assertEqual(2, len(st.get_resources('FS:*')))
+        self.assertEqual(1, len(st.get_resources('Img:*')))
+
         st.append_node(ImageResizeNode(props={'target_w' : '300'}))
         self.assertTrue(st.run())
+
+        self.assertEqual(2, len(st.get_resources('FS:*')))
+        self.assertEqual(3, len(st.get_resources('Img:*')))
+
 
 if __name__ == '__main__':
     unittest.main()

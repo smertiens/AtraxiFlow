@@ -111,19 +111,17 @@ class FileFilterNode(ProcessorNode):
         self.check_properties()
 
         # filter FSObjects from every resource and filter them down
-        objects_to_remove = {}
 
         for resource in stream.get_resources(self.get_property('sources')):
-            objects_to_remove[resource] = []
+            objects_to_remove = set() # set values are unique
 
             # collect objects that do not match the criteria
             for filter in self.get_property("filter"):
                 for fso in resource.get_data():
                     if not self._matches_filter(fso, filter):
-                        objects_to_remove[resource].append(fso)
+                        objects_to_remove.add(fso)
 
-        for res, objs in objects_to_remove.items():
-            for o in objs:
-                res.remove_data(o)
+            current_objects = set(resource.get_data())
+            resource.update_data(list( current_objects - objects_to_remove ))
 
         return True

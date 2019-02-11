@@ -35,8 +35,11 @@ class Resource (PropertyObject):
     def get_prefix(self):
         raise Exception("Resources must overwrite getPrefix()")
 
-    def get_data(self, key):
-        return self.get_property(key, None)
+    def get_data(self):
+        pass
+
+    def update_data(self, data):
+        pass
 
     def resolve_variable(self, varname):
         return str(self)

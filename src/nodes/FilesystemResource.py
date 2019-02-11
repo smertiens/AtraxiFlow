@@ -40,6 +40,11 @@ class FilesystemResource(Resource):
 
         # events
         self.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self._ev_property_changed)
+        self.add_listener(PropertyObject.EVENT_PROPERTIES_CHECKED, self._ev_properties_checked)
+
+    def _ev_properties_checked(self, data):
+        if data is True:
+            self._resolve()
 
     def _ev_property_changed(self, data):
         if data == 'sourcePattern':
@@ -68,10 +73,13 @@ class FilesystemResource(Resource):
 
         self._fsobjects.remove(obj)
 
-    def get_data(self, key=""):
+    def get_data(self):
         self.check_properties()
+        return self._fsobjects
 
-        if "" == key:
-            return self._fsobjects
-        else:
-            return self.get_property(key)
+    def update_data(self, data):
+        if not isinstance(data, list):
+            logging.error("Expected List, got {0}".format(type(data)))
+            return
+
+        self._fsobjects = data

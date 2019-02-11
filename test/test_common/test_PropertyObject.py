@@ -86,14 +86,13 @@ class test_PropertyObject(unittest.TestCase):
         res = FilesystemResource()
         res.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self.prop_changed_callback)
 
-        self.assertEqual(1, len(res._listeners))
+        self.assertEqual(2, len(res._listeners))
 
     def test_fire_events(self):
         res = FilesystemResource()
         res.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self.prop_changed_callback)
 
         self.assertEqual('', self.cb_one_run)
-        self.assertEqual(1, len(res._listeners))
         res.fire_event(PropertyObject.EVENT_PROPERTY_CHANGED, 'hello world')
         self.assertEqual('hello world', self.cb_one_run)
 

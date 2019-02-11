@@ -67,14 +67,14 @@ class Stream:
                 if requestedVal is None:
                     return resource
                 else:
-                    return resource.get_data(requestedVal)
+                    return resource.get_property(requestedVal)
             elif (key.startswith("*") and resource.get_name().endswith(key[1:])) or \
                     (key.endswith("*") and resource.get_name().startswith(key[0:-1])):
 
                 if requestedVal is None:
                     results.append(resource)
                 else:
-                    results.append(resource.get_data(requestedVal))
+                    results.append(resource.get_property(requestedVal))
 
         return results
 
@@ -90,6 +90,7 @@ class Stream:
 
     def _run_node(self, node):
         logging.info("Running {0}".format(node.__class__.__name__))
+
         if node.run(self) is False:
             logging.error('Error processing node. Exiting.')
             return False

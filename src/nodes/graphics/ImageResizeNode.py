@@ -66,7 +66,7 @@ class ImageResizeNode(ProcessorNode):
             return False
 
         # Get resources for transform
-        imgobjects = []
+
         # Get file resources
         res = []
 
@@ -78,16 +78,14 @@ class ImageResizeNode(ProcessorNode):
 
         for r in res:
             if isinstance(r, ImageResource):
-                img = r.get_data()
+                img = self._do_resize(r.get_data())
+                r.update_data(img)
             elif isinstance(r, FilesystemResource):
                 for fso in r.get_data():
                     img = graphics.ImageObject(fso)
 
                     if img.is_valid():
-                        imgobjects.append(img)
+                        img = self._do_resize(img)
 
-        for img in imgobjects:
-            img = self._do_resize(img)
-
-        imgo = stream.get_resources('Img:*')[0]
-        print(imgo.get_data().width())
+                        # we will leave the FSResources and create new ImageResources for our results
+                        stream.add_resource(ImageResource(props={'src': img}))
