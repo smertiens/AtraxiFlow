@@ -7,6 +7,7 @@ class NullNode(ProcessorNode):
         self.name = name
         self._known_properties = {}
         self.children = []
+        self._listeners = {}
 
         if props:
             self.properties = props

@@ -1,7 +1,9 @@
 import logging
+from common.events import EventObject
 
+class PropertyObject(EventObject):
 
-class PropertyObject:
+    EVENT_PROPERTY_CHANGED = 'property_changed'
 
     def check_properties(self):
 
@@ -30,6 +32,8 @@ class PropertyObject:
 
     def set_property(self, key, value):
         self.properties[key] = value
+        self.fire_event(self.EVENT_PROPERTY_CHANGED, key)
+        return self
 
     def get_property(self, key, default=""):
         if not key in self.properties:
@@ -39,3 +43,5 @@ class PropertyObject:
 
     def get_known_properties(self):
         return self._known_properties
+
+

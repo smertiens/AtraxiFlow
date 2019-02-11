@@ -15,6 +15,7 @@ class ShellExecNode(ProcessorNode):
             }
         }
         self.children = []
+        self._listeners = {}
 
         if props:
             self.properties = props

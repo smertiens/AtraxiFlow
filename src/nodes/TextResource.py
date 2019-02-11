@@ -15,6 +15,7 @@ class TextResource(Resource):
             }
         }
         self.children = []
+        self._listeners = {}
 
         if props:
             self.properties = props

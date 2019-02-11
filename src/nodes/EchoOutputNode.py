@@ -15,6 +15,7 @@ class EchoOutputNode(OutputNode):
             }
         }
         self.children = []
+        self._listeners = {}
 
         if props:
             self.properties = props

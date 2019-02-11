@@ -1,14 +1,20 @@
 import unittest, logging, os
 from common.propertyobject import PropertyObject
 from nodes.NullNode import  NullNode
+from nodes.FilesystemResource import FilesystemResource
 
 class test_PropertyObject(unittest.TestCase):
+
+    cb_one_run = ''
+
+    def prop_changed_callback(self, data):
+        self.cb_one_run = data
 
     def setUp(self):
         pass
 
     def tearDown(self):
-        pass
+        cb_one_run = ''
 
     def get_test_node(self):
         n = NullNode("test")
@@ -76,6 +82,20 @@ class test_PropertyObject(unittest.TestCase):
         n = self.get_test_node()
         self.assertFalse(n.check_properties())
 
+    def test_register_callables(self):
+        res = FilesystemResource()
+        res.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self.prop_changed_callback)
+
+        self.assertEqual(1, len(res._listeners))
+
+    def test_fire_events(self):
+        res = FilesystemResource()
+        res.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self.prop_changed_callback)
+
+        self.assertEqual('', self.cb_one_run)
+        self.assertEqual(1, len(res._listeners))
+        res.fire_event(PropertyObject.EVENT_PROPERTY_CHANGED, 'hello world')
+        self.assertEqual('hello world', self.cb_one_run)
 
 if __name__ == '__main__':
     unittest.main()

@@ -25,6 +25,7 @@ class StringValueProcessor:
 
     def add_variable(self, key, value):
         self._value_map[key] = value
+        return self
 
     def parse(self, string):
         """

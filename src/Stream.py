@@ -1,4 +1,4 @@
-from resources.ResourceException import ResourceException
+from exceptions import ResourceException
 import logging
 
 

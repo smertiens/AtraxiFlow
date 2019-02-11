@@ -7,6 +7,7 @@ class {# ClassName #}(Resource):
         self.name = name
         self._known_properties = {}
         self.children = []
+        self.listeners = {}
 
         if props:
             self.properties = props

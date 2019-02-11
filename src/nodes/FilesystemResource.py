@@ -1,5 +1,6 @@
 from nodes.foundation import Resource
 from common.filesystem import FSObject
+from common.propertyobject import PropertyObject
 
 import glob, logging
 
@@ -26,6 +27,7 @@ class FilesystemResource(Resource):
             }
         }
         self.children = []
+        self._listeners = {}
 
         if props:
             self.properties = props
@@ -35,6 +37,14 @@ class FilesystemResource(Resource):
         # node specific
         self._fsobjects = []
         self._resolved = False
+
+        # events
+        self.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self.event_property_changed)
+
+    def event_property_changed(self, data):
+        if data == 'sourcePattern':
+            self._resolved = False
+            self._resolve()
 
     def get_prefix(self):
         return 'FS'
@@ -62,7 +72,6 @@ class FilesystemResource(Resource):
         self.check_properties()
 
         if "" == key:
-            self._resolve()
             return self._fsobjects
         else:
             return self.get_property(key)

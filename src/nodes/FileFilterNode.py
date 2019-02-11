@@ -39,6 +39,7 @@ class FileFilterNode(ProcessorNode):
             }
         }
         self.children = []
+        self._listeners = {}
 
         if props:
             self.properties = props

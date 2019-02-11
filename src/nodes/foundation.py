@@ -1,5 +1,5 @@
 from common.propertyobject import PropertyObject
-
+from common.events import EventObject
 
 class Node(PropertyObject):
 
