@@ -1,17 +1,16 @@
-from nodes.node import Node as baseNode
-from resources.Resource import Resource as baseResource
+from nodes.foundation import Node as baseNode
+from nodes.foundation import Resource as baseResource
 import pkgutil, importlib
 
 class NodeManager:
 
-    def findAvailableNodes(self, includeResources = True):
+    def find_available_nodes(self, include_resources = True):
 
         # find Nodes
         import nodes
-        importlib.import_module("nodes.Node")
 
         found_nodes = []
-        ignore = ['Node', 'ProcessorNode', 'OutputNode', 'InputNode']
+        ignore = ['foundation']
 
         for importer, modname, ispkg in pkgutil.iter_modules(nodes.__path__):
             if not ispkg and modname not in ignore:
@@ -22,7 +21,7 @@ class NodeManager:
                     found_nodes.append(cls)
 
         # find Resources
-        if includeResources is True:
+        if include_resources is True:
             import resources
 
             ignore = ['Resource']

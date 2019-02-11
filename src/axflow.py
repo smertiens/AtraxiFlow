@@ -1,14 +1,51 @@
 import argparse
 import NodeManager
-import json
+import json, os
 from nodes.foundation import Node, InputNode, ProcessorNode, OutputNode, Resource
 
-def make_skeleton_node(name):
-    pass
+def create_from_template(tpl, name, tp):
+    parentNode = ""
+    if (tp == 'input'):
+        parentNode = 'InputNode'
+    elif (tp == 'output'):
+        parentNode = 'OutputNode'
+    else:
+        parentNode = 'ProcessorNode'
+
+    base_path = os.path.dirname(os.path.realpath(__file__));
+
+    if tpl == 'node':
+        tpl_path = os.path.join(base_path, 'templates', 'Node.tpl')
+    elif tpl == 'resource':
+        tpl_path = os.path.join(base_path, 'templates', 'Resource.tpl')
+    elif tpl == 'script':
+        tpl_path = os.path.join(base_path, 'templates', 'Script.tpl')
+    else:
+        print("Error: Invalid template '{0}'".format(tpl))
+        return False
+
+    fp = open(tpl_path, 'r')
+    content = fp.read()
+    fp.close()
+
+    replace_map = {
+        '{# ClassName #}' : name,
+        '{# Type #}' : parentNode
+    }
+
+    for search, replace in replace_map.items():
+        content = content.replace(search, replace)
+
+    fp = open(os.path.join(base_path, 'nodes', name + '.py'), 'w')
+    fp.write(content)
+    fp.close()
+
+    print ("Created file {0} in nodes".format(name + '.py'))
+
 
 def dump_nodes(outputfile, format):
     nm = NodeManager.NodeManager()
-    nodes = nm.findAvailableNodes()
+    nodes = nm.find_available_nodes()
     data = {"nodes": []}
 
     for node in nodes:
@@ -16,7 +53,7 @@ def dump_nodes(outputfile, format):
         props = []
         nodeType = ""
 
-        for name, opts in n.getKnownProperties().items():
+        for name, opts in n.get_known_properties().items():
             opts['name'] = name
             props.append(opts)
 
@@ -47,8 +84,17 @@ if __name__ == '__main__':
 
     # Parse CLI args
     parser = argparse.ArgumentParser(description="Flow based workflow tool")
+
     parser.add_argument('command', metavar='cmd', type=str, nargs='?',
-                        help='an integer for the accumulator', default="run")
+                        help='The command you want to execute')
+
+    ### create:node ###
+    parser.add_argument("--name", type=str, help="The class name of the node you want to create",
+                        default="NewNode")
+    parser.add_argument("--node-type", type=str, help="The node type you want to create (input, output, processor)",
+                        default="processor")
+
+    ### dump:nodes ###
     parser.add_argument("--save-to", type=str, help="Data produced by dump-nodes will be saved to this file",
                         default="./nodes.json")
     parser.add_argument("--export-format", type=str, help="The format to which dump-nodes will output the node data "
@@ -56,10 +102,11 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if args.command == "dump-nodes":
+    if args.command == "dump:nodes":
         dump_nodes(args.save_to, args.export_format)
-    elif args.command == "make-node":
-        make_skeleton_node("")
-
+    elif args.command == "create:node":
+        create_from_template('node', args.name, args.node_type)
+    elif args.command == "create:resource":
+        create_from_template('resource', args.name, args.node_type)
 
 
