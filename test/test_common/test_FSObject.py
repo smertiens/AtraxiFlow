@@ -1,5 +1,5 @@
 import unittest, logging, os
-from common.FSObject import FSObject
+from common.filesystem import FSObject
 
 class test_FilesystemResource(unittest.TestCase):
 

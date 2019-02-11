@@ -1,22 +1,26 @@
-from nodes.ProcessorNode import ProcessorNode
+from nodes.foundation import ProcessorNode
 import subprocess, os
+
 
 class ShellExecNode(ProcessorNode):
 
-    _known_properties = {
-        "cmd": {
-            'type': "string",
-            'required': True,
-            'hint': 'Command to execute',
-            'primary': True
+    def __init__(self, name="", props=None):
+        self.name = name
+        self._known_properties = {
+            'cmd' : {
+                'type': "string",
+                'required': True,
+                'hint': 'Command to execute',
+                'primary': True
+            }
         }
-    }
+        self.children = []
 
-    children = []
-
-    def getNodeClass(self):
-        return 'ShellExec'
+        if props:
+            self.properties = props
+        else:
+            self.properties = {}
 
     def run(self, stream):
-        self.mergeProperties()
-        os.system(self.getProperty("cmd"))
+        self.check_properties()
+        os.system(self.get_property("cmd"))

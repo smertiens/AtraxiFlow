@@ -37,8 +37,8 @@ A basic node looks like this:
             return 'EchoOutput'
 
         def run(self, stream):
-            self.mergeProperties()
-            print(self.getProperty("text"))
+            self.check_properties()
+            print(self.get_property("text"))
 
 
 

@@ -1,4 +1,4 @@
-from nodes.Node import Node as baseNode
+from nodes.node import Node as baseNode
 from resources.Resource import Resource as baseResource
 import pkgutil, importlib
 

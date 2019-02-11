@@ -1,8 +1,9 @@
 from nodes.InputNode import *
-from resources.TextResource import *
-import sys
+from nodes.TextResource import *
+import tkinter as tk
+from tkinter import simpledialog
 
-class CLIInputNode(InputNode):
+class GUIInputNode(InputNode):
     _known_properties = {
         'save_to': {
             'type': "string",
@@ -20,10 +21,15 @@ class CLIInputNode(InputNode):
 
 
     def getNodeClass(self):
-        return 'CLIInputNode'
+        return 'GUIInputNode'
 
     def run(self, stream):
         self.mergeProperties()
 
-        userInput = input(self.getProperty('prompt', 'Please enter') + ": ")
-        stream.addResource(TextResource(self.getProperty('save_to', 'last_cli_input'), {"text": userInput}))
+        wnd = tk.Tk()
+        userInput = simpledialog.askstring("Input", self.getProperty("prompt"), parent=wnd)
+
+        if userInput == None:
+            userInput = ""
+
+        stream.add_resource(TextResource(self.getProperty('save_to', 'last_cli_input'), {"text": userInput}))

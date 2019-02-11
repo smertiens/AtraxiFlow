@@ -1,5 +1,6 @@
 import unittest, logging, os
-from resources.FilesystemResource import FilesystemResource
+from nodes.FilesystemResource import FilesystemResource
+from common.filesystem import FSObject
 
 class test_FilesystemResource(unittest.TestCase):
 
@@ -19,22 +20,22 @@ class test_FilesystemResource(unittest.TestCase):
 
     def test_resolve_wildcards(self):
         fs = FilesystemResource()
-        fs.setProperty("sourcePattern", os.path.join(self.testPath, "*"))
-        data = fs.getData()
+        fs.set_property("sourcePattern", os.path.join(self.testPath, "*"))
+        data = fs.get_data()
 
-        self.assertEqual(3, len(data))
-        self.assertEqual(self.testPath, data[0].getAbsolutePath())
-        self.assertEqual(os.path.join(self.testPath, "folder"), data[1].getAbsolutePath())
-        self.assertEqual(os.path.join(self.testPath, "testfile.txt"), data[2].getAbsolutePath())
-
+        self.assertTrue(fs._resolved)
+        self.assertEqual(2, len(data))
+        self.assertIsInstance(data[0], FSObject)
+        self.assertIsInstance(data[1], FSObject)
 
     def test_resolve_no_wildcards(self):
         fs = FilesystemResource()
-        fs.setProperty("sourcePattern", self.testPath)
-        data = fs.getData()
+        fs.set_property("sourcePattern", self.testPath)
+        data = fs.get_data()
 
+        self.assertTrue(fs._resolved)
         self.assertEqual(1, len(data))
-        self.assertEqual(self.testPath, data[0].getAbsolutePath())
+        self.assertIsInstance(data[0], FSObject)
 
 if __name__ == '__main__':
     unittest.main()

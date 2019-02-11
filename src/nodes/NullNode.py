@@ -1,15 +1,17 @@
-from nodes.ProcessorNode import *
+from nodes.foundation import ProcessorNode
+
 
 class NullNode(ProcessorNode):
 
-    _known_properties = {
-        
-    }
+    def __init__(self, name="", props=None):
+        self.name = name
+        self._known_properties = {}
+        self.children = []
 
-    children = []
-
-    def getNodeClass(self):
-        return 'NullNode'
+        if props:
+            self.properties = props
+        else:
+            self.properties = {}
 
     def run(self, stream):
         pass

@@ -1,6 +1,6 @@
-from nodes.ProcessorNode import *
-from common.FSObject import FSObject
-from common import DateTimeProcessor
+from nodes.foundation import ProcessorNode
+from common.filesystem import FSObject
+from common.data import DatetimeProcessor
 import logging, re
 
 '''
@@ -18,30 +18,34 @@ comparator: < > = <= >= !=
 
 
 class FileFilterNode(ProcessorNode):
-    _known_properties = {
-        'filter': {
-            'label': "List of filters",
-            'type': "list",
-            'required': True,
-            'hint': 'Filters all or given filesystem resources',
-            'default': {}
-        },
-        'sources': {
-            'label': "Sources",
-            'type': "string",
-            'required': False,
-            'hint': 'A resource query',
-            'default': 'FS:*'
+
+
+    def __init__(self, name="", props=None):
+        self.name = name
+        self._known_properties = {
+            'filter': {
+                'label': "List of filters",
+                'type': "list",
+                'required': True,
+                'hint': 'Filters all or given filesystem resources',
+                'default': {}
+            },
+            'sources': {
+                'label': "Sources",
+                'type': "string",
+                'required': False,
+                'hint': 'A resource query',
+                'default': 'FS:*'
+            }
         }
-    }
+        self.children = []
 
-    children = []
-    properties = {}
+        if props:
+            self.properties = props
+        else:
+            self.properties = {}
 
-    def getNodeClass(self):
-        return 'FileFilterNode'
-
-    def _filesizeValueToNumber(self, str_size):
+    def _filesize_value_to_number(self, str_size):
         matches = re.match("(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
 
         if matches is None:
@@ -66,7 +70,7 @@ class FileFilterNode(ProcessorNode):
 
             return int(matches.group(1)) * f
 
-    def _matchesFilter(self, fso, filter):
+    def _matches_filter(self, fso, filter):
         """
 
         :type fso: FSObject
@@ -76,13 +80,13 @@ class FileFilterNode(ProcessorNode):
 
         if filter[0] == "file_size":
             leftVal = fso.getFilesize()
-            rightVal = self._filesizeValueToNumber(filter[2])
+            rightVal = self._filesize_value_to_number(filter[2])
         elif filter[0] == "date_created":
             leftVal = fso.getCreated()
-            rightVal = DateTimeProcessor.processString(filter[2])
+            rightVal = DatetimeProcessor.processString(filter[2])
         elif filter[0] == "date_modified":
             leftVal = fso.getLastModified()
-            rightVal = DateTimeProcessor.processString(filter[2])
+            rightVal = DatetimeProcessor.processString(filter[2])
 
         #print (fso.getBasename(), ": ", leftVal, filter[1], rightVal)
 
@@ -103,22 +107,22 @@ class FileFilterNode(ProcessorNode):
             return False
 
     def run(self, stream):
-        self.mergeProperties()
+        self.check_properties()
 
         # filter FSObjects from every resource and filter them down
-        objectsToRemove = {}
+        objects_to_remove = {}
 
-        for resource in stream.getResource(self.getProperty('sources')):
-            objectsToRemove[resource] = []
+        for resource in stream.get_resources(self.get_property('sources')):
+            objects_to_remove[resource] = []
 
             # collect objects that do not match the criteria
-            for filter in self.getProperty("filter"):
-                for fso in resource.getData():
-                    if not self._matchesFilter(fso, filter):
-                        objectsToRemove[resource].append(fso)
+            for filter in self.get_property("filter"):
+                for fso in resource.get_data():
+                    if not self._matches_filter(fso, filter):
+                        objects_to_remove[resource].append(fso)
 
-        for res, objs in objectsToRemove.items():
+        for res, objs in objects_to_remove.items():
             for o in objs:
-                res.removeData(o)
+                res.remove_data(o)
 
         return True

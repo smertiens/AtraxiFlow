@@ -1,22 +1,27 @@
-from nodes.OutputNode import *
-from common.StringProcessor import StringProcessor
+from nodes.foundation import OutputNode
+from common.data import StringValueProcessor
+
 
 class EchoOutputNode(OutputNode):
-    _known_properties = {
-        'text': {
-            'type': "string",
-            'required': True,
-            'hint': 'Text to output',
-            'primary': True
+
+    def __init__(self, name="", props=None):
+        self.name = name
+        self._known_properties = {
+            'text': {
+                'type': "string",
+                'required': True,
+                'hint': 'Text to output',
+                'primary': True
+            }
         }
-    }
+        self.children = []
 
-    children = []
-
-    def getNodeClass(self):
-        return 'EchoOutput'
+        if props:
+            self.properties = props
+        else:
+            self.properties = {}
 
     def run(self, stream):
-        self.mergeProperties()
-        stp = StringProcessor(stream)
-        print(stp.parse(self.getProperty("text")) + "\n")
+        self.check_properties()
+        stp = StringValueProcessor(stream)
+        print(stp.parse(self.get_property("text")) + "\n")

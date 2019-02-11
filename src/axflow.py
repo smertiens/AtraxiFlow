@@ -1,8 +1,10 @@
 import argparse
 import NodeManager
 import json
-from nodes import Node, InputNode, ProcessorNode, OutputNode
-from resources import  Resource
+from nodes.foundation import Node, InputNode, ProcessorNode, OutputNode, Resource
+
+def make_skeleton_node(name):
+    pass
 
 def dump_nodes(outputfile, format):
     nm = NodeManager.NodeManager()
@@ -18,13 +20,13 @@ def dump_nodes(outputfile, format):
             opts['name'] = name
             props.append(opts)
 
-        if issubclass(node, InputNode.InputNode):
+        if issubclass(node, InputNode):
             nodeType = 'input'
-        elif issubclass(node, OutputNode.OutputNode):
+        elif issubclass(node, OutputNode):
             nodeType = 'output'
-        elif issubclass(node, ProcessorNode.ProcessorNode):
+        elif issubclass(node, ProcessorNode):
             nodeType = 'processor'
-        elif issubclass(node, Resource.Resource):
+        elif issubclass(node, Resource):
             nodeType = 'resource'
 
         data['nodes'].append({
@@ -56,4 +58,8 @@ if __name__ == '__main__':
 
     if args.command == "dump-nodes":
         dump_nodes(args.save_to, args.export_format)
+    elif args.command == "make-node":
+        make_skeleton_node("")
+
+
 

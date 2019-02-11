@@ -1,6 +1,5 @@
-import logging, sys
-from nodes import FSCopyNode, CLIInputNode,EchoOutputNode,GUIInputNode
-from resources.FilesystemResource import *
+from old import CLIInputNode
+from nodes import EchoOutputNode
 from Stream import *
 
 if __name__ == "__main__":

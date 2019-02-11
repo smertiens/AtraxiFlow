@@ -1,7 +1,7 @@
 from nodes.FileFilterNode import FileFilterNode
 from Stream import Stream
-from resources.FilesystemResource import FilesystemResource
-import unittest, logging,os
+from nodes.FilesystemResource import FilesystemResource
+import unittest, os, logging
 
 class test_FileFilterNode(unittest.TestCase):
 
@@ -14,7 +14,7 @@ class test_FileFilterNode(unittest.TestCase):
     }
 
     def setUp(self):
-        #logging.disable(logging.FATAL)
+        logging.disable(logging.FATAL)
         self.testPath = os.path.realpath(os.path.join(os.getcwd(), "_testfiles"))
         os.makedirs(self.testPath)
 
@@ -31,39 +31,39 @@ class test_FileFilterNode(unittest.TestCase):
 
     def test_filter_size_single(self):
         fn = FileFilterNode()
-        fn.setProperty("filter", [
+        fn.set_property("filter", [
             ['file_size', '>', '120K']
         ])
 
         # not intuitive
         fs = FilesystemResource(props=os.path.join(self.testPath, "*"))
-        self.assertEqual(4, len(fs.getData()))
+        self.assertEqual(4, len(fs.get_data()))
 
         st = Stream()
-        st.addResource(fs)
-        st.appendNode(fn)
+        st.add_resource(fs)
+        st.append_node(fn)
         st.run()
 
-        self.assertEqual(3, len(fs.getData()))
+        self.assertEqual(3, len(fs.get_data()))
 
 
     def test_filter_size_multiple(self):
         fn = FileFilterNode()
-        fn.setProperty("filter", [
+        fn.set_property("filter", [
             ['file_size', '>', '120K'],
             ['file_size', '<', '4M']
         ])
 
         # not intuitive
         fs = FilesystemResource(props=os.path.join(self.testPath, "*"))
-        self.assertEqual(4, len(fs.getData()))
+        self.assertEqual(4, len(fs.get_data()))
 
         st = Stream()
-        st.addResource(fs)
-        st.appendNode(fn)
+        st.add_resource(fs)
+        st.append_node(fn)
         st.run()
 
-        self.assertEqual(2, len(fs.getData()))
+        self.assertEqual(2, len(fs.get_data()))
 
 
 if __name__ == '__main__':
