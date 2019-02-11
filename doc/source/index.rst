@@ -10,7 +10,7 @@ Welcome to AtraxiFlow's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+:ref:`api/modules`
 
 Indices and tables
 ==================

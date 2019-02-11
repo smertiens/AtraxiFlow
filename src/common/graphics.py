@@ -2,6 +2,8 @@ from common.filesystem import FSObject
 import importlib.util
 import logging
 
+
+
 def check_environment():
     MAJ_VER_REQUIRED = 5
     MIN_VER_REQUIRED = 4
@@ -31,32 +33,62 @@ def check_environment():
 class ImageObject:
 
     def __init__(self, obj = None):
+
         self.src = None
         self.type = None
         self.img_object = None
+        self._valid = False
 
         if obj is not None:
-            if type(obj) == FSObject:
-                self.src = FSObject
+            if isinstance(obj, FSObject):
+                self.src = obj
             elif type(obj) == str:
                 self.src = FSObject(obj)
+            else:
+                logging.error('Cannot create an ImageObject from {0}', obj)
+                self._valid = False
 
-    def getSrc(self):
+        if check_environment():
+            from PIL import Image
+
+            if self.src is not None:
+                # try to load file
+                try:
+                    self.img_object = Image.open(self.src.getAbsolutePath())
+                    self._valid = True
+                except IOError:
+                    self._valid = False
+            else:
+                self.img_object = Image()
+                self._valid = True
+
+    def width(self):
+        if self._valid:
+            return self.img_object.size[0]
+
+    def height(self):
+        if self._valid:
+            return self.img_object.size[1]
+
+    def is_valid(self):
+        return self._valid
+
+    def get_src(self):
         return self.src
 
-    def getType(self):
+    def get_type(self):
         return self.type
 
-    def getImageObject(self):
+    def get_image_object(self):
         return self.img_object
 
-    def setSrc(self, src):
+    def set_src(self, src):
         self.src = src
 
-    def setType(self, imgtype):
+    def set_type(self, imgtype):
         self.type = type
 
-    def setImageObject(self, obj):
+    def set_image_object(self, obj):
         self.img_object = obj
 
 

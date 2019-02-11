@@ -8,7 +8,7 @@ class FSObject:
         self.path = new_path
 
     def __str__(self):
-        return self.path
+        return "FSObject: " + self.path
 
     def exists(self):
         return os.path.exists(self.path)

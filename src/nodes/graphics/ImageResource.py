@@ -17,7 +17,7 @@ class ImageResource(Resource):
             }
         }
         self.children = []
-        self.listeners = {}
+        self._listeners = {}
 
         if props:
             self.properties = props

@@ -39,9 +39,9 @@ class FilesystemResource(Resource):
         self._resolved = False
 
         # events
-        self.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self.event_property_changed)
+        self.add_listener(PropertyObject.EVENT_PROPERTY_CHANGED, self._ev_property_changed)
 
-    def event_property_changed(self, data):
+    def _ev_property_changed(self, data):
         if data == 'sourcePattern':
             self._resolved = False
             self._resolve()
