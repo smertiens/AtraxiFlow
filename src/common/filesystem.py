@@ -41,8 +41,11 @@ class FSObject:
     def getAbsolutePath(self):
         return os.path.realpath(self.path)
 
-    def getBasename(self):
+    def getFilename(self):
         return os.path.basename(self.path)
+
+    def getBasename(self):
+        return os.path.splitext(self.getFilename())[0]
 
     def getFilesize(self):
         return os.path.getsize(self.path)

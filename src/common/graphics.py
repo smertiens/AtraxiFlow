@@ -7,7 +7,7 @@
 
 from common.filesystem import FSObject
 import importlib.util
-import logging
+import logging, os
 
 
 
@@ -39,6 +39,8 @@ def check_environment():
 
 class ImageObject:
 
+    FORMAT_JPEG = 0
+
     def __init__(self, obj = None):
 
         self.src = None
@@ -68,6 +70,16 @@ class ImageObject:
             else:
                 self.img_object = Image()
                 self._valid = True
+
+    def save(self, path, format):
+        if self._valid:
+            # make sure that file exists
+            #if not os.path.exists(path):
+            #    fp = open(path, 'wb')
+            #    fp.write(b"\0")
+            #    fp.close()
+
+            self.img_object.save(path, format)
 
     def width(self):
         if self._valid:

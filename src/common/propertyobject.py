@@ -21,7 +21,7 @@ class PropertyObject(EventObject):
             for name, opt in self._known_properties.items():
                 if ("primary" in opt) and (opt["primary"] is True):
                     self.properties = dict([(name, self.properties)])
-                    self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
+                    #self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
                     foundMatch = True
 
             if foundMatch is not True:
@@ -38,7 +38,7 @@ class PropertyObject(EventObject):
 
             elif (name not in self.properties) and ("default" in opt):
                 self.properties[name] = opt['default']
-                self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
+                #self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
 
             elif name in self.properties:
                 # this will fire when property has been set via the constructor's prop-argument

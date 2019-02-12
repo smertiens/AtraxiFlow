@@ -20,7 +20,7 @@ class test_ImageResizeNode(unittest.TestCase):
         st = Stream()
         node = ImageResizeNode()
         st.append_node(node)
-        #self.assertTrue(st.run())
+        self.assertTrue(st.run())
 
     def test_load_resources(self):
         st = Stream()

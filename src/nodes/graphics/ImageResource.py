@@ -39,6 +39,11 @@ class ImageResource(Resource):
         self.add_listener(PropertyObject.EVENT_PROPERTIES_CHECKED, self._ev_properties_checked)
 
     def _process_src(self):
+        # do not process src again if imgobject is set
+        # otherwise changes made by processing nodes would be overwritten
+        if self._imgobject is not None:
+            return
+
         if isinstance(self.get_property('src'), ImageObject):
             self._imgobject = self.get_property('src')
         else:

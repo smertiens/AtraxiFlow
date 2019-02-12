@@ -7,7 +7,7 @@ class {# ClassName #}({# Type #}):
         self.name = name
         self._known_properties = {}
         self.children = []
-        self.listeners = {}
+        self._listeners = {}
 
         if props:
             self.properties = props
