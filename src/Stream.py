@@ -6,30 +6,65 @@
 #
 
 from exceptions import ResourceException
-import logging
+import logging, copy
+from threading import Thread
+
+class AsyncBranch(Thread):
+
+    def __init__(self, name, stream):
+        super().__init__()
+
+        self._nodes = []
+        self.name = name
+        self.stream = stream
+
+    def set_stream(self, stream):
+        self.stream = stream
+
+    def get_stream(self):
+        return self.stream
+
+    def get_name(self):
+        return  self.name
+
+    def run(self):
+        logging.info("Starting new thread on branch {0}".format(self.get_name()))
+        return self.stream.run()
 
 
 class Stream:
     def __init__(self):
-        self._resources = []
         self._resource_map = {}
+        self._branch_map = {}
         self._nodes = []
+
+    def branch(self, name):
+        branch = AsyncBranch(name, Stream())
+        self.append_node(branch)
+        self._branch_map[branch.get_name()] = branch
+        return branch.get_stream()
+
+    def get_branch(self, name):
+        if name not in self._branch_map:
+            logging.error("Branch {0} could not be found".format(name))
+            return None
+
+        return self._branch_map[name]
+
+    def inherit(self, other_stream):
+        self._resource_map = other_stream._resource_map
 
     def append_node(self, node):
         self._nodes.append(node)
-
-    def register_resource(self, prefix, resourceClass):
-        if not prefix in self._resource_map:
-            self._resource_map[prefix] = resourceClass
-        else:
-            if self._resource_map[prefix] == resourceClass:
-                raise ResourceException("Prefix '{0}' is already registered with an other resource".format(prefix))
+        return self
 
     def add_resource(self, res):
         if res.get_prefix() in self._resource_map:
             self._resource_map[res.get_prefix()].append(res)
         else:
             self._resource_map[res.get_prefix()] = [res]
+
+        return self
 
     def remove_resource(self, query):
 
@@ -44,6 +79,8 @@ class Stream:
         for i in range(0, len(self._resource_map[prefix])):
             if self._resource_map[prefix][i].get_name() == name:
                 self._resource_map[prefix].pop(i)
+
+        return self
 
     def get_resources(self, query):
 
@@ -89,21 +126,14 @@ class Stream:
         logging.info("Starting processing")
 
         for node in self._nodes:
-            if self._run_node(node) is False:
-                return False
+            if isinstance(node, AsyncBranch):
+                logging.info("Starting new branch {0}".format(node.get_name()))
+                node.get_stream().inherit(self)
+                node.start()
+            else:
+                logging.debug("Running node {0}".format(node.__class__.__name__))
+                if node.run(self) is False:
+                    return False
 
         logging.info("Finished processing {0} nodes".format(len(self._nodes)))
-        return True
-
-    def _run_node(self, node):
-        logging.info("Running {0}".format(node.__class__.__name__))
-
-        if node.run(self) is False:
-            logging.error('Error processing node. Exiting.')
-            return False
-
-        # Run child nodes
-        for child in node.children:
-            self._run_node(child)
-
         return True
