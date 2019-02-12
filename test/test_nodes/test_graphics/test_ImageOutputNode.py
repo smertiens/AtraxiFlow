@@ -14,17 +14,23 @@ from nodes.graphics.ImageResource import ImageResource
 from nodes.graphics.ImageOutputNode import ImageOutputNode
 from nodes.FilesystemResource import FilesystemResource
 from PIL import Image
+from test.test_nodes.test_graphics.BaseGraphicsTest import BaseGraphicsTest
 
-
-class test_ImageResizeNode(unittest.TestCase):
+class test_ImageResizeNode(BaseGraphicsTest):
 
     def tearDown(self):
         for i in range(1, 4):
-            if os.path.exists(os.path.join(self.get_test_folder(), "img{0}_test.jpg".format(i))):
-                os.unlink(os.path.join(self.get_test_folder(), "img{0}_test.jpg".format(i)))
+            os.unlink(os.path.join(self.get_test_folder(), "img{0}_test.jpg".format(i)))
+            os.unlink(os.path.join(self.get_test_folder(), "img{0}.jpg".format(i)))
+        os.rmdir(self.get_test_folder())
+
+    def setUp(self):
+        os.makedirs(self.get_test_folder())
+        for i in range(1, 4):
+            self.create_test_image(os.path.join(self.get_test_folder(), "img{0}.jpg".format(i)))
 
     def get_test_folder(self):
-        return os.path.realpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "playground"))
+        return os.path.realpath(os.path.join(os.getcwd(), "_temp"))
 
     def test_resize_and_output(self):
         st = Stream()

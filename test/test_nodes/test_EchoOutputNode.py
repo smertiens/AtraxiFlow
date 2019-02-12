@@ -19,7 +19,7 @@ class test_EchoOutputNode(unittest.TestCase):
         st = Stream()
         n = EchoOutputNode('demo', {'msg': 'hello world'})
 
-        self.assertEqual('hello world', n.get_property('text'))
+        self.assertEqual('hello world', n.get_property('msg'))
 
     def test_run(self):
         st = Stream()
