@@ -6,12 +6,45 @@
 #
 
 from exceptions import ResourceException
-import logging, copy
+import logging, os, platform, sys
 from threading import Thread
 
+def axflow_start():
+    '''
+    Set runtime environment.
+    This function will also try to load user defined nodes. 
+    '''
+
+    axf_user_dir = os.path.expanduser('~')
+
+    if platform.system() == 'Windows':
+        axf_user_dir = os.path.join(axf_user_dir, "axtraxi-flow")
+    else:
+        axf_user_dir = os.path.join(axf_user_dir, ".atraxi-flow")
+
+    if not os.path.exists(axf_user_dir):
+        logging.debug('User dir "{0}" does not exist. Creating.'.format(axf_user_dir))
+        os.makedirs(axf_user_dir)
+
+    node_dir = os.path.join(axf_user_dir, "nodes")
+    if os.path.exists(node_dir):
+        if not node_dir in sys.path:
+            sys.path.append(node_dir)
+            logging.debug('Added "{0}" to path.'.format(node_dir))
+    else:
+        logging.debug('Node dir "{0}" not found.'.format(node_dir))
+
 class AsyncBranch(Thread):
+    '''
+    This class represents a branch of an existing stream that is executed in a separate thread
+    '''
 
     def __init__(self, name, stream):
+        '''
+
+        :param name: The branch name
+        :param stream: The stream that should run in the branch
+        '''
         super().__init__()
 
         self._nodes = []
@@ -19,32 +52,65 @@ class AsyncBranch(Thread):
         self.stream = stream
 
     def set_stream(self, stream):
+        ''' Set stream '''
         self.stream = stream
 
     def get_stream(self):
+        '''
+        Get the stream
+        :return: Stream
+        '''
         return self.stream
 
     def get_name(self):
-        return  self.name
+        '''
+        Returns the branch name
+        :return: str
+        '''
+        return self.name
 
     def run(self):
+        '''
+        Starts the stream of this branch
+        :return: bool
+        '''
         logging.info("Starting new thread on branch {0}".format(self.get_name()))
         return self.stream.run()
 
 
 class Stream:
+    '''
+    The main building block of a workflow. Streams hold all nodes and resources
+    '''
+
     def __init__(self):
         self._resource_map = {}
         self._branch_map = {}
         self._nodes = []
 
+    def create():
+        ''' Convenience function to create a new stream '''
+        return Stream()
+
     def branch(self, name):
+        '''
+        Create a new branch
+
+        :param name: The name of the new branch
+        :return: bool
+        '''
         branch = AsyncBranch(name, Stream())
         self.append_node(branch)
         self._branch_map[branch.get_name()] = branch
         return branch.get_stream()
 
     def get_branch(self, name):
+        '''
+        Returns a branch
+
+        :param name: Name of the branch
+        :return: AsyncBranch
+        '''
         if name not in self._branch_map:
             logging.error("Branch {0} could not be found".format(name))
             return None
@@ -52,13 +118,31 @@ class Stream:
         return self._branch_map[name]
 
     def inherit(self, other_stream):
+        '''
+        Copy data from an other stream to this stream
+
+        :param other_stream: Stream
+        :return: None
+        '''
         self._resource_map = other_stream._resource_map
 
     def append_node(self, node):
+        '''
+        Add a node to the stream queue
+
+        :param node: Node
+        :return: Stream
+        '''
         self._nodes.append(node)
         return self
 
     def add_resource(self, res):
+        '''
+        Adds a resource to the stream
+
+        :param res: Resource
+        :return: Stream
+        '''
         if res.get_prefix() in self._resource_map:
             self._resource_map[res.get_prefix()].append(res)
         else:
@@ -67,7 +151,12 @@ class Stream:
         return self
 
     def remove_resource(self, query):
+        '''
+        Find resources by query and remove them from the stream
 
+        :param query: str
+        :return: Stream
+        '''
         if query.find(":") == -1:
             raise ResourceException("Invalid resource identifier '{0}'. Should be Prefix:Name".format(query))
 
@@ -83,7 +172,12 @@ class Stream:
         return self
 
     def get_resources(self, query):
+        '''
+        Get one or more resources from the stream, using given query string
 
+        :param query: str
+        :return: List of Resources
+        '''
         if query.find(":") == -1:
             raise ResourceException("Invalid resource identifier '{0}'. Should be Prefix:Name".format(query))
 
@@ -123,6 +217,11 @@ class Stream:
         return results
 
     def run(self):
+        '''
+        Starts the stream processing
+
+        :return: bool - If false, errors have occured while processing the stream
+        '''
         logging.info("Starting processing")
 
         for node in self._nodes:

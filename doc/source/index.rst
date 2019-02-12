@@ -1,20 +1,15 @@
-.. AtraxiFlow documentation master file, created by
-   sphinx-quickstart on Tue Feb  5 17:57:59 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+AtraxiFlow Documentation
+========================
 
-Welcome to AtraxiFlow's documentation!
-======================================
+Welcome to AtraxiFlow documentation, the flexible workflow tool for python.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-:ref:`api/modules`
+   basics
+   gettingstarted
+   manual/index
+   developer
+   api/modules
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

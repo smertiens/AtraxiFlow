@@ -1,5 +1,5 @@
-For Developers
-==============
+Developer manual
+================
 
 Writing nodes
 *************

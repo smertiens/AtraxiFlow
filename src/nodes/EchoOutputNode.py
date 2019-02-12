@@ -14,11 +14,12 @@ class EchoOutputNode(OutputNode):
     def __init__(self, name="", props=None):
         self.name = name
         self._known_properties = {
-            'text': {
+            'msg': {
                 'type': "string",
-                'required': True,
+                'required': False,
                 'hint': 'Text to output',
-                'primary': True
+                'primary': True,
+                "default": ''
             }
         }
         self.children = []

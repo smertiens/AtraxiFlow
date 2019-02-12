@@ -15,6 +15,7 @@ from nodes.DelayNode import DelayNode
 class test_Stream(unittest.TestCase):
 
     def test_stream_get_resources(self):
+
         st = Stream.Stream()
 
         res1 = FilesystemResource("res1_hello")

@@ -17,14 +17,14 @@ class test_EchoOutputNode(unittest.TestCase):
 
     def test_create_node(self):
         st = Stream()
-        n = EchoOutputNode('demo', {'text': 'hello world'})
+        n = EchoOutputNode('demo', {'msg': 'hello world'})
 
         self.assertEqual('hello world', n.get_property('text'))
 
     def test_run(self):
         st = Stream()
         n = EchoOutputNode()
-        n.set_property('text', 'Hello World')
+        n.set_property('msg', 'Hello World')
         st.append_node(n)
 
         self.assertTrue(st.run())
