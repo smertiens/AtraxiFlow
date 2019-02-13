@@ -10,8 +10,12 @@ pip install atraxi-flow
 
 ```python
 from atraxiflow.core.stream import Stream
-from atraxiflow.nodes.common import EchoOutputNode
+from atraxiflow.nodes.common import EchoOutputNode, DelayNode
 
-Stream.create().append_node(EchoOutputNode({'msg': 'Hello World'})).flow()
+stream = Stream()
+stream.append_node(EchoOutputNode({'msg': 'Hello World'}))
+stream.flow()
 
+# Or even easier:
+Stream.create() >> EchoOutputNode({'msg': 'Wait for it..'}) >> DelayNode() >> EchoOutputNode({'msg': 'There it is!'}) >> flow()
 ```
