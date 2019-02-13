@@ -68,6 +68,7 @@ class EchoOutputNode(OutputNode):
         self.check_properties()
         stp = StringValueProcessor(stream)
         print(stp.parse(self.get_property("msg")) + "\n")
+        return True
 
 
 class DelayNode(ProcessorNode):
@@ -130,4 +131,4 @@ class NullNode(ProcessorNode):
         self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
-        pass
+        return True

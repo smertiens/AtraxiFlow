@@ -8,7 +8,8 @@
 import unittest
 
 from atraxiflow.core import stream
-from atraxiflow.nodes.common import DelayNode, TextResource
+from atraxiflow.core.stream import flow
+from atraxiflow.nodes.common import DelayNode, TextResource, EchoOutputNode
 from atraxiflow.nodes.common import NullNode
 from atraxiflow.nodes.filesystem import *
 
@@ -108,6 +109,10 @@ class test_Stream(unittest.TestCase):
         self.assertEqual(1, len(st.get_branch('after').get_stream().get_resources('Text:*')))
         self.assertEqual(1, len(st.get_resources('Text:*')))
 
+    def test_operator_overloading(self):
+        st = stream.Stream()
+        st >> NullNode() >> NullNode() >> NullNode() >> flow()
+        self.assertEqual(3, len(st._nodes))
 
 if __name__ == '__main__':
     unittest.main()

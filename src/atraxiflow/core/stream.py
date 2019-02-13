@@ -9,7 +9,11 @@ import logging
 from threading import Thread
 
 from atraxiflow.core.exceptions import ResourceException
+from atraxiflow.nodes.foundation import Node, Resource
 
+def flow():
+
+    return 'flow'
 
 class AsyncBranch(Thread):
     '''
@@ -64,6 +68,22 @@ class Stream:
         self._resource_map = {}
         self._branch_map = {}
         self._nodes = []
+
+    def __rshift__(self, other):
+        '''
+        Add nodes via >> operator
+
+        :param other: Node or Resource
+        :return: Stream
+        '''
+        if isinstance(other, Node):
+            self.append_node(other)
+        elif isinstance(other, Resource):
+            self.add_resource(other)
+        elif isinstance(other, str) and other == 'flow':
+            self.flow()
+
+        return self
 
     def create():
         ''' Convenience function to create a new stream '''

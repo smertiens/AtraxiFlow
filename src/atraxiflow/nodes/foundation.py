@@ -7,7 +7,6 @@
 
 from atraxiflow.core.properties import PropertyObject
 
-
 class Node(PropertyObject):
 
     def get_name(self):
