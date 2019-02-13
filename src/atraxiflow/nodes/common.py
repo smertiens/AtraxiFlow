@@ -120,6 +120,7 @@ class TextResource(Resource):
         }
 
         self._listeners = {}
+        self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
 
     def get_prefix(self):

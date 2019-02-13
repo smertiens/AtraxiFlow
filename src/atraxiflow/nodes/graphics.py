@@ -29,6 +29,7 @@ class ImageResource(Resource):
             }
         }
         self._listeners = {}
+        self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
 
         # node specific
@@ -43,10 +44,12 @@ class ImageResource(Resource):
         if self._imgobject is not None:
             return
 
-        if isinstance(self.get_property('src'), ImageObject):
-            self._imgobject = self.get_property('src')
+        src = self.parse_string(self._stream, self.get_property('src'))
+
+        if isinstance(src, ImageObject):
+            self._imgobject = src
         else:
-            self._imgobject = ImageObject(self.get_property('src'))
+            self._imgobject = ImageObject(src)
 
     def _ev_property_changed(self, data):
         if data == 'src':

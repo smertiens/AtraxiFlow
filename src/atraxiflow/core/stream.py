@@ -145,6 +145,7 @@ class Stream:
         else:
             self._resource_map[res.get_prefix()] = [res]
 
+        res._stream = self
         return self
 
     def remove_resource(self, query):

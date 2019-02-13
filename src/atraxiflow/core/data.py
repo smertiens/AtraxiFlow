@@ -9,7 +9,7 @@ import logging
 import re
 from datetime import datetime, timedelta
 
-from atraxiflow.core.stream import Stream
+#from atraxiflow.core.stream import *
 
 
 class DatetimeProcessor:
@@ -54,6 +54,7 @@ class StringValueProcessor:
 
         :type var: str
         """
+
         try:
             (namespace, key) = var.split("::")
         except ValueError:
