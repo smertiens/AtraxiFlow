@@ -5,10 +5,12 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging
-from atraxiflow.Stream import Stream
-from atraxiflow.nodes.ShellExecNode import ShellExecNode
-from atraxiflow.nodes.EchoOutputNode import EchoOutputNode
+import logging
+import unittest
+
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.common import ShellExecNode, EchoOutputNode
+
 
 class test_ShellExecNode(unittest.TestCase):
 
@@ -16,8 +18,6 @@ class test_ShellExecNode(unittest.TestCase):
         logging.disable(logging.FATAL)
 
     def tearDown(self):
-        #if os.path.exists(os.path.join(os.getcwd(), 'test.txt')):
-        #    os.unlink(os.path.join(os.getcwd(), 'test.txt'))
         pass
 
     def test_create_node(self):
@@ -35,7 +35,8 @@ class test_ShellExecNode(unittest.TestCase):
         st.append_node(EchoOutputNode(props={'msg': '{Res::last_shellexec_out}'}))
         self.assertTrue(st.run())
 
-        self.assertTrue(n.get_property('cmd'), st.get_resource_by_name('last_shellexec_out').get_data().replace('\n', ''))
+        self.assertTrue(n.get_property('cmd'),
+                        st.get_resource_by_name('last_shellexec_out').get_data().replace('\n', ''))
 
 
 if __name__ == '__main__':

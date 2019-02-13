@@ -8,13 +8,15 @@
 import os
 import unittest
 
-from atraxiflow.Stream import Stream
-from atraxiflow.nodes.graphics.ImageResizeNode import ImageResizeNode
-from atraxiflow.nodes.graphics.ImageResource import ImageResource
-from atraxiflow.nodes.graphics.ImageOutputNode import ImageOutputNode
-from atraxiflow.nodes.FilesystemResource import FilesystemResource
 from PIL import Image
+from atraxiflow.nodes.filesystem import FilesystemResource
+from atraxiflow.nodes.graphics import ImageOutputNode
+from atraxiflow.nodes.graphics import ImageResizeNode
+from atraxiflow.nodes.graphics import ImageResource
+
+from atraxiflow.core.stream import Stream
 from test.test_nodes.test_graphics.BaseGraphicsTest import BaseGraphicsTest
+
 
 class test_ImageResizeNode(BaseGraphicsTest):
 
@@ -40,8 +42,9 @@ class test_ImageResizeNode(BaseGraphicsTest):
         self.assertEqual(2, len(st.get_resources('Img:*')))
         self.assertEqual(1, len(st.get_resources('FS:*')))
 
-        st.append_node(ImageResizeNode(props={'target_w' : '300'}))
-        st.append_node(ImageOutputNode(props={'output_file': os.path.join(self.get_test_folder(), '{img.src.basename}_test.jpg') }))
+        st.append_node(ImageResizeNode(props={'target_w': '300'}))
+        st.append_node(
+            ImageOutputNode(props={'output_file': os.path.join(self.get_test_folder(), '{img.src.basename}_test.jpg')}))
 
         self.assertTrue(st.run())
 

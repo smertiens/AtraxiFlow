@@ -5,9 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
+import logging
+import re
 from datetime import datetime, timedelta
-from atraxiflow.Stream import Stream
-import re, logging
+
+from atraxiflow.core.stream import Stream
 
 
 class DatetimeProcessor:
@@ -68,7 +70,7 @@ class StringValueProcessor:
             # if key contains ., we take the first part as resource name
             if res_name.find('.') > -1:
                 res_name = res_name[0:res_name.find('.')]
-            
+
             res = self.stream.get_resource_by_name(res_name)
 
             if not res:

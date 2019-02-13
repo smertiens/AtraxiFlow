@@ -5,9 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.exceptions import ResourceException
-import logging, os, platform, sys
+import logging
 from threading import Thread
+
+from atraxiflow.core.exceptions import ResourceException
+
 
 class AsyncBranch(Thread):
     '''

@@ -6,12 +6,13 @@
 #
 
 import unittest
-from atraxiflow.common.propertyobject import PropertyObject
-from atraxiflow.nodes.NullNode import  NullNode
-from atraxiflow.nodes.FilesystemResource import FilesystemResource
+
+from atraxiflow.core.properties import PropertyObject
+from atraxiflow.nodes.common import NullNode
+from atraxiflow.nodes.filesystem import FilesystemResource
+
 
 class test_PropertyObject(unittest.TestCase):
-
     cb_one_run = ''
 
     def prop_changed_callback(self, data):
@@ -46,17 +47,17 @@ class test_PropertyObject(unittest.TestCase):
         return n
 
     def test_variable_scopes(self):
-        n = NullNode("demo1", {'d' : 'e'})
+        n = NullNode("demo1", {'d': 'e'})
         n2 = NullNode("demo2")
 
         self.assertEqual("demo1", n.get_name())
         self.assertEqual("demo2", n2.get_name())
 
-        self.assertEqual({'d' : 'e'}, n.properties)
+        self.assertEqual({'d': 'e'}, n.properties)
         self.assertEqual({}, n2.properties)
 
         n2.set_property('g', 'h')
-        self.assertEqual({'d' : 'e'}, n.properties)
+        self.assertEqual({'d': 'e'}, n.properties)
         self.assertEqual({'g': 'h'}, n2.properties)
 
     def test_all_props_set_correctly(self):
@@ -102,6 +103,7 @@ class test_PropertyObject(unittest.TestCase):
         self.assertEqual('', self.cb_one_run)
         res.fire_event(PropertyObject.EVENT_PROPERTY_CHANGED, 'hello world')
         self.assertEqual('hello world', self.cb_one_run)
+
 
 if __name__ == '__main__':
     unittest.main()

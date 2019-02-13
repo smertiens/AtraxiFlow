@@ -6,9 +6,11 @@
 #
 
 import argparse
-import atraxiflow.NodeManager
-import json, os
+import json
+import os
+
 from atraxiflow.nodes.foundation import InputNode, ProcessorNode, OutputNode, Resource
+
 
 def create_from_template(tpl, name, tp):
     parentNode = ""
@@ -36,8 +38,8 @@ def create_from_template(tpl, name, tp):
     fp.close()
 
     replace_map = {
-        '{# ClassName #}' : name,
-        '{# Type #}' : parentNode
+        '{# ClassName #}': name,
+        '{# Type #}': parentNode
     }
 
     for search, replace in replace_map.items():
@@ -47,7 +49,7 @@ def create_from_template(tpl, name, tp):
     fp.write(content)
     fp.close()
 
-    print ("Created file {0} in nodes".format(name + '.py'))
+    print("Created file {0} in nodes".format(name + '.py'))
 
 
 def dump_nodes(outputfile, format):
@@ -105,7 +107,8 @@ if __name__ == '__main__':
     parser.add_argument("--save-to", type=str, help="Data produced by dump-nodes will be saved to this file",
                         default="./nodes.json")
     parser.add_argument("--export-format", type=str, help="The format to which dump-nodes will output the node data "
-                        "to.  At the moment only 'json' is supported.", default="json")
+                                                          "to.  At the moment only 'json' is supported.",
+                        default="json")
 
     args = parser.parse_args()
 
@@ -115,5 +118,3 @@ if __name__ == '__main__':
         create_from_template('node', args.name, args.node_type)
     elif args.command == "create:resource":
         create_from_template('resource', args.name, args.node_type)
-
-

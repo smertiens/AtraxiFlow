@@ -6,17 +6,17 @@
 #
 
 import unittest
-from atraxiflow import Stream
-from atraxiflow.nodes import TextResource
-from atraxiflow.nodes.FilesystemResource import *
-from atraxiflow.nodes.NullNode import NullNode
-from atraxiflow.nodes.DelayNode import DelayNode
+
+from atraxiflow.core import stream
+from atraxiflow.nodes.common import DelayNode, TextResource
+from atraxiflow.nodes.common import NullNode
+from atraxiflow.nodes.filesystem import *
+
 
 class test_Stream(unittest.TestCase):
 
     def test_stream_get_resources(self):
-
-        st = Stream.Stream()
+        st = stream.Stream()
 
         res1 = FilesystemResource("res1_hello")
         st.add_resource(res1)
@@ -33,7 +33,7 @@ class test_Stream(unittest.TestCase):
         self.assertEqual(3, len(st.get_resources("FS:res*")))
 
     def test_stream_get_resources_properties(self):
-        st = Stream.Stream()
+        st = stream.Stream()
 
         res1 = FilesystemResource("res1")
         res1.set_property('hello', 'world')
@@ -43,29 +43,27 @@ class test_Stream(unittest.TestCase):
         self.assertEqual('world', st.get_resources("FS:res1.hello"))
         self.assertEqual('ipsum', st.get_resources("FS:res1.lorem"))
 
-
     def test_stream_add_remove_resource(self):
-         st = Stream.Stream()
-         res = FilesystemResource('fs1')
-         st.add_resource(res)
+        st = stream.Stream()
+        res = FilesystemResource('fs1')
+        st.add_resource(res)
 
-         self.assertEqual(1, len(st.get_resources("FS:*")))
+        self.assertEqual(1, len(st.get_resources("FS:*")))
 
-         st.remove_resource("FS:fs1")
-         self.assertEqual(0, len(st.get_resources("FS:*")))
+        st.remove_resource("FS:fs1")
+        self.assertEqual(0, len(st.get_resources("FS:*")))
 
     def test_stream_get_resource_prop(self):
-        st = Stream.Stream()
-        res = TextResource.TextResource("textres")
+        st = stream.Stream()
+        res = TextResource("textres")
         res.update_data("demo")
         st.add_resource(res)
 
         self.assertEqual("demo", res.get_property("text"))
         self.assertEqual("demo", st.get_resources("Text:textres.text"))
 
-
     def test_stream_run_nodes(self):
-        st = Stream.Stream()
+        st = stream.Stream()
         st.append_node(NullNode("demo1"))
         st.append_node(NullNode("demo2"))
         st.append_node(NullNode("demo3"))
@@ -76,7 +74,7 @@ class test_Stream(unittest.TestCase):
     def test_async_branch(self):
         import threading
 
-        st = Stream.Stream()
+        st = stream.Stream()
         st.append_node(NullNode())
         st.branch('calculate_1').append_node(DelayNode(props={'time': 1}))
         st.append_node(NullNode())
@@ -87,17 +85,17 @@ class test_Stream(unittest.TestCase):
         self.assertEqual(3, threading.active_count())
 
     def test_branch_get(self):
-        st = Stream.Stream()
+        st = stream.Stream()
         st.append_node(NullNode())
         st.branch('demo')
 
-        self.assertEqual(Stream.AsyncBranch, type(st.get_branch('demo')))
+        self.assertEqual(stream.AsyncBranch, type(st.get_branch('demo')))
         self.assertTrue(st.run())
 
     def test_branch_stream_inheritance(self):
-        st = Stream.Stream()
+        st = stream.Stream()
         st.branch('before')
-        st.add_resource(TextResource.TextResource(props={'test': 'Hello World'}))
+        st.add_resource(TextResource(props={'test': 'Hello World'}))
         st.branch('after')
 
         self.assertEqual(0, len(st.get_branch('before').get_stream().get_resources('Text:*')))
@@ -109,6 +107,7 @@ class test_Stream(unittest.TestCase):
         self.assertEqual(1, len(st.get_branch('before').get_stream().get_resources('Text:*')))
         self.assertEqual(1, len(st.get_branch('after').get_stream().get_resources('Text:*')))
         self.assertEqual(1, len(st.get_resources('Text:*')))
+
 
 if __name__ == '__main__':
     unittest.main()

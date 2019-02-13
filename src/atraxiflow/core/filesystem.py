@@ -7,11 +7,11 @@
 
 import os
 
-class FSObject:
 
+class FSObject:
     path = ""
 
-    def __init__(self, new_path = ""):
+    def __init__(self, new_path=""):
         self.path = new_path
 
     def __str__(self):

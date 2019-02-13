@@ -5,16 +5,19 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.nodes.FileFilterNode import FileFilterNode
-from atraxiflow.Stream import Stream
-from atraxiflow.nodes.FilesystemResource import FilesystemResource
-import unittest, os, logging
+import logging
+import os
+import unittest
+
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.filesystem import FileFilterNode
+from atraxiflow.nodes.filesystem import FilesystemResource
+
 
 class test_FileFilterNode(unittest.TestCase):
-
     testPath = ""
     testFiles = {
-        "file1": 2 * 1024 * 1024, # M
+        "file1": 2 * 1024 * 1024,  # M
         "file2": 5 * 1024 * 1024,  # M
         "file3": 578 * 1024,  # K
         "file4": 10 * 1024,  # K
@@ -25,7 +28,7 @@ class test_FileFilterNode(unittest.TestCase):
         self.testPath = os.path.realpath(os.path.join(os.getcwd(), "_testfiles"))
         os.makedirs(self.testPath)
 
-        for name, size  in self.testFiles.items():
+        for name, size in self.testFiles.items():
             fp = open(os.path.join(self.testPath, name), "wb")
             fp.seek(size - 1)
             fp.write(b"\0")
@@ -52,7 +55,6 @@ class test_FileFilterNode(unittest.TestCase):
         st.run()
 
         self.assertEqual(3, len(fs.get_data()))
-
 
     def test_filter_size_multiple(self):
         fn = FileFilterNode()

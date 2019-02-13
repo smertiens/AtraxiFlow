@@ -5,9 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging
-from atraxiflow.Stream import Stream
-from atraxiflow.nodes.EchoOutputNode import EchoOutputNode
+import logging
+import unittest
+
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.common import EchoOutputNode
 
 
 class test_EchoOutputNode(unittest.TestCase):

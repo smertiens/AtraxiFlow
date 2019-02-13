@@ -20,7 +20,7 @@ class EventObject:
                         self._listeners[ev].remove(c)
                         return
 
-    def fire_event(self, event, data = None):
+    def fire_event(self, event, data=None):
         if event in self._listeners:
             for c in self._listeners[event]:
                 c(data)

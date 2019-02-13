@@ -1,7 +1,5 @@
-from atraxiflow.Stream import Stream, axflow_start
-from atraxiflow.nodes.EchoOutputNode import EchoOutputNode
-
-axflow_start()
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.echooutputnode import EchoOutputNode
 
 Stream \
     .create() \

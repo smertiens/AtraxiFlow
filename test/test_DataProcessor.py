@@ -6,9 +6,11 @@
 #
 
 import unittest
-from atraxiflow.common.data import StringValueProcessor
-from atraxiflow.Stream import Stream
-from atraxiflow.nodes.TextResource import TextResource
+
+from atraxiflow.core.data import StringValueProcessor
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.common import TextResource
+
 
 class test_DataProcessor(unittest.TestCase):
 
@@ -34,6 +36,7 @@ class test_DataProcessor(unittest.TestCase):
 
         out = p.parse("Hello World {demo} and  another {Res::text1}, {Res::text2}.")
         self.assertEqual("Hello World omed and  another one, two.", out)
+
 
 if __name__ == '__main__':
     unittest.main()

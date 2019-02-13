@@ -5,11 +5,14 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging, os
-from atraxiflow.common.filesystem import FSObject
+import logging
+import os
+import unittest
+
+from atraxiflow.core.filesystem import FSObject
+
 
 class test_FilesystemResource(unittest.TestCase):
-
     testPath = ""
 
     def setUp(self):
@@ -37,8 +40,6 @@ class test_FilesystemResource(unittest.TestCase):
         self.assertFalse(fo.isFolder())
         self.assertFalse(fo.isSymlink())
         self.assertTrue(fo.exists())
-
-
 
 
 if __name__ == '__main__':

@@ -5,16 +5,18 @@
 # For more information on licensing see LICENSE file
 #
 
+import importlib
+import pkgutil
+
 from atraxiflow.nodes.foundation import Node as baseNode
 from atraxiflow.nodes.foundation import Resource as baseResource
-import pkgutil, importlib
+
 
 class NodeManager:
 
-    def find_available_nodes(self, include_resources = True):
+    def find_available_nodes(self, include_resources=True):
 
         # find Nodes
-        import nodes
 
         found_nodes = []
         ignore = ['foundation']
@@ -41,6 +43,4 @@ class NodeManager:
                     if issubclass(cls, baseResource):
                         found_nodes.append(cls)
 
-
         return found_nodes
-

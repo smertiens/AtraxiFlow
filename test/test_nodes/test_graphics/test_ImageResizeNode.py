@@ -5,12 +5,16 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.nodes.graphics.ImageResizeNode import ImageResizeNode
-import unittest, os
-from atraxiflow.Stream import Stream
-from atraxiflow.nodes.FilesystemResource import FilesystemResource
-from atraxiflow.nodes.graphics.ImageResource import ImageResource
+import os
+import unittest
+
+from atraxiflow.nodes.filesystem import FilesystemResource
+from atraxiflow.nodes.graphics import ImageResizeNode
+from atraxiflow.nodes.graphics import ImageResource
+
+from atraxiflow.core.stream import Stream
 from test.test_nodes.test_graphics.BaseGraphicsTest import BaseGraphicsTest
+
 
 class test_ImageResizeNode(BaseGraphicsTest):
 
@@ -41,7 +45,7 @@ class test_ImageResizeNode(BaseGraphicsTest):
         self.assertEqual(2, len(st.get_resources('FS:*')))
         self.assertEqual(1, len(st.get_resources('Img:*')))
 
-        st.append_node(ImageResizeNode(props={'target_w' : '300'}))
+        st.append_node(ImageResizeNode(props={'target_w': '300'}))
         self.assertTrue(st.run())
 
         self.assertEqual(2, len(st.get_resources('FS:*')))

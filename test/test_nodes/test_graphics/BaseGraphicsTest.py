@@ -6,6 +6,7 @@
 #
 
 import unittest
+
 from PIL import Image
 
 

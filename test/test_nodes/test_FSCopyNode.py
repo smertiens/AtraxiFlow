@@ -5,13 +5,15 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging, os
-from atraxiflow.Stream import Stream
-from atraxiflow.nodes.FilesystemResource import FilesystemResource
-from atraxiflow.nodes.FSCopyNode import FSCopyNode
+import logging
+import os
+import unittest
+
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.filesystem import FilesystemResource, FSCopyNode
+
 
 class test_FSCopyNode(unittest.TestCase):
-
     testPath = ""
 
     def get_test_stream(self):
@@ -81,7 +83,6 @@ class test_FSCopyNode(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.testPath, "folder", "folder2")))
         self.assertTrue(os.path.exists(os.path.join(self.testPath, "folder", "folder2", "testfile.txt")))
 
-
     def test_copy_file_dir_not_exists_dont_create(self):
         st = self.get_test_stream()
         cp = FSCopyNode("cp", {
@@ -134,7 +135,6 @@ class test_FSCopyNode(unittest.TestCase):
         st.add_resource(src)
         st.append_node(cp)
         self.assertFalse(st.run())
-
 
 
 if __name__ == '__main__':

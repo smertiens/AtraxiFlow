@@ -5,8 +5,8 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.common.propertyobject import PropertyObject
-from atraxiflow.common.events import EventObject
+from atraxiflow.core.properties import PropertyObject
+
 
 class Node(PropertyObject):
 
@@ -34,7 +34,8 @@ class OutputNode(Node):
 class InputNode(Node):
     pass
 
-class Resource (PropertyObject):
+
+class Resource(PropertyObject):
 
     def get_name(self):
         return self.name;

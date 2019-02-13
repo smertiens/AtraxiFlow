@@ -5,10 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.common.filesystem import FSObject
 import importlib.util
-import logging, os
+import logging
 
+from atraxiflow.core.filesystem import FSObject
 
 
 def check_environment():
@@ -31,17 +31,17 @@ def check_environment():
     if int(version[0]) < MAJ_VER_REQUIRED:
         logging.error(msg)
         return False
-    if (int(version[1]) <MIN_VER_REQUIRED):
+    if (int(version[1]) < MIN_VER_REQUIRED):
         logging.error(msg)
         return False
 
     return True
 
-class ImageObject:
 
+class ImageObject:
     FORMAT_JPEG = 0
 
-    def __init__(self, obj = None):
+    def __init__(self, obj=None):
 
         self.src = None
         self.type = None
@@ -73,12 +73,6 @@ class ImageObject:
 
     def save(self, path, format):
         if self._valid:
-            # make sure that file exists
-            #if not os.path.exists(path):
-            #    fp = open(path, 'wb')
-            #    fp.write(b"\0")
-            #    fp.close()
-
             self.img_object.save(path, format)
 
     def width(self):
@@ -109,8 +103,3 @@ class ImageObject:
 
     def set_image_object(self, obj):
         self.img_object = obj
-
-
-
-
-

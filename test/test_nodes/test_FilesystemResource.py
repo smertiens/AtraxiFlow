@@ -5,9 +5,13 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging, os
-from atraxiflow.nodes.FilesystemResource import FilesystemResource
-from atraxiflow.common.filesystem import FSObject
+import logging
+import os
+import unittest
+
+from atraxiflow.core.filesystem import FSObject
+from atraxiflow.nodes.filesystem import FilesystemResource
+
 
 class test_FilesystemResource(unittest.TestCase):
 
@@ -43,6 +47,7 @@ class test_FilesystemResource(unittest.TestCase):
         self.assertTrue(fs._resolved)
         self.assertEqual(1, len(data))
         self.assertIsInstance(data[0], FSObject)
+
 
 if __name__ == '__main__':
     unittest.main()

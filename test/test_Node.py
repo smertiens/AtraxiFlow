@@ -5,7 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging
+import logging
+import unittest
+
 from atraxiflow.nodes.foundation import Node
 
 
