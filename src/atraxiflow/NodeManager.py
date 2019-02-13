@@ -5,8 +5,8 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.foundation import Node as baseNode
-from nodes.foundation import Resource as baseResource
+from atraxiflow.nodes.foundation import Node as baseNode
+from atraxiflow.nodes.foundation import Resource as baseResource
 import pkgutil, importlib
 
 class NodeManager:

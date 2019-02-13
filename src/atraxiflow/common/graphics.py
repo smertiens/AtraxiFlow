@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-from common.filesystem import FSObject
+from atraxiflow.common.filesystem import FSObject
 import importlib.util
 import logging, os
 

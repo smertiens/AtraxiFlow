@@ -5,9 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.foundation import ProcessorNode
+from atraxiflow.nodes.foundation import ProcessorNode
 import subprocess, os, shlex
-from nodes.TextResource import  TextResource
+from atraxiflow.nodes.TextResource import  TextResource
 
 
 class ShellExecNode(ProcessorNode):

@@ -5,9 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.foundation import ProcessorNode
-from common.filesystem import FSObject
-from common.data import DatetimeProcessor
+from atraxiflow.nodes.foundation import ProcessorNode
+from atraxiflow.common.filesystem import FSObject
+from atraxiflow.common.data import DatetimeProcessor
 import logging, re
 
 '''

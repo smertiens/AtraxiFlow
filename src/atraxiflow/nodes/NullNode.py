@@ -5,22 +5,14 @@
 # For more information on licensing see LICENSE file
 #
 
-import time
-
-from nodes.foundation import ProcessorNode
+from atraxiflow.nodes.foundation import ProcessorNode
 
 
-class DelayNode(ProcessorNode):
+class NullNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
         self.name = name
-        self._known_properties = {
-            'time' : {
-                'required': False,
-                'hint': 'Delay time in seconds',
-                'default': '5'
-            }
-        }
+        self._known_properties = {}
         self.children = []
         self._listeners = {}
 
@@ -30,8 +22,4 @@ class DelayNode(ProcessorNode):
             self.properties = {}
 
     def run(self, stream):
-        self.check_properties()
-
-        time.sleep(int(self.get_property('time')))
-
-        return True
+        pass

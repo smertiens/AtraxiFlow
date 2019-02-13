@@ -7,3 +7,5 @@ doc/build/*
 doc/source/api/*
 playground
 fileformat.txt
+dist
+build

@@ -5,11 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.graphics.ImageResizeNode import ImageResizeNode
-import unittest, os, logging
-from Stream import Stream
-from nodes.FilesystemResource import FilesystemResource
-from nodes.graphics.ImageResource import ImageResource
+from atraxiflow.nodes.graphics.ImageResizeNode import ImageResizeNode
+import unittest, os
+from atraxiflow.Stream import Stream
+from atraxiflow.nodes.FilesystemResource import FilesystemResource
+from atraxiflow.nodes.graphics.ImageResource import ImageResource
 from test.test_nodes.test_graphics.BaseGraphicsTest import BaseGraphicsTest
 
 class test_ImageResizeNode(BaseGraphicsTest):

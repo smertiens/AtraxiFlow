@@ -6,7 +6,7 @@
 #
 
 import logging
-from common.events import EventObject
+from atraxiflow.common.events import EventObject
 
 class PropertyObject(EventObject):
 

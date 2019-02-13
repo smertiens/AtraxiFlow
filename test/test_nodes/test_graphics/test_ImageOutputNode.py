@@ -8,11 +8,11 @@
 import os
 import unittest
 
-from Stream import Stream
-from nodes.graphics.ImageResizeNode import ImageResizeNode
-from nodes.graphics.ImageResource import ImageResource
-from nodes.graphics.ImageOutputNode import ImageOutputNode
-from nodes.FilesystemResource import FilesystemResource
+from atraxiflow.Stream import Stream
+from atraxiflow.nodes.graphics.ImageResizeNode import ImageResizeNode
+from atraxiflow.nodes.graphics.ImageResource import ImageResource
+from atraxiflow.nodes.graphics.ImageOutputNode import ImageOutputNode
+from atraxiflow.nodes.FilesystemResource import FilesystemResource
 from PIL import Image
 from test.test_nodes.test_graphics.BaseGraphicsTest import BaseGraphicsTest
 

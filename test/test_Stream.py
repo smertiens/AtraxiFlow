@@ -6,11 +6,11 @@
 #
 
 import unittest
-import Stream
-from nodes import TextResource
-from nodes.FilesystemResource import *
-from nodes.NullNode import NullNode
-from nodes.DelayNode import DelayNode
+from atraxiflow import Stream
+from atraxiflow.nodes import TextResource
+from atraxiflow.nodes.FilesystemResource import *
+from atraxiflow.nodes.NullNode import NullNode
+from atraxiflow.nodes.DelayNode import DelayNode
 
 class test_Stream(unittest.TestCase):
 

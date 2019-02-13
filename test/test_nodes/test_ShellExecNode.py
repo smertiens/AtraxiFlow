@@ -5,10 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging, os
-from Stream import Stream
-from nodes.ShellExecNode import ShellExecNode
-from nodes.EchoOutputNode import EchoOutputNode
+import unittest, logging
+from atraxiflow.Stream import Stream
+from atraxiflow.nodes.ShellExecNode import ShellExecNode
+from atraxiflow.nodes.EchoOutputNode import EchoOutputNode
 
 class test_ShellExecNode(unittest.TestCase):
 

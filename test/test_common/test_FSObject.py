@@ -6,7 +6,7 @@
 #
 
 import unittest, logging, os
-from common.filesystem import FSObject
+from atraxiflow.common.filesystem import FSObject
 
 class test_FilesystemResource(unittest.TestCase):
 

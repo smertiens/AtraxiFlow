@@ -5,10 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.foundation import ProcessorNode
-from nodes.graphics.ImageResource import ImageResource
-from nodes.FilesystemResource import FilesystemResource
-from common import graphics
+from atraxiflow.nodes.foundation import ProcessorNode
+from atraxiflow.nodes.graphics.ImageResource import ImageResource
+from atraxiflow.nodes.FilesystemResource import FilesystemResource
+from atraxiflow.common import graphics
 import logging
 
 

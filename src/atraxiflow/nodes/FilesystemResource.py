@@ -5,9 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.foundation import Resource
-from common.filesystem import FSObject
-from common.propertyobject import PropertyObject
+from atraxiflow.nodes.foundation import Resource
+from atraxiflow.common.filesystem import FSObject
+from atraxiflow.common.propertyobject import PropertyObject
 
 import glob, logging
 

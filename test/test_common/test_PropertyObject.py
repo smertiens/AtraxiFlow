@@ -5,10 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest, logging, os
-from common.propertyobject import PropertyObject
-from nodes.NullNode import  NullNode
-from nodes.FilesystemResource import FilesystemResource
+import unittest
+from atraxiflow.common.propertyobject import PropertyObject
+from atraxiflow.nodes.NullNode import  NullNode
+from atraxiflow.nodes.FilesystemResource import FilesystemResource
 
 class test_PropertyObject(unittest.TestCase):
 

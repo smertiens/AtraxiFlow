@@ -6,9 +6,9 @@
 #
 
 import unittest, logging, os
-from Stream import Stream
-from nodes.FilesystemResource import FilesystemResource
-from nodes.FSCopyNode import FSCopyNode
+from atraxiflow.Stream import Stream
+from atraxiflow.nodes.FilesystemResource import FilesystemResource
+from atraxiflow.nodes.FSCopyNode import FSCopyNode
 
 class test_FSCopyNode(unittest.TestCase):
 

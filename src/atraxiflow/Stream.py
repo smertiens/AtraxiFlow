@@ -5,34 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from exceptions import ResourceException
+from atraxiflow.exceptions import ResourceException
 import logging, os, platform, sys
 from threading import Thread
-
-def axflow_start():
-    '''
-    Set runtime environment.
-    This function will also try to load user defined nodes. 
-    '''
-
-    axf_user_dir = os.path.expanduser('~')
-
-    if platform.system() == 'Windows':
-        axf_user_dir = os.path.join(axf_user_dir, "axtraxi-flow")
-    else:
-        axf_user_dir = os.path.join(axf_user_dir, ".atraxi-flow")
-
-    if not os.path.exists(axf_user_dir):
-        logging.debug('User dir "{0}" does not exist. Creating.'.format(axf_user_dir))
-        os.makedirs(axf_user_dir)
-
-    node_dir = os.path.join(axf_user_dir, "nodes")
-    if os.path.exists(node_dir):
-        if not node_dir in sys.path:
-            sys.path.append(node_dir)
-            logging.debug('Added "{0}" to path.'.format(node_dir))
-    else:
-        logging.debug('Node dir "{0}" not found.'.format(node_dir))
 
 class AsyncBranch(Thread):
     '''

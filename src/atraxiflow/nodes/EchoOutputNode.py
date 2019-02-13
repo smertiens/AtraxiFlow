@@ -5,20 +5,21 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.foundation import Resource
+from atraxiflow.nodes.foundation import OutputNode
+from atraxiflow.common.data import StringValueProcessor
 
 
-class TextResource(Resource):
+class EchoOutputNode(OutputNode):
 
     def __init__(self, name="", props=None):
         self.name = name
         self._known_properties = {
-            'text': {
-                'label': "Text",
+            'msg': {
                 'type': "string",
                 'required': False,
-                'hint': 'A simple text',
-                'default': ''
+                'hint': 'Text to output',
+                'primary': True,
+                "default": ''
             }
         }
         self.children = []
@@ -29,14 +30,7 @@ class TextResource(Resource):
         else:
             self.properties = {}
 
-    def get_prefix(self):
-        return 'Text'
-
-    def get_data(self):
-        return self.get_property('text', '')
-
-    def update_data(self, text):
-        self.set_property('text', text)
-
-    def __str__(self):
-        return str(self.get_property('text', ''))
+    def run(self, stream):
+        self.check_properties()
+        stp = StringValueProcessor(stream)
+        print(stp.parse(self.get_property("msg")) + "\n")

@@ -7,7 +7,7 @@
 
 from pathlib import Path
 import shutil, os
-from nodes.foundation import ProcessorNode
+from atraxiflow.nodes.foundation import ProcessorNode
 import logging
 
 

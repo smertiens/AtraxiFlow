@@ -6,7 +6,7 @@
 #
 
 from datetime import datetime, timedelta
-from Stream import Stream
+from atraxiflow.Stream import Stream
 import re, logging
 
 

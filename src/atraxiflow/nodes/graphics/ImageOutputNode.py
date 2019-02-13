@@ -4,8 +4,8 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-from nodes.foundation import OutputNode
-from common import graphics
+from atraxiflow.nodes.foundation import OutputNode
+from atraxiflow.common import graphics
 
 
 

@@ -1,4 +1,3 @@
-from nodes.InputNode import *
 from nodes.TextResource import *
 import tkinter as tk
 from tkinter import simpledialog

@@ -6,9 +6,9 @@
 #
 
 import argparse
-import NodeManager
+import atraxiflow.NodeManager
 import json, os
-from nodes.foundation import Node, InputNode, ProcessorNode, OutputNode, Resource
+from atraxiflow.nodes.foundation import InputNode, ProcessorNode, OutputNode, Resource
 
 def create_from_template(tpl, name, tp):
     parentNode = ""

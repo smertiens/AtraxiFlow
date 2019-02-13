@@ -5,9 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.FileFilterNode import FileFilterNode
-from Stream import Stream
-from nodes.FilesystemResource import FilesystemResource
+from atraxiflow.nodes.FileFilterNode import FileFilterNode
+from atraxiflow.Stream import Stream
+from atraxiflow.nodes.FilesystemResource import FilesystemResource
 import unittest, os, logging
 
 class test_FileFilterNode(unittest.TestCase):

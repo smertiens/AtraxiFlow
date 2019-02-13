@@ -5,9 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from nodes.foundation import Resource
-from common.graphics import ImageObject
-from common.propertyobject import PropertyObject
+from atraxiflow.nodes.foundation import Resource
+from atraxiflow.common.graphics import ImageObject
+from atraxiflow.common.propertyobject import PropertyObject
 import logging
 
 class ImageResource(Resource):

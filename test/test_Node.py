@@ -6,7 +6,7 @@
 #
 
 import unittest, logging
-from nodes.foundation import Node
+from atraxiflow.nodes.foundation import Node
 
 
 # Test Data
