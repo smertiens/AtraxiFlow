@@ -7,6 +7,7 @@
 
 import shlex
 import subprocess
+import sys
 import time
 
 from atraxiflow.core.data import StringValueProcessor
@@ -43,10 +44,22 @@ class ShellExecNode(ProcessorNode):
     def run(self, stream):
         self.check_properties()
         args = shlex.split(self.get_property('cmd'))
-        result = subprocess.run(args, capture_output=True)
 
-        stream.add_resource(TextResource(self.get_property('output'), {'text': result.stdout.decode("utf-8")}))
-        stream.add_resource(TextResource(self.get_property('errors'), {'text': result.stderr.decode("utf-8")}))
+        stdout = ''
+        stderr = ''
+        if sys.version_info >= (3, 5):
+            # using CompletedProcess
+            result = subprocess.run(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            stdout = result.stdout.decode("utf-8")
+            stderr = result.stderr.decode("utf-8")
+        else:
+            p = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            stdout_raw, stderr_raw = p.communicate()
+            stdout = stdout_raw.decode("utf-8")
+            stderr = stderr_raw.decode("utf-8")
+
+        stream.add_resource(TextResource(self.get_property('output'), {'text': stdout}))
+        stream.add_resource(TextResource(self.get_property('errors'), {'text': stderr}))
 
 
 class EchoOutputNode(OutputNode):

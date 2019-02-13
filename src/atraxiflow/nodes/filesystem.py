@@ -255,7 +255,7 @@ class FSCopyNode(ProcessorNode):
                 logging.error("Destination does not exist")
                 return False
             elif not dest_p.exists() and self.get_property("create_if_missing") is True:
-                os.makedirs(dest_p.absolute())
+                os.makedirs(str(dest_p.absolute()))
 
             logging.info("Copying file {0} to {1}".format(src_p, dest_p))
             shutil.copy(str(src_p.absolute()), str(dest_p.absolute()))
