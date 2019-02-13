@@ -18,13 +18,11 @@ from atraxiflow.nodes.foundation import Resource
 class ShellExecNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
             'cmd': {
                 'type': "string",
                 'required': True,
-                'hint': 'Command to execute',
-                'primary': True
+                'hint': 'Command to execute'
             },
             'output': {
                 'type': "string",
@@ -39,13 +37,8 @@ class ShellExecNode(ProcessorNode):
                 'default': 'last_shellexec_errors'
             }
         }
-        self.children = []
         self._listeners = {}
-
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
         self.check_properties()
@@ -59,7 +52,6 @@ class ShellExecNode(ProcessorNode):
 class EchoOutputNode(OutputNode):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
             'msg': {
                 'type': "string",
@@ -69,13 +61,8 @@ class EchoOutputNode(OutputNode):
                 "default": ''
             }
         }
-        self.children = []
         self._listeners = {}
-
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
         self.check_properties()
@@ -86,7 +73,6 @@ class EchoOutputNode(OutputNode):
 class DelayNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
             'time': {
                 'required': False,
@@ -94,13 +80,9 @@ class DelayNode(ProcessorNode):
                 'default': '5'
             }
         }
-        self.children = []
-        self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
         self.check_properties()
@@ -113,7 +95,6 @@ class DelayNode(ProcessorNode):
 class TextResource(Resource):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
             'text': {
                 'label': "Text",
@@ -123,13 +104,9 @@ class TextResource(Resource):
                 'default': ''
             }
         }
-        self.children = []
-        self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def get_prefix(self):
         return 'Text'
@@ -147,15 +124,10 @@ class TextResource(Resource):
 class NullNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {}
-        self.children = []
-        self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
         pass

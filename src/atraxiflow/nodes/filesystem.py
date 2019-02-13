@@ -13,10 +13,9 @@ import re
 import shutil
 from pathlib import Path
 
-from atraxiflow.core.properties import PropertyObject
-
 from atraxiflow.core.data import DatetimeProcessor
 from atraxiflow.core.filesystem import FSObject
+from atraxiflow.core.properties import PropertyObject
 from atraxiflow.nodes.foundation import ProcessorNode
 from atraxiflow.nodes.foundation import Resource
 
@@ -54,7 +53,7 @@ class FileFilterNode(ProcessorNode):
                 'default': 'FS:*'
             }
         }
-        self.children = []
+
         self._listeners = {}
 
         if props:
@@ -147,31 +146,25 @@ class FileFilterNode(ProcessorNode):
 Provides access to the filesysmtem.
 
 Properties:
-    sourcePattern - a qualified a qualified path to a file folder, can include wildcards 
+    src - a qualified a qualified path to a file folder, can include wildcards 
 """
 
 
 class FilesystemResource(Resource):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
-            'sourcePattern': {
+            'src': {
                 'label': "Source",
                 'type': "file",
                 'required': True,
                 'hint': 'A file or folder',
-                'default': '',
-                'primary': True
+                'default': ''
             }
         }
-        self.children = []
-        self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
         # node specific
         self._fsobjects = []
@@ -186,7 +179,7 @@ class FilesystemResource(Resource):
             self._resolve()
 
     def _ev_property_changed(self, data):
-        if data == 'sourcePattern':
+        if data == 'src':
             self._resolved = False
             self._resolve()
 
@@ -197,7 +190,7 @@ class FilesystemResource(Resource):
         if self._resolved:
             return
 
-        items = glob.glob(self.get_property("sourcePattern"))
+        items = glob.glob(self.get_property("src"))
         self._fsobjects.clear()
 
         for item in items:
@@ -229,7 +222,6 @@ class FilesystemResource(Resource):
 class FSCopyNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
             'dest': {
                 'label': "Destination folder",
@@ -245,13 +237,9 @@ class FSCopyNode(ProcessorNode):
                 'default': True
             },
         }
-        self.children = []
-        self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def _do_copy(self, src, dest):
         # check if src and dest exist

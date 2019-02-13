@@ -7,11 +7,10 @@
 
 import logging
 
-from atraxiflow.nodes.filesystem import FilesystemResource
-
 from atraxiflow.core import graphics
 from atraxiflow.core.graphics import ImageObject
 from atraxiflow.core.properties import PropertyObject
+from atraxiflow.nodes.filesystem import FilesystemResource
 from atraxiflow.nodes.foundation import OutputNode
 from atraxiflow.nodes.foundation import ProcessorNode
 from atraxiflow.nodes.foundation import Resource
@@ -20,7 +19,6 @@ from atraxiflow.nodes.foundation import Resource
 class ImageResource(Resource):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
             'src': {
                 'label': "Source",
@@ -28,16 +26,10 @@ class ImageResource(Resource):
                 'required': True,
                 'hint': 'An image file or object',
                 'default': '',
-                'primary': True
             }
         }
-        self.children = []
         self._listeners = {}
-
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
         # node specific
         self._imgobject = None
@@ -86,7 +78,6 @@ class ImageResizeNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
 
-        self.name = name
         self._known_properties = {
             'target_w': {
                 'label': "New width",
@@ -110,13 +101,9 @@ class ImageResizeNode(ProcessorNode):
                 'default': ''
             }
         }
-        self.children = []
-        self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def _do_resize(self, img):
         # Calculate final size
@@ -171,7 +158,6 @@ class ImageResizeNode(ProcessorNode):
 class ImageOutputNode(OutputNode):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {
             'source': {
                 'label': "Source",
@@ -195,13 +181,9 @@ class ImageOutputNode(OutputNode):
                 'default': ''
             }
         }
-        self.children = []
-        self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def _get_parsed_output_string(self, imgobject):
         map = {

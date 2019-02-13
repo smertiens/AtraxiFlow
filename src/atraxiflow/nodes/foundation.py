@@ -13,12 +13,6 @@ class Node(PropertyObject):
     def get_name(self):
         return self.name
 
-    def add_child_node(self, node):
-        self.children.append(node)
-
-    def remove_child_node(self, index):
-        self.children.remove(index)
-
     def run(self, stream):
         raise Exception("Node class must implement run-method")
 

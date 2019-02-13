@@ -5,9 +5,8 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='atraxi-flow',
-    version='1.0.1',
+    version='1.0.2',
     packages=setuptools.find_packages('src'),
-    #packages=setuptools.find_packages(),
     package_dir={'':'src'},
     classifiers=[
         "Programming Language :: Python :: 3",

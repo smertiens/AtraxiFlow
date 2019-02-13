@@ -62,3 +62,26 @@ class PropertyObject(EventObject):
 
     def get_known_properties(self):
         return self._known_properties
+
+    def get_properties_from_args(self, arg1, arg2):
+        '''
+        Will check if the first argument is a string or a dict. If its a string we assume
+        it is the node name, if its a dict we will return it as properties.
+
+        :param arg1:
+        :param arg2:
+        :return: tuple
+        '''
+
+        name = ""
+        props = {}
+        if isinstance(arg1, str):
+            name = arg1
+
+            if isinstance(arg2, dict):
+                props = arg2
+
+        elif isinstance(arg1, dict):
+            props = arg1
+
+        return tuple([name, props])

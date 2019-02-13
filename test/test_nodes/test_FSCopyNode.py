@@ -58,7 +58,7 @@ class test_FSCopyNode(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.testPath, "folder", "testfile.txt")))
 
         src = FilesystemResource("srcres")
-        src.set_property('sourcePattern', os.path.join(self.testPath, "testfile.txt"))
+        src.set_property('src', os.path.join(self.testPath, "testfile.txt"))
         st.add_resource(src)
         st.append_node(cp)
         self.assertTrue(st.flow())
@@ -75,7 +75,7 @@ class test_FSCopyNode(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.testPath, "folder", "folder2")))
 
         src = FilesystemResource("srcres")
-        src.set_property('sourcePattern', os.path.join(self.testPath, "testfile.txt"))
+        src.set_property('src', os.path.join(self.testPath, "testfile.txt"))
         st.add_resource(src)
         st.append_node(cp)
         self.assertTrue(st.flow())
@@ -93,7 +93,7 @@ class test_FSCopyNode(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(self.testPath, "folder", "folder2")))
 
         src = FilesystemResource("srcres")
-        src.set_property('sourcePattern', os.path.join(self.testPath, "testfile.txt"))
+        src.set_property('src', os.path.join(self.testPath, "testfile.txt"))
         st.add_resource(src)
         st.append_node(cp)
         self.assertFalse(st.flow())
@@ -112,7 +112,7 @@ class test_FSCopyNode(unittest.TestCase):
         self.assertFalse(os.path.exists(os.path.join(dest, "testfile.txt")))
 
         src = FilesystemResource("srcres")
-        src.set_property('sourcePattern', self.testPath)
+        src.set_property('src', self.testPath)
         st.add_resource(src)
         st.append_node(cp)
         self.assertTrue(st.flow())
@@ -131,7 +131,7 @@ class test_FSCopyNode(unittest.TestCase):
         self.assertTrue(os.path.exists(dest))
 
         src = FilesystemResource("srcres")
-        src.set_property('sourcePattern', self.testPath)
+        src.set_property('src', self.testPath)
         st.add_resource(src)
         st.append_node(cp)
         self.assertFalse(st.flow())

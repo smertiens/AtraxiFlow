@@ -31,7 +31,7 @@ class test_FilesystemResource(unittest.TestCase):
 
     def test_resolve_wildcards(self):
         fs = FilesystemResource()
-        fs.set_property("sourcePattern", os.path.join(self.testPath, "*"))
+        fs.set_property("src", os.path.join(self.testPath, "*"))
         data = fs.get_data()
 
         self.assertTrue(fs._resolved)
@@ -41,7 +41,7 @@ class test_FilesystemResource(unittest.TestCase):
 
     def test_resolve_no_wildcards(self):
         fs = FilesystemResource()
-        fs.set_property("sourcePattern", self.testPath)
+        fs.set_property("src", self.testPath)
         data = fs.get_data()
 
         self.assertTrue(fs._resolved)

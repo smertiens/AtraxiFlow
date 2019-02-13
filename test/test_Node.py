@@ -9,6 +9,7 @@ import logging
 import unittest
 
 from atraxiflow.nodes.foundation import Node
+from atraxiflow.nodes.common import NullNode
 
 
 # Test Data
@@ -29,6 +30,16 @@ class test_Node(unittest.TestCase):
     def test_node_inheritance(self):
         node = NodeNoRun()
         self.assertRaises(Exception, node.run)
+
+    def test_constructor(self):
+        node = NullNode('nodename')
+        self.assertEqual('nodename', node.get_name())
+
+        node = NullNode({'hello': 'world'})
+        self.assertEqual('', node.get_name())
+        self.assertEqual('world', node.get_property('hello'))
+
+
 
 
 if __name__ == '__main__':

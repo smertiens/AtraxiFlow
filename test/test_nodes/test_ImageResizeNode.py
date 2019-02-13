@@ -39,8 +39,8 @@ class test_ImageResizeNode(BaseGraphicsTest):
 
     def test_load_resources(self):
         st = Stream()
-        st.add_resource(FilesystemResource(props={'sourcePattern': os.path.join(self.get_test_folder(), 'img1.jpg')}))
-        st.add_resource(FilesystemResource(props={'sourcePattern': os.path.join(self.get_test_folder(), 'img2.jpg')}))
+        st.add_resource(FilesystemResource(props={'src': os.path.join(self.get_test_folder(), 'img1.jpg')}))
+        st.add_resource(FilesystemResource(props={'src': os.path.join(self.get_test_folder(), 'img2.jpg')}))
         st.add_resource(ImageResource(props={'src': os.path.join(self.get_test_folder(), 'img3.jpg')}))
         self.assertEqual(2, len(st.get_resources('FS:*')))
         self.assertEqual(1, len(st.get_resources('Img:*')))
