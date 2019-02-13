@@ -1,4 +1,4 @@
-from nodes.foundation import Resource
+from atraxiflow.nodes.foundation import Resource
 
 
 class {# ClassName #}(Resource):
@@ -6,8 +6,8 @@ class {# ClassName #}(Resource):
     def __init__(self, name="", props=None):
         self.name = name
         self._known_properties = {}
-        self.children = []
-        self.listeners = {}
+        self._children = []
+        self._listeners = {}
 
         if props:
             self.properties = props

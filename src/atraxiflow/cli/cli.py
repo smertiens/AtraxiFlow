@@ -21,7 +21,7 @@ def create_from_template(tpl, name, tp):
     else:
         parentNode = 'ProcessorNode'
 
-    base_path = os.path.dirname(os.path.realpath(__file__));
+    base_path = os.path.dirname(os.path.realpath(os.path.join(__file__, "..")));
 
     if tpl == 'node':
         tpl_path = os.path.join(base_path, 'templates', 'Node.tpl')

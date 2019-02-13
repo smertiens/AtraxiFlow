@@ -1,4 +1,4 @@
-from nodes.foundation import {# Type #}
+from atraxiflow.nodes.foundation import {# Type #}
 
 
 class {# ClassName #}({# Type #}):
@@ -6,7 +6,7 @@ class {# ClassName #}({# Type #}):
     def __init__(self, name="", props=None):
         self.name = name
         self._known_properties = {}
-        self.children = []
+        self._children = []
         self._listeners = {}
 
         if props:

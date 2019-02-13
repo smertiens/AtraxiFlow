@@ -5,7 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
+
 import argparse
+
 from atraxiflow.cli import cli
 
 if __name__ == '__main__':
@@ -23,17 +25,15 @@ if __name__ == '__main__':
                         default="processor")
 
     ### dump:nodes ###
-    parser.add_argument("--save-to", type=str, help="Data produced by dump-nodes will be saved to this file",
-                        default="./nodes.json")
-    parser.add_argument("--export-format", type=str, help="The format to which dump-nodes will output the node data "
-                                                          "to.  At the moment only 'json' is supported.",
-                        default="json")
+    # parser.add_argument("--save-to", type=str, help="Data produced by dump-nodes will be saved to this file",
+    #                     default="./nodes.json")
+    # parser.add_argument("--export-format", type=str, help="The format to which dump-nodes will output the node data "
+    #                                                       "to.  At the moment only 'json' is supported.",
+    #                     default="json")
 
     args = parser.parse_args()
 
-    if args.command == "dump:nodes":
-        cli.dump_nodes(args.save_to, args.export_format)
-    elif args.command == "create:node":
+    if args.command == "create:node":
         cli.create_from_template('node', args.name, args.node_type)
     elif args.command == "create:resource":
         cli.create_from_template('resource', args.name, args.node_type)

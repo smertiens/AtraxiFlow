@@ -1,5 +1,5 @@
-from Stream import Stream
-from nodes.EchoOutputNode import EchoOutputNode
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.EchoOutputNode import EchoOutputNode
 
 
 if __name__ == '__main__':
@@ -8,4 +8,4 @@ if __name__ == '__main__':
         'text': 'Hello World'
     })
     stream.append_node(node)
-    stream.run()
+    stream.flow()

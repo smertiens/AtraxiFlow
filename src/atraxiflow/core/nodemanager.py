@@ -14,6 +14,7 @@ from atraxiflow.nodes.foundation import Resource as baseResource
 
 class NodeManager:
 
+    # TODO: needs to be rewritten considering the package changes
     def find_available_nodes(self, include_resources=True):
 
         # find Nodes
