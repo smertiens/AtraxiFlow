@@ -1,21 +1,22 @@
 # AtraxiFlow
 The flexible python workflow tool
 
+Documentation and PIP package will be available as soon as initial testing is complete.
+
+* Easy and readable
+* Write your own nodes within minutes
+* No dependencies (unless you want to use the ImageProcessing nodes :)
+
 **Install**
 ```
-pip install atraxi-flow
+It will be available via PIP as soon as the first release is out!
 ```
 
 **Usage**
 
 ```python
-from atraxiflow.core.stream import Stream
-from atraxiflow.nodes.common import EchoOutputNode, DelayNode
+from atraxiflow.core.stream import *
+from atraxiflow.nodes.common import EchoOutputNode
 
-stream = Stream()
-stream.append_node(EchoOutputNode({'msg': 'Hello World'}))
-stream.flow()
-
-# Or even easier:
-Stream.create() >> EchoOutputNode({'msg': 'Wait for it..'}) >> DelayNode() >> EchoOutputNode({'msg': 'There it is!'}) >> flow()
+Stream.create() >> EchoOutputNode({'msg': 'Hello World!'}) >> flow()
 ```
