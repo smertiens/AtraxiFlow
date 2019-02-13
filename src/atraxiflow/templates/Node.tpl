@@ -4,7 +4,6 @@ from atraxiflow.nodes.foundation import {# Type #}
 class {# ClassName #}({# Type #}):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {}
         self._listeners = {}
 

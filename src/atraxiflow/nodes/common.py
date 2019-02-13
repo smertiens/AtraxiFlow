@@ -10,10 +10,7 @@ import subprocess
 import sys
 import time
 
-from atraxiflow.core.data import StringValueProcessor
-from atraxiflow.nodes.foundation import OutputNode
-from atraxiflow.nodes.foundation import ProcessorNode
-from atraxiflow.nodes.foundation import Resource
+from atraxiflow.nodes.foundation import *
 
 
 class ShellExecNode(ProcessorNode):
@@ -146,3 +143,31 @@ class NullNode(ProcessorNode):
 
     def run(self, stream):
         return True
+
+
+class CLIInputNode(InputNode):
+
+    def __init__(self, name="", props=None):
+        self._known_properties = {
+            'save_to': {
+                'type': "string",
+                'required': False,
+                'hint': 'The name of the text resource to save the input to.',
+                'default': 'last_cli_input'
+            },
+            'prompt': {
+                'type': "string",
+                'required': False,
+                'hint': 'The text to display when prompting the user for input.',
+                'default': 'Please enter'
+            }
+        }
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
+
+    def run(self, stream):
+        self.check_properties()
+
+        prompt = self.parse_string(stream, self.get_property('prompt'))
+        user_input = input(prompt)
+        stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
