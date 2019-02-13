@@ -32,8 +32,11 @@ class TextResource(Resource):
     def get_prefix(self):
         return 'Text'
 
-    def set_text(self, text):
+    def get_data(self):
+        return self.get_property('text', '')
+
+    def update_data(self, text):
         self.set_property('text', text)
 
     def __str__(self):
-        return self.get_property('text')
+        return str(self.get_property('text', ''))

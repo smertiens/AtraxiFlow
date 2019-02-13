@@ -49,4 +49,4 @@ class Resource (PropertyObject):
         pass
 
     def resolve_variable(self, varname):
-        return str(self)
+        return self.get_data()

@@ -57,7 +57,7 @@ class test_Stream(unittest.TestCase):
     def test_stream_get_resource_prop(self):
         st = Stream.Stream()
         res = TextResource.TextResource("textres")
-        res.set_text("demo")
+        res.update_data("demo")
         st.add_resource(res)
 
         self.assertEqual("demo", res.get_property("text"))

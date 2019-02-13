@@ -32,7 +32,7 @@ class test_DataProcessor(unittest.TestCase):
         p = StringValueProcessor(st)
         p.add_variable("demo", "omed")
 
-        out = p.parse("Hello World {demo} and  another {Res::Text:text1}, {Res::Text:text2}.")
+        out = p.parse("Hello World {demo} and  another {Res::text1}, {Res::text2}.")
         self.assertEqual("Hello World omed and  another one, two.", out)
 
 if __name__ == '__main__':

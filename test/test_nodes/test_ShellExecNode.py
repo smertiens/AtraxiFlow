@@ -8,6 +8,7 @@
 import unittest, logging, os
 from Stream import Stream
 from nodes.ShellExecNode import ShellExecNode
+from nodes.EchoOutputNode import EchoOutputNode
 
 class test_ShellExecNode(unittest.TestCase):
 
@@ -15,8 +16,9 @@ class test_ShellExecNode(unittest.TestCase):
         logging.disable(logging.FATAL)
 
     def tearDown(self):
-        if os.path.exists(os.path.join(os.getcwd(), 'test.txt')):
-            os.unlink(os.path.join(os.getcwd(), 'test.txt'))
+        #if os.path.exists(os.path.join(os.getcwd(), 'test.txt')):
+        #    os.unlink(os.path.join(os.getcwd(), 'test.txt'))
+        pass
 
     def test_create_node(self):
         st = Stream()
@@ -28,14 +30,12 @@ class test_ShellExecNode(unittest.TestCase):
     def test_run_command(self):
         st = Stream()
         n = ShellExecNode()
-        n.set_property('cmd', 'echo "Hello World" > ' + os.path.join(os.getcwd(), 'test.txt'))
+        n.set_property('cmd', 'echo HelloWorld')
         st.append_node(n)
-
+        st.append_node(EchoOutputNode(props={'msg': '{Res::last_shellexec_out}'}))
         self.assertTrue(st.run())
-        fp = open(os.path.join(os.getcwd(), 'test.txt'), 'r')
-        self.assertEqual("Hello World\n", fp.read())
-        fp.close()
 
+        self.assertTrue(n.get_property('cmd'), st.get_resource_by_name('last_shellexec_out').get_data().replace('\n', ''))
 
 
 if __name__ == '__main__':

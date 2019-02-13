@@ -6,7 +6,8 @@
 #
 
 from nodes.foundation import ProcessorNode
-import subprocess, os
+import subprocess, os, shlex
+from nodes.TextResource import  TextResource
 
 
 class ShellExecNode(ProcessorNode):
@@ -19,6 +20,18 @@ class ShellExecNode(ProcessorNode):
                 'required': True,
                 'hint': 'Command to execute',
                 'primary': True
+            },
+            'output': {
+                'type': "string",
+                'required': False,
+                'hint': 'Name of the TextResource to save output of the command to',
+                'default': 'last_shellexec_out'
+            },
+            'errors': {
+                'type': "string",
+                'required': False,
+                'hint': 'Name of the TextResource to save errors of the command to',
+                'default': 'last_shellexec_errors'
             }
         }
         self.children = []
@@ -31,4 +44,8 @@ class ShellExecNode(ProcessorNode):
 
     def run(self, stream):
         self.check_properties()
-        os.system(self.get_property("cmd"))
+        args = shlex.split(self.get_property('cmd'))
+        result = subprocess.run(args, capture_output=True)
+
+        stream.add_resource(TextResource(self.get_property('output'), {'text': result.stdout.decode("utf-8")}))
+        stream.add_resource(TextResource(self.get_property('errors'), {'text': result.stderr.decode("utf-8")}))

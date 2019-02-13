@@ -171,6 +171,21 @@ class Stream:
 
         return self
 
+    def get_resource_by_name(self, name):
+        '''
+        Tries to find a resource by name and returns it
+
+        :param name: Name of the resource
+        :return: Resource
+        '''
+
+        for prefix, res in self._resource_map.items():
+            for r in res:
+                if r.get_name() == name:
+                    return r
+
+        return None
+
     def get_resources(self, query):
         '''
         Get one or more resources from the stream, using given query string

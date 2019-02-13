@@ -33,4 +33,4 @@ class EchoOutputNode(OutputNode):
     def run(self, stream):
         self.check_properties()
         stp = StringValueProcessor(stream)
-        print(stp.parse(self.get_property("text")) + "\n")
+        print(stp.parse(self.get_property("msg")) + "\n")

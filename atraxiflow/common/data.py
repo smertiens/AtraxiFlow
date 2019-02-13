@@ -59,7 +59,7 @@ class StringValueProcessor:
             if var in self._value_map:
                 return self._value_map[var]
             else:
-                logging.error("Could not resolve variable '%s'".format(var))
+                logging.debug("Could not resolve variable '%s'".format(var))
                 return ""
 
         if namespace == "Res":
@@ -69,7 +69,13 @@ class StringValueProcessor:
             if res_name.find('.') > -1:
                 res_name = res_name[0:res_name.find('.')]
             
-            res = self.stream.get_resources(res_name)
+            res = self.stream.get_resource_by_name(res_name)
+
+            if not res:
+                return ''
 
             # request the variable from the resource
-            return res.resolve_variable(key)
+            if key == res.get_name():
+                return res.get_data()
+            else:
+                return res.resolve_variable(key)
