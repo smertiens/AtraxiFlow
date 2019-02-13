@@ -10,7 +10,7 @@ python:
 # command to install dependencies
 install:
   - pip install Pillow
+  - python setup.py install
 # command to run tests
 script:
-  - python .travis/setup_env.py
   - python -m unittest
