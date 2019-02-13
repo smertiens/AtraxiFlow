@@ -41,7 +41,6 @@ class StringValueProcessor:
 
         :type string: str
         """
-
         matches = re.findall("{(.+?)}", string)
 
         for match in matches:

@@ -44,11 +44,12 @@ class ImageResource(Resource):
         if self._imgobject is not None:
             return
 
-        src = self.parse_string(self._stream, self.get_property('src'))
+        src = self.get_property('src')
 
         if isinstance(src, ImageObject):
             self._imgobject = src
         else:
+            src = self.parse_string(self._stream, self.get_property('src'))
             self._imgobject = ImageObject(src)
 
     def _ev_property_changed(self, data):
