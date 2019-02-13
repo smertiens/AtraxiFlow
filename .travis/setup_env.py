@@ -7,6 +7,7 @@
 import sys, os
 
 lib = os.path.realpath(os.path.join('.', '..', 'src'))
+print ("Lib path discovered is: ", lib)
 
 if lib not in sys.path:
     sys.path.append(lib)
