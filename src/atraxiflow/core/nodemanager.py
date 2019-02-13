@@ -17,7 +17,6 @@ class NodeManager:
     def find_available_nodes(self, include_resources=True):
 
         # find Nodes
-
         found_nodes = []
         ignore = ['foundation']
 

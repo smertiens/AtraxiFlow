@@ -13,7 +13,7 @@ from atraxiflow.nodes.graphics import ImageResizeNode
 from atraxiflow.nodes.graphics import ImageResource
 
 from atraxiflow.core.stream import Stream
-from test.test_nodes.test_graphics.BaseGraphicsTest import BaseGraphicsTest
+from test.test_nodes.BaseGraphicsTest import BaseGraphicsTest
 
 
 class test_ImageResizeNode(BaseGraphicsTest):
