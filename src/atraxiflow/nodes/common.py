@@ -5,6 +5,8 @@
 # For more information on licensing see LICENSE file
 #
 
+import logging
+import re
 import shlex
 import subprocess
 import sys
@@ -160,6 +162,18 @@ class CLIInputNode(InputNode):
                 'required': False,
                 'hint': 'The text to display when prompting the user for input.',
                 'default': 'Please enter'
+            },
+            'on_empty': {
+                'type': "string",
+                'required': False,
+                'hint': 'Action to take if the user inputs an empty string. Options: none | fail',
+                'default': 'none'
+            },
+            'validate': {
+                'type': "re",
+                'required': False,
+                'hint': 'A regular expression the input string has to match. If it does not match an error will be shown.',
+                'default': ''
             }
         }
         self._listeners = {}
@@ -170,4 +184,17 @@ class CLIInputNode(InputNode):
 
         prompt = self.parse_string(stream, self.get_property('prompt'))
         user_input = input(prompt)
+
+        if user_input == '':
+            if self.get_property('on_empty') == 'fail':
+                logging.error('Input was empty. Stopping.')
+                return False
+
+        if self.get_property('validate') != '':
+            #TODO: Test
+            if not re.match(self.get_property('validate'), user_input):
+                logging.error('Your input was not valid. Stopping.')
+                return False
+
         stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
+        return True
