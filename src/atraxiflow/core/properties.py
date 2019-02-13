@@ -17,18 +17,18 @@ class PropertyObject(EventObject):
     def check_properties(self):
 
         # check if a primary property is used
-        if type(self.properties) is not dict:
-            foundMatch = False
-            for name, opt in self._known_properties.items():
-                if ("primary" in opt) and (opt["primary"] is True):
-                    self.properties = dict([(name, self.properties)])
-                    # self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
-                    foundMatch = True
-
-            if foundMatch is not True:
-                logging.error("Single argument given, but no primary property defined that will take it.")
-                self.fire_event(self.EVENT_PROPERTIES_CHECKED, False)
-                return False
+        # if type(self.properties) is not dict:
+        #     foundMatch = False
+        #     for name, opt in self._known_properties.items():
+        #         if ("primary" in opt) and (opt["primary"] is True):
+        #             self.properties = dict([(name, self.properties)])
+        #             # self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
+        #             foundMatch = True
+        #
+        #     if foundMatch is not True:
+        #         logging.error("Single argument given, but no primary property defined that will take it.")
+        #         self.fire_event(self.EVENT_PROPERTIES_CHECKED, False)
+        #         return False
 
         # check and merge properties
         for name, opt in self._known_properties.items():
@@ -39,12 +39,6 @@ class PropertyObject(EventObject):
 
             elif (name not in self.properties) and ("default" in opt):
                 self.properties[name] = opt['default']
-                # self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
-
-            elif name in self.properties:
-                # this will fire when property has been set via the constructor's prop-argument
-                # self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
-                pass
 
         self.fire_event(self.EVENT_PROPERTIES_CHECKED, True)
         return True

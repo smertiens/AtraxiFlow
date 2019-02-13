@@ -45,8 +45,7 @@ class test_FileFilterNode(unittest.TestCase):
             ['file_size', '>', '120K']
         ])
 
-        # not intuitive
-        fs = FilesystemResource(props=os.path.join(self.testPath, "*"))
+        fs = FilesystemResource({'src': os.path.join(self.testPath, "*")})
         self.assertEqual(4, len(fs.get_data()))
 
         st = Stream()
@@ -63,8 +62,7 @@ class test_FileFilterNode(unittest.TestCase):
             ['file_size', '<', '4M']
         ])
 
-        # not intuitive
-        fs = FilesystemResource(props=os.path.join(self.testPath, "*"))
+        fs = FilesystemResource({'src': os.path.join(self.testPath, "*")})
         self.assertEqual(4, len(fs.get_data()))
 
         st = Stream()
