@@ -51,4 +51,4 @@ Stream.getResource("ResType::resname") -> gets resource with name "resname"
 Stream.getResource("ResType::resname.value") -> gets property with name "value". Can be changed by overwriting getData() in Node (e.g. Database)
 
 
-.. automodule:: Stream
+.. automodule:: atraxiflow.core.Stream

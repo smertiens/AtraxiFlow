@@ -5,7 +5,7 @@ AtraxiFlow is a workflow tool for Python. It is meant to be simple, inuitive and
 flexible. Everyone familiar with basic python scripting should be able to create
 complex workflows without reading extensive API docs or manuals.
 
-AtraxiFlow consists of three major elements: :ref:`manual/streams`, :ref:`manual/nodes` and :ref:`manual/resources`.
+AtraxiFlow consists of three major elements: :doc:`/manual/streams`, :doc:`/manual/nodes` and :doc:`/manual/resources`.
 The following image will help you understand how they work together:
 
 **Streams** are the basic building blocks. They hold all other components. Think of them as
@@ -15,7 +15,7 @@ a stream of water, like a river. They will take you from the start of your scrip
 **Resources** provide things you can work with in your stream, for example Files, Images, Texts or
 more complex things like data from a database or the internet. Resources have different
 *properties* that determine how they behave or where they should get their data from.
-The :ref:`FilesystemResource` for example has a *sourcePattern*-Property. You can set it to
+The :ref:`fsres` for example has a *src*-Property. You can set it to
 a file like "/hello/world.txt". You can now access the file at anytime using the stream.
 So you can throw any resource into your stream and fish it out any time you need it.
 

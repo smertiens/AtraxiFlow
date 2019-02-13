@@ -7,7 +7,7 @@ Installation
 **Using pip (recommended)**
 Install via the python package manager: ::
 
-    python3 pip install atraxi-flow
+    python pip install atraxi-flow
 
 
 **Downloading**
@@ -31,3 +31,4 @@ To get you started we will write a small workflow that will do the following thi
 2. Put the files in a zip file
 3. Write a friendly message for the user when the workflow is finished
 
+.. todo:: Add small tutorial
