@@ -1,16 +1,17 @@
 # AtraxiFlow
-AtraxiFlow - Flexible python workflow tool
+The flexible python workflow tool
 
-**Example**
+**Install**
+```
+pip install atraxi-flow
+```
+
+**Usage**
 
 ```python
-from Stream import Stream, axflow_start
-from nodes.EchoOutputNode import EchoOutputNode
+from atraxiflow.core.stream import Stream
+from atraxiflow.nodes.common import EchoOutputNode
 
-axflow_start()
+Stream.create().append_node(EchoOutputNode({'msg': 'Hello World'})).flow()
 
-Stream \
-    .create() \
-    .append_node(EchoOutputNode(props='Hello World')) \
-    .run()
 ```
