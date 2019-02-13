@@ -10,6 +10,7 @@ python:
 # command to install dependencies
 install:
   - pip install Pillow
+  - pip install -U pip
   - python setup.py install
 # command to run tests
 script:
