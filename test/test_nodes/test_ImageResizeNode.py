@@ -35,7 +35,7 @@ class test_ImageResizeNode(BaseGraphicsTest):
         st = Stream()
         node = ImageResizeNode()
         st.append_node(node)
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
     def test_load_resources(self):
         st = Stream()
@@ -46,7 +46,7 @@ class test_ImageResizeNode(BaseGraphicsTest):
         self.assertEqual(1, len(st.get_resources('Img:*')))
 
         st.append_node(ImageResizeNode(props={'target_w': '300'}))
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         self.assertEqual(2, len(st.get_resources('FS:*')))
         self.assertEqual(3, len(st.get_resources('Img:*')))

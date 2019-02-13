@@ -33,7 +33,7 @@ class test_ShellExecNode(unittest.TestCase):
         n.set_property('cmd', 'echo HelloWorld')
         st.append_node(n)
         st.append_node(EchoOutputNode(props={'msg': '{Res::last_shellexec_out}'}))
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         self.assertTrue(n.get_property('cmd'),
                         st.get_resource_by_name('last_shellexec_out').get_data().replace('\n', ''))

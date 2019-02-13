@@ -67,7 +67,7 @@ class test_Stream(unittest.TestCase):
         st.append_node(NullNode("demo1"))
         st.append_node(NullNode("demo2"))
         st.append_node(NullNode("demo3"))
-        st.run()
+        st.flow()
 
         self.assertEqual(3, len(st._nodes))
 
@@ -81,7 +81,7 @@ class test_Stream(unittest.TestCase):
         st.branch('calculate_2').append_node(DelayNode(props={'time': 1}))
         st.append_node(NullNode())
 
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
         self.assertEqual(3, threading.active_count())
 
     def test_branch_get(self):
@@ -90,7 +90,7 @@ class test_Stream(unittest.TestCase):
         st.branch('demo')
 
         self.assertEqual(stream.AsyncBranch, type(st.get_branch('demo')))
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
     def test_branch_stream_inheritance(self):
         st = stream.Stream()
@@ -102,7 +102,7 @@ class test_Stream(unittest.TestCase):
         self.assertEqual(0, len(st.get_branch('after').get_stream().get_resources('Text:*')))
         self.assertEqual(1, len(st.get_resources('Text:*')))
 
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         self.assertEqual(1, len(st.get_branch('before').get_stream().get_resources('Text:*')))
         self.assertEqual(1, len(st.get_branch('after').get_stream().get_resources('Text:*')))

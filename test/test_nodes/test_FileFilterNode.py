@@ -52,7 +52,7 @@ class test_FileFilterNode(unittest.TestCase):
         st = Stream()
         st.add_resource(fs)
         st.append_node(fn)
-        st.run()
+        st.flow()
 
         self.assertEqual(3, len(fs.get_data()))
 
@@ -70,7 +70,7 @@ class test_FileFilterNode(unittest.TestCase):
         st = Stream()
         st.add_resource(fs)
         st.append_node(fn)
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         self.assertEqual(2, len(fs.get_data()))
 

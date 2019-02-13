@@ -46,7 +46,7 @@ class test_ImageResizeNode(BaseGraphicsTest):
         st.append_node(
             ImageOutputNode(props={'output_file': os.path.join(self.get_test_folder(), '{img.src.basename}_test.jpg')}))
 
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         for i in range(1, 4):
             self.assertTrue(os.path.exists(os.path.join(self.get_test_folder(), "img{0}_test.jpg".format(i))))

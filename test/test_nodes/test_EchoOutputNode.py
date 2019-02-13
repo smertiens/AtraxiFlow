@@ -29,7 +29,7 @@ class test_EchoOutputNode(unittest.TestCase):
         n.set_property('msg', 'Hello World')
         st.append_node(n)
 
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
 
 if __name__ == '__main__':

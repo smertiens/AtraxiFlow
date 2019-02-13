@@ -61,7 +61,7 @@ class test_FSCopyNode(unittest.TestCase):
         src.set_property('sourcePattern', os.path.join(self.testPath, "testfile.txt"))
         st.add_resource(src)
         st.append_node(cp)
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         self.assertTrue(os.path.exists(os.path.join(self.testPath, "folder", "testfile.txt")))
 
@@ -78,7 +78,7 @@ class test_FSCopyNode(unittest.TestCase):
         src.set_property('sourcePattern', os.path.join(self.testPath, "testfile.txt"))
         st.add_resource(src)
         st.append_node(cp)
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         self.assertTrue(os.path.exists(os.path.join(self.testPath, "folder", "folder2")))
         self.assertTrue(os.path.exists(os.path.join(self.testPath, "folder", "folder2", "testfile.txt")))
@@ -96,7 +96,7 @@ class test_FSCopyNode(unittest.TestCase):
         src.set_property('sourcePattern', os.path.join(self.testPath, "testfile.txt"))
         st.add_resource(src)
         st.append_node(cp)
-        self.assertFalse(st.run())
+        self.assertFalse(st.flow())
 
         self.assertFalse(os.path.exists(os.path.join(self.testPath, "folder", "folder2")))
 
@@ -115,7 +115,7 @@ class test_FSCopyNode(unittest.TestCase):
         src.set_property('sourcePattern', self.testPath)
         st.add_resource(src)
         st.append_node(cp)
-        self.assertTrue(st.run())
+        self.assertTrue(st.flow())
 
         self.assertTrue(os.path.exists(os.path.join(dest, "folder")))
         self.assertTrue(os.path.exists(os.path.join(dest, "testfile.txt")))
@@ -134,7 +134,7 @@ class test_FSCopyNode(unittest.TestCase):
         src.set_property('sourcePattern', self.testPath)
         st.add_resource(src)
         st.append_node(cp)
-        self.assertFalse(st.run())
+        self.assertFalse(st.flow())
 
 
 if __name__ == '__main__':

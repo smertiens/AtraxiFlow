@@ -52,7 +52,7 @@ class AsyncBranch(Thread):
         :return: bool
         '''
         logging.info("Starting new thread on branch {0}".format(self.get_name()))
-        return self.stream.run()
+        return self.stream.flow()
 
 
 class Stream:
@@ -208,7 +208,7 @@ class Stream:
 
         return results
 
-    def run(self):
+    def flow(self):
         '''
         Starts the stream processing
 
