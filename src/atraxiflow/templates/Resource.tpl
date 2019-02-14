@@ -6,20 +6,19 @@ class {# ClassName #}(Resource):
     def __init__(self, name="", props=None):
         self.name = name
         self._known_properties = {}
-        self._children = []
+        self._stream = None
         self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
-
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def get_prefix(self):
         return 'PREFIX'
 
     def remove_data(self, obj):
         # remove data
+        pass
+
+    def update_data(self, data):
         pass
 
     def get_data(self, key=""):

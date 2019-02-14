@@ -33,7 +33,13 @@ class FSObject:
         return os.path.basename(self.path)
 
     def getExtension(self):
-        return os.path.splitext(self.path)[1]
+        ext = os.path.splitext(self.path)[1]
+
+        # remove leading .
+        if ext[0:1] == '.':
+            ext = ext[1:]
+
+        return ext
 
     def getDirectory(self):
         return os.path.dirname(self.path)

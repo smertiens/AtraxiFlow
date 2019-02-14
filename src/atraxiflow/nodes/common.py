@@ -5,14 +5,14 @@
 # For more information on licensing see LICENSE file
 #
 
+import logging
 import shlex
 import subprocess
+import sys
 import time
 
-from atraxiflow.core.data import StringValueProcessor
-from atraxiflow.nodes.foundation import OutputNode
-from atraxiflow.nodes.foundation import ProcessorNode
-from atraxiflow.nodes.foundation import Resource
+from atraxiflow.nodes.foundation import *
+from atraxiflow.nodes.text import TextResource
 
 
 class ShellExecNode(ProcessorNode):
@@ -43,10 +43,22 @@ class ShellExecNode(ProcessorNode):
     def run(self, stream):
         self.check_properties()
         args = shlex.split(self.get_property('cmd'))
-        result = subprocess.run(args, capture_output=True)
 
-        stream.add_resource(TextResource(self.get_property('output'), {'text': result.stdout.decode("utf-8")}))
-        stream.add_resource(TextResource(self.get_property('errors'), {'text': result.stderr.decode("utf-8")}))
+        stdout = ''
+        stderr = ''
+        if sys.version_info >= (3, 5):
+            # using CompletedProcess
+            result = subprocess.run(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            stdout = result.stdout.decode("utf-8")
+            stderr = result.stderr.decode("utf-8")
+        else:
+            p = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+            stdout_raw, stderr_raw = p.communicate()
+            stdout = stdout_raw.decode("utf-8")
+            stderr = stderr_raw.decode("utf-8")
+
+        stream.add_resource(TextResource(self.get_property('output'), {'text': stdout}))
+        stream.add_resource(TextResource(self.get_property('errors'), {'text': stderr}))
 
 
 class EchoOutputNode(OutputNode):
@@ -93,35 +105,6 @@ class DelayNode(ProcessorNode):
         return True
 
 
-class TextResource(Resource):
-
-    def __init__(self, name="", props=None):
-        self._known_properties = {
-            'text': {
-                'label': "Text",
-                'type': "string",
-                'required': False,
-                'hint': 'A simple text',
-                'default': ''
-            }
-        }
-
-        self._listeners = {}
-        self.name, self.properties = self.get_properties_from_args(name, props)
-
-    def get_prefix(self):
-        return 'Text'
-
-    def get_data(self):
-        return self.get_property('text', '')
-
-    def update_data(self, text):
-        self.set_property('text', text)
-
-    def __str__(self):
-        return str(self.get_property('text', ''))
-
-
 class NullNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
@@ -131,4 +114,39 @@ class NullNode(ProcessorNode):
         self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
+        return True
+
+
+class CLIInputNode(InputNode):
+
+    def __init__(self, name="", props=None):
+        self._known_properties = {
+            'save_to': {
+                'type': "string",
+                'required': False,
+                'hint': 'The name of the text resource to save the input to.',
+                'default': 'last_cli_input'
+            },
+            'prompt': {
+                'type': "string",
+                'required': False,
+                'hint': 'The text to display when prompting the user for input.',
+                'default': 'Please enter: '
+            }
+        }
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
+
+    def run(self, stream):
+        self.check_properties()
+
+        prompt = self.parse_string(stream, self.get_property('prompt'))
+        user_input = input(prompt)
+
+        if user_input == '':
+            if self.get_property('on_empty') == 'fail':
+                logging.error('Input was empty. Stopping.')
+                return False
+
+        stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
         return True

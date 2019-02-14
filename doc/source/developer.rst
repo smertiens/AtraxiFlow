@@ -44,11 +44,3 @@ A basic node looks like this:
 
 Add the usage of primaryProperties
 
-Get data from stream:
-
-Stream.getResource("ResType::*") -> gets all of ResType
-Stream.getResource("ResType::resname") -> gets resource with name "resname"
-Stream.getResource("ResType::resname.value") -> gets property with name "value". Can be changed by overwriting getData() in Node (e.g. Database)
-
-
-.. automodule:: Stream

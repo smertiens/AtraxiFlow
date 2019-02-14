@@ -163,6 +163,7 @@ class FilesystemResource(Resource):
             }
         }
 
+        self._stream = None
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
@@ -190,7 +191,8 @@ class FilesystemResource(Resource):
         if self._resolved:
             return
 
-        items = glob.glob(self.get_property("src"))
+        src = self.parse_string(self._stream, self.get_property("src"))
+        items = glob.glob(src)
         self._fsobjects.clear()
 
         for item in items:
@@ -236,6 +238,12 @@ class FSCopyNode(ProcessorNode):
                 'hint': 'Creates the destination path if it is missing',
                 'default': True
             },
+            'sources': {
+                'type': "string",
+                'required': False,
+                'hint': 'Resource query for FilesystemResources',
+                'default': 'FS:*'
+            }
         }
 
         self._listeners = {}
@@ -255,7 +263,7 @@ class FSCopyNode(ProcessorNode):
                 logging.error("Destination does not exist")
                 return False
             elif not dest_p.exists() and self.get_property("create_if_missing") is True:
-                os.makedirs(dest_p.absolute())
+                os.makedirs(str(dest_p.absolute()))
 
             logging.info("Copying file {0} to {1}".format(src_p, dest_p))
             shutil.copy(str(src_p.absolute()), str(dest_p.absolute()))
@@ -275,19 +283,14 @@ class FSCopyNode(ProcessorNode):
             logging.error("Cannot proceed because of previous errors")
             return False
 
-        resources = stream.get_resources("FS:*")
+        resources = stream.get_resources(self.get_property('sources'))
 
         for res in resources:
-            src = res.get_data()
+            dest = self.parse_string(stream, self.get_property('dest'))
 
-            if len(src) > 1:
-                logging.error("Received more than one FSObject. Please narrow down your src-filter.")
-                return False
+            for src in res.get_data():
 
-            src = src[0].getAbsolutePath()
-
-            dest = self.get_property('dest')
-            if self._do_copy(src, dest) is not True:
-                return False
+                if self._do_copy(src.getAbsolutePath(), dest) is not True:
+                    return False
 
         return True

@@ -29,6 +29,7 @@ class ImageResource(Resource):
             }
         }
         self._listeners = {}
+        self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
 
         # node specific
@@ -43,10 +44,13 @@ class ImageResource(Resource):
         if self._imgobject is not None:
             return
 
-        if isinstance(self.get_property('src'), ImageObject):
-            self._imgobject = self.get_property('src')
+        src = self.get_property('src')
+
+        if isinstance(src, ImageObject):
+            self._imgobject = src
         else:
-            self._imgobject = ImageObject(self.get_property('src'))
+            src = self.parse_string(self._stream, self.get_property('src'))
+            self._imgobject = ImageObject(src)
 
     def _ev_property_changed(self, data):
         if data == 'src':
@@ -166,13 +170,6 @@ class ImageOutputNode(OutputNode):
                 'hint': 'A pattern to load resources with',
                 'default': ''
             },
-            'output_format': {
-                'label': "Output format",
-                'type': "list",
-                'required': False,
-                'hint': '',
-                'default': 'jpeg'
-            },
             'output_file': {
                 'label': "Output file",
                 'type': "file",
@@ -214,13 +211,9 @@ class ImageOutputNode(OutputNode):
         else:
             resources = stream.get_resources(self.get_property('source'))
 
-        format = ''
-        if self.get_property('output_format') == 'jpeg':
-            format = graphics.ImageObject.FORMAT_JPEG
-
         for resource in resources:
             imgobj = resource.get_data()
 
-            imgobj.save(self._get_parsed_output_string(imgobj), format)
+            imgobj.save(self._get_parsed_output_string(imgobj))
 
         return True

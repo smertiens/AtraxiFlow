@@ -4,15 +4,10 @@ from atraxiflow.nodes.foundation import {# Type #}
 class {# ClassName #}({# Type #}):
 
     def __init__(self, name="", props=None):
-        self.name = name
         self._known_properties = {}
-        self._children = []
         self._listeners = {}
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
         self.check_properties()
