@@ -92,7 +92,7 @@ Properties
      - Yes
    * - sources
      - A resource query that tells the node which FilesystemResources to consider for filtering (see also :ref:`resfilters`)
-     - No Defaults to 'FS:*' (that will fetch all FilesystemResources)
+     - No Defaults to 'FS:\*' (that will fetch all FilesystemResources)
 
 
 Supported fields for filtering
@@ -214,7 +214,7 @@ Properties
      - No (defaults to None)
    * - res
      - If this is set to a resource identifier the node will output the resources contents (see also :ref:`resfilters`)
-
+     - No (defaults to None)
 
 Example
 -------
@@ -261,7 +261,7 @@ Properties
      - Required
    * - sources
      - A resource query that tells the node which TextResources to consider for validation (see also :ref:`resfilters`)
-     - No (defaults to 'Text:*')
+     - No (defaults to 'Text:\*')
    * - rules
      - A dictionary with rules for validation
      - No. Defaults to an empty dictionary
@@ -368,8 +368,8 @@ Properties
      - The new image height. If set to 'auto' the target_w will be applied, maintaining the images current aspect ratio
      - No. Defaults to 'auto'
    * - sources
-     - A resource query that tells the node which ImageResources to consider for resizing (see also :ref:`resfilters`). The node also recognizes :ref:`fsref` as input. It will try to convert them into ImageObjects
-     - No. Default: 'Img:*'
+     - A resource query that tells the node which ImageResources to consider for resizing (see also :ref:`resfilters`). The node also recognizes :ref:`fsres` as input. It will try to convert them into ImageObjects
+     - No. Default: 'Img:\*'
 
 
 Example
@@ -402,7 +402,7 @@ Properties
      - Required
    * - source
      - A resource query that tells the node which ImageResources to save out (see also :ref:`resfilters`)
-     - No. Defaults to 'Img:*'
+     - No. Defaults to 'Img:\*'
    * - output_file
      - The filename of the images to created. You should use one of the variables listed below if you process more than one image, otherwise all the files will have the same name and thus be overwritten.
      - Yes
