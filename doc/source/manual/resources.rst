@@ -135,7 +135,7 @@ Example
 
 .. code-block:: python
 
-    from atraxiflow.nodes.common import TextResource
+    from atraxiflow.nodes.text import TextResource
 
     img_res = TextResource("mytext", {'text' : 'Hello World!'})
 

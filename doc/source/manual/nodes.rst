@@ -218,7 +218,7 @@ Example
 
 .. code-block:: python
 
-    from nodes.EchoOutputNode import EchoOutputNode
+    from atraxiflow.nodes.EchoOutputNode import EchoOutputNode
 
     # we will create this without a name, since we usually don't need to reference it again
     text_res = EchoOutputNode(props = {'msg': 'hello world'})
@@ -235,29 +235,202 @@ Example
 
 .. code-block:: python
 
-    from nodes.NullNode import NullNode
+    from atraxiflow.nodes.NullNode import NullNode
 
     null_node = NullNode()
     null_node.set_property('hello_world')
     print(null_node.get_property()) # Hello World
 
 
-ImageResizeNode
-***************
+TextValidatorNode
+*****************
+
+This node validates a TextResource given a list of rules.
 
 Properties
 ----------
 
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Required
+   * - sources
+     - A resource query that tells the node which TextResources to consider for validation (see also :ref:`resfilters`)
+     - No (defaults to 'Text:*')
+   * - rules
+     - A dictionary with rules for validation
+     - No. Defaults to an empty dictionary
+
+
+Supported rules
+---------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Rule
+     - Parameters
+     - Description
+   * - not_empty
+     - None
+     - Validation will fail if the text ist empty
+   * - min_len
+     - length: The length to check for
+     - Validation will fail if the text is shorter than *length*
+   * - max_len
+     - length: The length to check for
+     - Validation will fail if the text is longer than *length*
+   * - regex
+     - pattern: The regex pattern to use (see: https://docs.python.org/3.7/library/re.html for reference)
+       mode: either 'must_match' (default) or 'must_not_match'
+     - Validation will fail or pass depending in the regex and mode
+
 Example
 -------
+
+.. code-block:: python
+
+    from atraxiflow.nodes.text import TextResource, TextValidatorNode
+
+    text = TextResource('long', {'text': 'Hello World!'})
+
+    node = TextValidatorNode({
+        'sources': 'Text:long',
+        'rules': {
+            'min_len': {'length': 10}
+        }
+    })
+
+    # will pass
+
+
+CLIInputNode
+************
+
+This node prompts the user for input on the console.
+
+Properties
+----------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Required
+   * - save_to
+     - The name of the TextResource that will hold the user input. The TextResource is automatically created by the CLIInputNode
+     - No (defaults to 'last_cli_input')
+   * - prompt
+     - The text that is shown to the user when asking for input
+     - No. Defaults to 'Please enter: '
+
+Example
+-------
+
+.. code-block:: python
+
+    from atraxiflow.nodes.common import CLIInputNode, EchoOutputNode
+
+    node = CLIInputNode('node', {
+        'prompt': "What's your name? ",
+        'save_to': 'username'
+    })
+
+    out = EchoOutputNode({'msg': 'Hello {Text:username}'})
+
+    Stream.create() >> node >> out >> flow()
+
+ImageResizeNode
+***************
+
+Resizes images.
+
+Properties
+----------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Required
+   * - target_w
+     - The new image width. If set to 'auto' the target_h will be applied, maintaining the images current aspect ratio
+     -  No. Defaults to 'auto'
+   * - target_h
+     - The new image height. If set to 'auto' the target_w will be applied, maintaining the images current aspect ratio
+     - No. Defaults to 'auto'
+   * - sources
+     - A resource query that tells the node which ImageResources to consider for resizing (see also :ref:`resfilters`). The node also recognizes :ref:`fsref` as input. It will try to convert them into ImageObjects
+     - No. Default: 'Img:*'
+
+
+Example
+-------
+.. code-block:: python
+
+    from atraxiflow.nodes.graphics import ImageResizeNode, ImageResource
+
+    st = Stream()
+    st.add_resource(ImageResource({'src': '/images/*.jpg'}))
+
+    # resizes all images to a width of 300 pixels, adjusting the height to maintain the images aspect ratio
+    st.append_node(ImageResizeNode({'target_w': '300'}))
+    st.flow()
 
 
 ImageOutputNode
 ***************
 
+Creates image files from ImageResources. The format of the resulting image file is determined by the output_files's extension (e.g. '.jpeg' will create a JPEG file)
+
 Properties
 ----------
 
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Required
+   * - source
+     - A resource query that tells the node which ImageResources to save out (see also :ref:`resfilters`)
+     - No. Defaults to 'Img:*'
+   * - output_file
+     - The filename of the images to created. You should use one of the variables listed below if you process more than one image, otherwise all the files will have the same name and thus be overwritten.
+     - Yes
+
+Variables for output_file
+-------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+   * - img.width
+     - The width of the image
+   * - img.height
+     - The height of the image
+   * - img.src.basename
+     - If the ImageResource was created from file: The source files basename (e.g.: File 'hello.jpg' -> Basename: 'hello')
+   * - img.src.extension
+     - If the ImageResource was created from file: The file extension of the source file
+
 Example
 -------
+
+.. code-block:: python
+
+    from atraxiflow.nodes.graphics import *
+
+    st = Stream()
+    st.add_resource(ImageResource({'src': '/img_*.jpg')}))
+    st.append_node(ImageResizeNode(props={'target_w': '300'}))
+
+    # if the output folder does not exist, it will be created
+    st.append_node(ImageOutputNode(props={'output_file': '/img/thumbs/{img.src.basename}.{img.src.extension}')}))
 

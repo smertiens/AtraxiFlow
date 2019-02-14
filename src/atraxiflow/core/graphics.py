@@ -71,7 +71,7 @@ class ImageObject:
                 self.img_object = Image()
                 self._valid = True
 
-    def save(self, path, format):
+    def save(self, path, format = ''):
         if self._valid:
             self.img_object.save(path, format)
 

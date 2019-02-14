@@ -55,7 +55,7 @@ class StringValueProcessor:
         """
 
         try:
-            (namespace, key) = var.split("::")
+            (prefix, key) = var.split(":")
         except ValueError:
             # No namespace given - assert local variable
             if var in self._value_map:
@@ -64,20 +64,20 @@ class StringValueProcessor:
                 logging.debug("Could not resolve variable '%s'".format(var))
                 return ""
 
-        if namespace == "Res":
-            res_name = key
+        res_name = key
+        # if key contains ., we take the first part as resource name
+        if res_name.find('.') > -1:
+            res_name = res_name[0:res_name.find('.')]
 
-            # if key contains ., we take the first part as resource name
-            if res_name.find('.') > -1:
-                res_name = res_name[0:res_name.find('.')]
+        result = self.stream.get_resources("{0}:{1}".format(prefix, res_name))
 
-            res = self.stream.get_resource_by_name(res_name)
+        if not result or not isinstance(result, list):
+            return ''
 
-            if not res:
-                return ''
+        res = result[0]
 
-            # request the variable from the resource
-            if key == res.get_name():
-                return res.get_data()
-            else:
-                return res.resolve_variable(key)
+        # request the variable from the resource - not used yet
+        if key == res.get_name():
+            return res.get_data()
+        else:
+            return res.resolve_variable(key)

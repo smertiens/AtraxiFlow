@@ -44,7 +44,7 @@ class test_ImageResizeNode(BaseGraphicsTest):
 
         st.append_node(ImageResizeNode(props={'target_w': '300'}))
         st.append_node(
-            ImageOutputNode(props={'output_file': os.path.join(self.get_test_folder(), '{img.src.basename}_test.jpg')}))
+            ImageOutputNode(props={'output_file': os.path.join(self.get_test_folder(), '{img.src.basename}_test.{img.src.extension}')}))
 
         self.assertTrue(st.flow())
 

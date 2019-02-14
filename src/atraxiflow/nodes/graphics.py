@@ -170,13 +170,6 @@ class ImageOutputNode(OutputNode):
                 'hint': 'A pattern to load resources with',
                 'default': ''
             },
-            'output_format': {
-                'label': "Output format",
-                'type': "list",
-                'required': False,
-                'hint': '',
-                'default': 'jpeg'
-            },
             'output_file': {
                 'label': "Output file",
                 'type': "file",
@@ -218,13 +211,9 @@ class ImageOutputNode(OutputNode):
         else:
             resources = stream.get_resources(self.get_property('source'))
 
-        format = ''
-        if self.get_property('output_format') == 'jpeg':
-            format = graphics.ImageObject.FORMAT_JPEG
-
         for resource in resources:
             imgobj = resource.get_data()
 
-            imgobj.save(self._get_parsed_output_string(imgobj), format)
+            imgobj.save(self._get_parsed_output_string(imgobj))
 
         return True

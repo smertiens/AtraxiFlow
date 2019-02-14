@@ -131,7 +131,7 @@ class CLIInputNode(InputNode):
                 'type': "string",
                 'required': False,
                 'hint': 'The text to display when prompting the user for input.',
-                'default': 'Please enter'
+                'default': 'Please enter: '
             }
         }
         self._listeners = {}
