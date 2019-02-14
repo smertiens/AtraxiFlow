@@ -12,7 +12,7 @@ Documentation and PIP package will be available as soon as initial testing is co
 
 **Install**
 ```
-It will be available via PIP as soon as the first release is out!
+pip install atraxi-flow
 ```
 
 **Usage**
