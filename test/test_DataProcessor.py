@@ -9,7 +9,7 @@ import unittest
 
 from atraxiflow.core.data import StringValueProcessor
 from atraxiflow.core.stream import Stream
-from atraxiflow.nodes.common import TextResource
+from atraxiflow.nodes.text import TextResource
 
 
 class test_DataProcessor(unittest.TestCase):

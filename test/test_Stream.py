@@ -28,7 +28,7 @@ class test_Stream(unittest.TestCase):
 
         self.assertEqual(type(st.get_resources("FS:*")), list)
         self.assertEqual(3, len(st.get_resources("FS:*")))
-        self.assertIsInstance(st.get_resources("FS:res2_world"), FilesystemResource)
+        self.assertIsInstance(st.get_resources("FS:res2_world")[0], FilesystemResource)
         self.assertEqual(type(st.get_resources("FS:*_world")), list)
         self.assertEqual(2, len(st.get_resources("FS:*_world")))
         self.assertEqual(3, len(st.get_resources("FS:res*")))

@@ -189,7 +189,7 @@ class Stream:
         Get one or more resources from the stream, using given query string
 
         :param query: str
-        :return: List of Resources
+        :return: list
         '''
         if query.find(":") == -1:
             raise ResourceException("Invalid resource identifier '{0}'. Should be Prefix:Name".format(query))
@@ -216,7 +216,7 @@ class Stream:
             # find one resource by name
             if key.find("*") == -1 and resource.get_name() == key:
                 if requestedVal is None:
-                    return resource
+                    return [resource]
                 else:
                     return resource.get_property(requestedVal)
             elif (key.startswith("*") and resource.get_name().endswith(key[1:])) or \

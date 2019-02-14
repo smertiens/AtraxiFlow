@@ -6,13 +6,13 @@
 #
 
 import logging
-import re
 import shlex
 import subprocess
 import sys
 import time
 
 from atraxiflow.nodes.foundation import *
+from atraxiflow.nodes.text import TextResource
 
 
 class ShellExecNode(ProcessorNode):
@@ -105,36 +105,6 @@ class DelayNode(ProcessorNode):
         return True
 
 
-class TextResource(Resource):
-
-    def __init__(self, name="", props=None):
-        self._known_properties = {
-            'text': {
-                'label': "Text",
-                'type': "string",
-                'required': False,
-                'hint': 'A simple text',
-                'default': ''
-            }
-        }
-
-        self._listeners = {}
-        self._stream = None
-        self.name, self.properties = self.get_properties_from_args(name, props)
-
-    def get_prefix(self):
-        return 'Text'
-
-    def get_data(self):
-        return self.get_property('text', '')
-
-    def update_data(self, text):
-        self.set_property('text', text)
-
-    def __str__(self):
-        return str(self.get_property('text', ''))
-
-
 class NullNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
@@ -162,18 +132,6 @@ class CLIInputNode(InputNode):
                 'required': False,
                 'hint': 'The text to display when prompting the user for input.',
                 'default': 'Please enter'
-            },
-            'on_empty': {
-                'type': "string",
-                'required': False,
-                'hint': 'Action to take if the user inputs an empty string. Options: none | fail',
-                'default': 'none'
-            },
-            'validate': {
-                'type': "re",
-                'required': False,
-                'hint': 'A regular expression the input string has to match. If it does not match an error will be shown.',
-                'default': ''
             }
         }
         self._listeners = {}
@@ -188,12 +146,6 @@ class CLIInputNode(InputNode):
         if user_input == '':
             if self.get_property('on_empty') == 'fail':
                 logging.error('Input was empty. Stopping.')
-                return False
-
-        if self.get_property('validate') != '':
-            #TODO: Test
-            if not re.match(self.get_property('validate'), user_input):
-                logging.error('Your input was not valid. Stopping.')
                 return False
 
         stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
