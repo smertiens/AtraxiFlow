@@ -7,12 +7,13 @@
 
 import unittest
 
-from atraxiflow.core.data import StringValueProcessor
+from atraxiflow.core.data import StringValueProcessor, dict_read_from_path
 from atraxiflow.core.stream import Stream
 from atraxiflow.nodes.text import TextResource
+from atraxiflow.core.exceptions import ValueException
 
 
-class test_DataProcessor(unittest.TestCase):
+class test_Data(unittest.TestCase):
 
     def get_stream_for_test(self):
         st = Stream()
@@ -36,6 +37,30 @@ class test_DataProcessor(unittest.TestCase):
 
         out = p.parse("Hello World {demo} and  another {Text:text1}, {Text:text2}.")
         self.assertEqual("Hello World omed and  another one, two.", out)
+
+    def test_find_in_dict_by_path(self):
+        d = {
+            'hello': {
+                'world': 123
+            },
+            'foo': {
+                'bar': {
+                    'even': 'deeper'
+                }
+            }
+        }
+
+        self.assertEqual(123, dict_read_from_path(d, 'hello.world'))
+        self.assertEqual('deeper', dict_read_from_path(d, 'foo.bar.even'))
+        self.assertEqual({'world': 123}, dict_read_from_path(d, 'hello'))
+
+        e = False
+        try:
+            self.assertRaises(ValueException, dict_read_from_path(d, 'hello.nothere'))
+        except ValueException:
+            e = True
+
+        self.assertTrue(e)
 
 
 if __name__ == '__main__':
