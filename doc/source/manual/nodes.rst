@@ -238,8 +238,8 @@ Example
     from atraxiflow.nodes.NullNode import NullNode
 
     null_node = NullNode()
-    null_node.set_property('hello_world')
-    print(null_node.get_property()) # Hello World
+    null_node.set_property('hello', 'world')
+    print(null_node.get_property('hello')) # world
 
 
 TextValidatorNode
@@ -333,6 +333,7 @@ Example
 .. code-block:: python
 
     from atraxiflow.nodes.common import CLIInputNode, EchoOutputNode
+    from atraxiflow.core.stream import *
 
     node = CLIInputNode('node', {
         'prompt': "What's your name? ",

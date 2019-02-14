@@ -15,11 +15,20 @@ Documentation and PIP package will be available as soon as initial testing is co
 pip install atraxi-flow
 ```
 
-**Usage**
+**Example**
 
 ```python
+from atraxiflow.nodes.common import CLIInputNode, EchoOutputNode
+from atraxiflow.nodes.text import TextValidatorNode
 from atraxiflow.core.stream import *
-from atraxiflow.nodes.common import EchoOutputNode
 
-Stream.create() >> EchoOutputNode({'msg': 'Hello World!'}) >> flow()
+get_name = CLIInputNode('node', {'prompt': "What's your name? ", 'save_to': 'username' })
+get_greeting = CLIInputNode('node', {'prompt': "And your favourite greeting? ", 'save_to': 'usergreeting' })
+
+# let's make sure we have a name and a greeting
+check_input = TextValidatorNode({'sources': 'Text:user*', 'rules': {'not_empty': {}}})
+out = EchoOutputNode({'msg': '{Text:usergreeting} {Text:username}, nice to meet you!'})
+
+# let's go!
+Stream.create() >> get_name >> get_greeting >> check_input >> out >> flow()
 ```
