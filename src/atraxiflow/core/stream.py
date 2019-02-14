@@ -86,6 +86,18 @@ class Stream:
 
         return self
 
+    def set_log_level(self, level):
+        '''
+        Sets the global log level. Use levels from pythons logging module.
+
+        :param level: logging Log level
+        :return: Stream
+        '''
+
+        logging.getLogger().setLevel(level)
+        return self
+
+
     def create():
         ''' Convenience function to create a new stream '''
         return Stream()

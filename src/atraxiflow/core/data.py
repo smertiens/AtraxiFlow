@@ -86,7 +86,7 @@ class StringValueProcessor:
             if var in self._value_map:
                 return self._value_map[var]
             else:
-                logging.debug("Could not resolve variable '%s'".format(var))
+                logging.debug("Could not resolve variable {0}'".format(var))
                 return ""
 
         res_name = key

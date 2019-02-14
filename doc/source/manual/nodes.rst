@@ -438,3 +438,72 @@ Example
     # if the output folder does not exist, it will be created
     st.append_node(ImageOutputNode(props={'output_file': '/img/thumbs/{img.src.basename}.{img.src.extension}')}))
 
+
+
+FSRenameNode
+************
+
+This node renames files supplied by :ref:`fsres`.
+
+Properties
+----------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Required
+   * - name
+     - A single string that, when set, serves as the new name for the file(s). See below for variables.
+     - No
+   * - replace
+     - A dictionary of key/value pairs to be replaced. If both name and replace are set, first the name is applied and the replacement on top of that.
+     - No
+   * - sources
+     - A resource query that tells the node which FilesystemResources to consider for filtering (see also :ref:`resfilters`)
+     - No. Defaults to 'FS:\*'
+
+
+Supported variables for name-property
+-------------------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+   * - file.path
+     - The path of the original file. (/dir/test.txt -> /dir)
+   * - file.basename
+     - The basename of the original file (test.txt -> test)
+   * - file.extension
+     - The extension of the original file without period (test.txt -> txt)
+
+
+Example
+-------
+
+.. code-block:: python
+
+    from atraxiflow.nodes.filesystem import FileFilterNode, FilesystemResource
+    from atraxiflow.core.stream import *
+
+    ## Example 1 ##
+    res = FilesystemResource({'src': os.path.realpath(os.path.join(self.get_test_dir(), '*'))})
+
+    # will put a "_something" behind every file-basename in the given directory
+    node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
+    Stream.create()->add_resource(res)->append_node(node)->flow()
+
+
+    ## Example 2 ##
+    res = FilesystemResource({'src': os.path.realpath(os.path.join(self.get_test_dir(), 'testfile.txt'))})
+
+    # as you can see, you can also use regular expressions to search for strings to be replaced
+    # this will result in the filename "foobar.ext"
+    node = FSRenameNode({'replace': {
+        'testfile' : 'foobar',
+        re.compile('[\.txt]+$') : '.ext'
+    }})
+    Stream.create()->add_resource(res)->append_node(node)->flow()
