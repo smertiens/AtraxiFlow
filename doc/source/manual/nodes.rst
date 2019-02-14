@@ -198,7 +198,7 @@ Example
 EchoOutputNode
 **************
 
-This node will output a message to the console.
+This node will output a message to the console or output the contents of a resource.
 
 Properties
 ----------
@@ -210,8 +210,11 @@ Properties
      - Description
      - Required
    * - msg
-     - The message to output
-     - No (defaults to '')
+     - If this is set, the node will output this message
+     - No (defaults to None)
+   * - res
+     - If this is set to a resource identifier the node will output the resources contents (see also :ref:`resfilters`)
+
 
 Example
 -------
@@ -228,7 +231,7 @@ NullNode
 ********
 
 This node does: nothing. It is mainly used during testing. You can still use it to store and
-retrieve properties (see :doc:`/api/nodes`)
+retrieve properties.
 
 Example
 -------

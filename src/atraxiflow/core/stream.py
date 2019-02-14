@@ -11,9 +11,10 @@ from threading import Thread
 from atraxiflow.core.exceptions import ResourceException
 from atraxiflow.nodes.foundation import Node, Resource
 
-def flow():
 
+def flow():
     return 'flow'
+
 
 class AsyncBranch(Thread):
     '''
@@ -191,8 +192,20 @@ class Stream:
         :param query: str
         :return: list
         '''
+
         if query.find(":") == -1:
-            raise ResourceException("Invalid resource identifier '{0}'. Should be Prefix:Name".format(query))
+            if query == '*':
+                # return all
+                result_all = []
+                for val in self._resource_map.values():
+                    if isinstance(val, list):
+                        result_all += val
+                    else:
+                        result_all.append(val)
+
+                return result_all
+            else:
+                raise ResourceException("Invalid resource identifier '{0}'. Should be Prefix:Name".format(query))
 
         (prefix, key) = query.split(":")  # type: (str, str)
 

@@ -33,6 +33,12 @@ class test_Stream(unittest.TestCase):
         self.assertEqual(2, len(st.get_resources("FS:*_world")))
         self.assertEqual(3, len(st.get_resources("FS:res*")))
 
+        st.add_resource(TextResource())
+        st.add_resource(TextResource())
+
+        #print(st.get_resources('*'))
+        self.assertEqual(5, len(st.get_resources('*')))
+
     def test_stream_get_resources_properties(self):
         st = stream.Stream()
 
