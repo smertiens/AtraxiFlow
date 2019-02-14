@@ -352,7 +352,10 @@ class FSRenameNode(ProcessorNode):
 
                 if self.get_property('replace') is not None:
                     for key, val in self.get_property('replace').items():
-                        if isinstance(key, re.Pattern):
+
+                        # since py > 3.7 returns 're.Pattern' as result of re.compile and
+                        # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual object
+                        if isinstance(key, type(re.compile(''))):
                             new_name = key.sub(val, new_name)
                         else:
                             new_name = new_name.replace(key, val)
