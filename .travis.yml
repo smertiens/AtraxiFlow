@@ -9,7 +9,8 @@ python:
 # command to install dependencies
 install:
   - pip install Pillow
+  - pip install pytest
   - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 # command to run tests
 script:
-  - python -m unittest
+  - pytest
