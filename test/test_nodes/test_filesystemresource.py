@@ -17,7 +17,7 @@ def test_resolve_wildcards(tmpdir):
     p.write('hlloworld')
 
     fs = FilesystemResource()
-    fs.set_property("src", os.path.join(tmpdir, "*"))
+    fs.set_property("src", str(tmpdir.join("*")))
     data = fs.get_data()
 
     assert fs._resolved

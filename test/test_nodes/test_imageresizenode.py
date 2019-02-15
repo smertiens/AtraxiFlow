@@ -25,11 +25,11 @@ def test_load_resources(tmpdir):
     st = Stream()
 
     for i in range(1, 4):
-        Image.new('RGB', (800, 600)).save(os.path.join(tmpdir, 'img{0}.jpg'.format(i)))
+        Image.new('RGB', (800, 600)).save(str(tmpdir.join('img{0}.jpg'.format(i))))
 
-    st.add_resource(FilesystemResource(props={'src': os.path.join(tmpdir, 'img1.jpg'.format(i))}))
-    st.add_resource(FilesystemResource(props={'src': os.path.join(tmpdir, 'img2.jpg'.format(i))}))
-    st.add_resource(ImageResource(props={'src': os.path.join(tmpdir, 'img3.jpg'.format(i))}))
+    st.add_resource(FilesystemResource(props={'src': str(tmpdir.join('img1.jpg'.format(i)))}))
+    st.add_resource(FilesystemResource(props={'src': str(tmpdir.join('img2.jpg'.format(i)))}))
+    st.add_resource(ImageResource(props={'src': str(tmpdir.join('img3.jpg'.format(i)))}))
 
     assert 2 == len(st.get_resources('FS:*'))
     assert 1 == len(st.get_resources('Img:*'))

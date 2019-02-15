@@ -9,7 +9,7 @@ from atraxiflow.core.filesystem import FSObject
 
 
 def test_basics_folder(tmpdir):
-    fo = FSObject(tmpdir)
+    fo = FSObject(str(tmpdir))
     assert fo.exists()
     assert fo.isFolder()
     assert not fo.isFile()

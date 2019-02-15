@@ -32,13 +32,13 @@ def test_rename_by_name_prop_single(tmpdir):
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = FilesystemResource({'src': os.path.realpath(os.path.join(tmpdir, 'testfile.txt'))})
+    res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
     node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
 
     assert Stream.create().add_resource(res).append_node(node).flow()
-    assert os.path.exists(os.path.join(tmpdir, 'testfile_something.txt'))
+    assert os.path.exists(str(tmpdir.join('testfile_something.txt')))
 
-    assert os.path.join(tmpdir, 'testfile_something.txt') == res.get_data()[0].getAbsolutePath()
+    assert str(tmpdir.join('testfile_something.txt')) == res.get_data()[0].getAbsolutePath()
 
 
 def test_rename_by_name_prop_multi(tmpdir):
@@ -46,14 +46,14 @@ def test_rename_by_name_prop_multi(tmpdir):
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = FilesystemResource({'src': os.path.realpath(os.path.join(tmpdir, '*'))})
+    res = FilesystemResource({'src': str(tmpdir.join('*'))})
 
     node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
 
     assert Stream.create().add_resource(res).append_node(node).flow()
-    assert os.path.exists(os.path.join(tmpdir, 'testfile_something.txt'))
-    assert os.path.exists(os.path.join(tmpdir, 'foo_something.bar'))
-    assert os.path.exists(os.path.join(tmpdir, 'hello_something.'))
+    assert os.path.exists(str(tmpdir.join('testfile_something.txt')))
+    assert os.path.exists(str(tmpdir.join('foo_something.bar')))
+    assert os.path.exists(str(tmpdir.join('hello_something.')))
 
 
 def test_rename_by_repl_prop(tmpdir):
@@ -61,16 +61,16 @@ def test_rename_by_repl_prop(tmpdir):
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = FilesystemResource({'src': os.path.realpath(os.path.join(tmpdir, 'testfile.txt'))})
+    res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
     node = FSRenameNode({'replace': {
         'testfile': 'foobar',
         re.compile('[\.txt]+$'): '.ext'
     }})
 
     assert Stream.create().add_resource(res).append_node(node).flow()
-    assert os.path.exists(os.path.join(tmpdir, 'foobar.ext'))
+    assert os.path.exists(str(tmpdir.join('foobar.ext')))
 
-    assert os.path.join(tmpdir, 'foobar.ext') == res.get_data()[0].getAbsolutePath()
+    assert str(tmpdir.join('foobar.ext')) == res.get_data()[0].getAbsolutePath()
 
 
 def test_rename_by_repl_and_name_prop(tmpdir):
@@ -78,7 +78,7 @@ def test_rename_by_repl_and_name_prop(tmpdir):
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = FilesystemResource({'src': os.path.realpath(os.path.join(tmpdir, 'testfile.txt'))})
+    res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
     node = FSRenameNode({'replace': {
         'helloworld': 'foobar',
         re.compile('[\.txt]+$'): '.ext'
@@ -87,6 +87,6 @@ def test_rename_by_repl_and_name_prop(tmpdir):
     })
 
     assert Stream.create().add_resource(res).append_node(node).flow()
-    assert os.path.exists(os.path.join(tmpdir, 'foobar.ext'))
+    assert os.path.exists(str(tmpdir.join('foobar.ext')))
 
-    assert os.path.join(tmpdir, 'foobar.ext') == res.get_data()[0].getAbsolutePath()
+    assert str(tmpdir.join('foobar.ext')) == res.get_data()[0].getAbsolutePath()
