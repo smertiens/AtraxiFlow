@@ -27,9 +27,10 @@ def test_msg_out(capsys):
     assert st.flow()
 
     captured = capsys.readouterr()
-    assert captured.out == 'Hello World\n'
+    assert captured[0] == 'Hello World\n'
 
 
+# Todo: Fails under 3.5dev, since the textresource is output first...
 def test_res_out(capsys):
     st = Stream()
     fsres = FilesystemResource({'src': './*'})
@@ -51,4 +52,4 @@ def test_res_out(capsys):
 
     target += 'This is not a list.\n'
 
-    assert target == captured.out
+    assert target == captured[0]
