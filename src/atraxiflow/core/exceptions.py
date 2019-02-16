@@ -12,3 +12,7 @@ class ResourceException(Exception):
 
 class EnvironmentException(Exception):
     pass
+
+
+class ValueException(Exception):
+    pass

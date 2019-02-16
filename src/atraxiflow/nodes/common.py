@@ -69,8 +69,13 @@ class EchoOutputNode(OutputNode):
                 'type': "string",
                 'required': False,
                 'hint': 'Text to output',
-                'primary': True,
-                "default": ''
+                "default": None
+            },
+            'res' : {
+                'type': "string",
+                'required': False,
+                'hint': 'Resource query to be output',
+                "default": None
             }
         }
         self._listeners = {}
@@ -78,8 +83,23 @@ class EchoOutputNode(OutputNode):
 
     def run(self, stream):
         self.check_properties()
-        stp = StringValueProcessor(stream)
-        print(stp.parse(self.get_property("msg")) + "\n")
+
+        if self.get_property('msg') is not None:
+            print(self.parse_string(stream, self.get_property('msg')))
+
+        if self.get_property('res') is not None:
+
+            resources = stream.get_resources(self.get_property('res'))
+
+            for res in resources:
+                data = res.get_data()
+
+                if type(data) in [dict, list, map, tuple]:
+                    for subdata in data:
+                        print(subdata)
+                else:
+                    print(data)
+
         return True
 
 

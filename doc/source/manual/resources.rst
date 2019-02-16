@@ -24,6 +24,8 @@ what kind of resource you are looking for. The key is usually the resource name.
 
    * - Format
      - Description
+   * - *
+     - This will return all resources currently in the stream
    * - FS:*
      - This will return all FilesystemResources
    * - Img:*

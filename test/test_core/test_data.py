@@ -5,14 +5,15 @@
 # For more information on licensing see LICENSE file
 #
 
-import unittest
+import pytest
 
-from atraxiflow.core.data import StringValueProcessor
+from atraxiflow.core.data import StringValueProcessor, dict_read_from_path
+from atraxiflow.core.exceptions import ValueException
 from atraxiflow.core.stream import Stream
 from atraxiflow.nodes.text import TextResource
 
 
-class test_DataProcessor(unittest.TestCase):
+class TestData:
 
     def get_stream_for_test(self):
         st = Stream()
@@ -27,7 +28,7 @@ class test_DataProcessor(unittest.TestCase):
         p.add_variable("two", "owt")
         out = p.parse("Hello World {demo} and  another {one}, {two}.")
 
-        self.assertEqual("Hello World omed and  another eno, owt.", out)
+        assert "Hello World omed and  another eno, owt." == out
 
     def test_find_vars_and_replace_resource(self):
         st = self.get_stream_for_test()
@@ -35,8 +36,23 @@ class test_DataProcessor(unittest.TestCase):
         p.add_variable("demo", "omed")
 
         out = p.parse("Hello World {demo} and  another {Text:text1}, {Text:text2}.")
-        self.assertEqual("Hello World omed and  another one, two.", out)
+        assert "Hello World omed and  another one, two." == out
 
+    def test_find_in_dict_by_path(self):
+        d = {
+            'hello': {
+                'world': 123
+            },
+            'foo': {
+                'bar': {
+                    'even': 'deeper'
+                }
+            }
+        }
 
-if __name__ == '__main__':
-    unittest.main()
+        assert 123 == dict_read_from_path(d, 'hello.world')
+        assert 'deeper' == dict_read_from_path(d, 'foo.bar.even')
+        assert {'world': 123} == dict_read_from_path(d, 'hello')
+
+        with pytest.raises(ValueException):
+            dict_read_from_path(d, 'hello.adasdada')

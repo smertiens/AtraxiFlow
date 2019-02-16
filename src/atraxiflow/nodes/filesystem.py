@@ -18,6 +18,7 @@ from atraxiflow.core.filesystem import FSObject
 from atraxiflow.core.properties import PropertyObject
 from atraxiflow.nodes.foundation import ProcessorNode
 from atraxiflow.nodes.foundation import Resource
+from atraxiflow.core.data import StringValueProcessor
 
 '''
 Filter format
@@ -292,5 +293,80 @@ class FSCopyNode(ProcessorNode):
 
                 if self._do_copy(src.getAbsolutePath(), dest) is not True:
                     return False
+
+        return True
+
+
+class FSRenameNode(ProcessorNode):
+
+    def __init__(self, name="", props=None):
+        self._known_properties = {
+            'name': {
+                'type': "string",
+                'required': False,
+                'hint': 'A string to rename the given files to',
+                'default': None
+            },
+            'replace': {
+                'type': "list",
+                'required': False,
+                'hint': 'A list of strings to replace. The key can be a compiled regular expression.',
+                'default': None
+            },
+            'sources': {
+                'type': "string",
+                'required': False,
+                'hint': 'Resource query for FilesystemResources',
+                'default': 'FS:*'
+            }
+        }
+
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
+
+    def run(self, stream):
+        if not self.check_properties():
+            logging.error("Cannot proceed because of previous errors")
+            return False
+
+        resources = stream.get_resources(self.get_property('sources'))
+
+        for res in resources:
+            if not isinstance(res, FilesystemResource):
+                logging.error("Expected FilesystemResource, got {0}".format(type(res)))
+                return False
+
+            new_data = []
+            for fso in res.get_data():
+
+                edited_fso = fso
+                new_name = fso.getAbsolutePath()
+
+                if self.get_property('name') is not None:
+                    svp = StringValueProcessor(stream)
+                    svp.add_variable('file.basename', fso.getBasename())
+                    svp.add_variable('file.extension', fso.getExtension())
+                    svp.add_variable('file.path', fso.getDirectory())
+
+                    new_name = svp.parse(self.get_property('name'))
+
+                if self.get_property('replace') is not None:
+                    for key, val in self.get_property('replace').items():
+
+                        # since py > 3.7 returns 're.Pattern' as result of re.compile and
+                        # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual object
+                        if isinstance(key, type(re.compile(''))):
+                            new_name = key.sub(val, new_name)
+                        else:
+                            new_name = new_name.replace(key, val)
+
+                os.rename(fso.getAbsolutePath(), new_name)
+                logging.debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
+
+                # update object
+                edited_fso = FSObject(new_name)
+
+                new_data.append(edited_fso)
+                res.update_data(new_data)
 
         return True

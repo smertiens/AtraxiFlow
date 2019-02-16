@@ -92,7 +92,7 @@ Properties
      - Yes
    * - sources
      - A resource query that tells the node which FilesystemResources to consider for filtering (see also :ref:`resfilters`)
-     - No Defaults to 'FS:*' (that will fetch all FilesystemResources)
+     - No Defaults to 'FS:\*' (that will fetch all FilesystemResources)
 
 
 Supported fields for filtering
@@ -198,7 +198,7 @@ Example
 EchoOutputNode
 **************
 
-This node will output a message to the console.
+This node will output a message to the console or output the contents of a resource.
 
 Properties
 ----------
@@ -210,8 +210,11 @@ Properties
      - Description
      - Required
    * - msg
-     - The message to output
-     - No (defaults to '')
+     - If this is set, the node will output this message
+     - No (defaults to None)
+   * - res
+     - If this is set to a resource identifier the node will output the resources contents (see also :ref:`resfilters`)
+     - No (defaults to None)
 
 Example
 -------
@@ -228,7 +231,7 @@ NullNode
 ********
 
 This node does: nothing. It is mainly used during testing. You can still use it to store and
-retrieve properties (see :doc:`/api/nodes`)
+retrieve properties.
 
 Example
 -------
@@ -258,7 +261,7 @@ Properties
      - Required
    * - sources
      - A resource query that tells the node which TextResources to consider for validation (see also :ref:`resfilters`)
-     - No (defaults to 'Text:*')
+     - No (defaults to 'Text:\*')
    * - rules
      - A dictionary with rules for validation
      - No. Defaults to an empty dictionary
@@ -365,8 +368,8 @@ Properties
      - The new image height. If set to 'auto' the target_w will be applied, maintaining the images current aspect ratio
      - No. Defaults to 'auto'
    * - sources
-     - A resource query that tells the node which ImageResources to consider for resizing (see also :ref:`resfilters`). The node also recognizes :ref:`fsref` as input. It will try to convert them into ImageObjects
-     - No. Default: 'Img:*'
+     - A resource query that tells the node which ImageResources to consider for resizing (see also :ref:`resfilters`). The node also recognizes :ref:`fsres` as input. It will try to convert them into ImageObjects
+     - No. Default: 'Img:\*'
 
 
 Example
@@ -399,7 +402,7 @@ Properties
      - Required
    * - source
      - A resource query that tells the node which ImageResources to save out (see also :ref:`resfilters`)
-     - No. Defaults to 'Img:*'
+     - No. Defaults to 'Img:\*'
    * - output_file
      - The filename of the images to created. You should use one of the variables listed below if you process more than one image, otherwise all the files will have the same name and thus be overwritten.
      - Yes
@@ -435,3 +438,72 @@ Example
     # if the output folder does not exist, it will be created
     st.append_node(ImageOutputNode(props={'output_file': '/img/thumbs/{img.src.basename}.{img.src.extension}')}))
 
+
+
+FSRenameNode
+************
+
+This node renames files supplied by :ref:`fsres`.
+
+Properties
+----------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+     - Required
+   * - name
+     - A single string that, when set, serves as the new name for the file(s). See below for variables.
+     - No
+   * - replace
+     - A dictionary of key/value pairs to be replaced. If both name and replace are set, first the name is applied and the replacement on top of that.
+     - No
+   * - sources
+     - A resource query that tells the node which FilesystemResources to consider for filtering (see also :ref:`resfilters`)
+     - No. Defaults to 'FS:\*'
+
+
+Supported variables for name-property
+-------------------------------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Name
+     - Description
+   * - file.path
+     - The path of the original file. (/dir/test.txt -> /dir)
+   * - file.basename
+     - The basename of the original file (test.txt -> test)
+   * - file.extension
+     - The extension of the original file without period (test.txt -> txt)
+
+
+Example
+-------
+
+.. code-block:: python
+
+    from atraxiflow.nodes.filesystem import FileFilterNode, FilesystemResource
+    from atraxiflow.core.stream import *
+
+    ## Example 1 ##
+    res = FilesystemResource({'src': os.path.realpath(os.path.join(self.get_test_dir(), '*'))})
+
+    # will put a "_something" behind every file-basename in the given directory
+    node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
+    Stream.create()->add_resource(res)->append_node(node)->flow()
+
+
+    ## Example 2 ##
+    res = FilesystemResource({'src': os.path.realpath(os.path.join(self.get_test_dir(), 'testfile.txt'))})
+
+    # as you can see, you can also use regular expressions to search for strings to be replaced
+    # this will result in the filename "foobar.ext"
+    node = FSRenameNode({'replace': {
+        'testfile' : 'foobar',
+        re.compile('[\.txt]+$') : '.ext'
+    }})
+    Stream.create()->add_resource(res)->append_node(node)->flow()
