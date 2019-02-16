@@ -1,7 +1,7 @@
 # AtraxiFlow
 The flexible python workflow tool
 
-[![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=develop)](https://travis-ci.org/smertiens/AtraxiFlow)
+[![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
 
 * Easy and readable
 * Write your own nodes within minutes
