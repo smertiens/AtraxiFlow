@@ -5,8 +5,6 @@
 # For more information on licensing see LICENSE file
 #
 
-import os
-
 from PIL import Image
 
 from atraxiflow.core.stream import Stream

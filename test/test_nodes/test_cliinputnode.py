@@ -6,7 +6,7 @@
 #
 
 from atraxiflow.nodes.common import CLIInputNode
-from atraxiflow.core.stream import *
+
 
 def test_create():
     node = CLIInputNode('node', {'prompt': 'Hello', 'save_to': 'world'})

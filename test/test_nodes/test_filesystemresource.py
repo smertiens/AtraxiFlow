@@ -5,8 +5,6 @@
 # For more information on licensing see LICENSE file
 #
 
-import os
-
 from atraxiflow.core.filesystem import FSObject
 from atraxiflow.nodes.filesystem import FilesystemResource
 
@@ -21,7 +19,7 @@ def test_resolve_wildcards(tmpdir):
     data = fs.get_data()
 
     assert fs._resolved
-    assert len(data) ==2
+    assert len(data) == 2
     assert isinstance(data[0], FSObject)
     assert isinstance(data[1], FSObject)
 
@@ -32,5 +30,5 @@ def test_resolve_no_wildcards(tmpdir):
     data = fs.get_data()
 
     assert fs._resolved
-    assert len(data)==1
+    assert len(data) == 1
     assert isinstance(data[0], FSObject)

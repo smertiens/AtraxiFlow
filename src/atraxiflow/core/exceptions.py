@@ -16,3 +16,11 @@ class EnvironmentException(Exception):
 
 class ValueException(Exception):
     pass
+
+
+class ExecutionException(Exception):
+    pass
+
+
+class FilesystemException(Exception):
+    pass

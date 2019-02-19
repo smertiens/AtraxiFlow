@@ -3,10 +3,18 @@ The flexible python workflow tool
 
 [![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
 
-* Easy and readable
-* Write your own nodes within minutes
-* No dependencies (unless you want to use the ImageProcessing nodes :)
+* Create easy-to-read automation scripts in minutes
+* Allows you to create your own nodes and resources
 * Requires at least python 3.4
+
+**Changes in 1.0.0b3**
+
+* Added additional filters to FileFilterNode (see: [online documentation](https://docs.atraxi-flow.com/manual/nodes.html#filefilternode))
+
+**Learn**
+
+* Read more about [the concept](https://docs.atraxi-flow.com/basics.html)
+* Get started using [the online documentation](https://docs.atraxi-flow.com/index.html)
 
 **Install**
 ```

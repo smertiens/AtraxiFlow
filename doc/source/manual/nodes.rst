@@ -109,12 +109,19 @@ Supported fields for filtering
      - Filter by the files created date. You can enter the dates as string ("12.01.2017") or use "today", "yesterday"
    * - date_modified
      - Filter by the files last modified date
+   * - type
+     - Filter for type. Supports "file" or "folder". Only takes equal-to-operator ("=")
+   * - filename
+     - Filters by filename (without the directory part). Supported operators: contains, startswith, endswith, matches (regex)
+   * - filedir
+     - Filters by directory part of files or folders (without the filename). Supports same operators as "filename".
+
 
 
 Example
 -------
 
-This will remove all files from the stream, that are larger than 120 kilobytes and smaller than 4 megabytes
+This will leave all files in the stream, that are larger than 120 kilobytes and smaller than 4 megabytes
 
 .. code-block:: python
 
@@ -504,6 +511,6 @@ Example
     # this will result in the filename "foobar.ext"
     node = FSRenameNode({'replace': {
         'testfile' : 'foobar',
-        re.compile('[\.txt]+$') : '.ext'
+        re.compile(r'[\.txt]+$') : '.ext'
     }})
     Stream.create()->add_resource(res)->append_node(node)->flow()

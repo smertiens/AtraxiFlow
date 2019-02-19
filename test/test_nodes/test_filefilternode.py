@@ -5,73 +5,198 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
-import os
-import unittest
+import re
+
+import pytest
 
 from atraxiflow.core.stream import Stream
 from atraxiflow.nodes.filesystem import FileFilterNode
 from atraxiflow.nodes.filesystem import FilesystemResource
 
 
-class test_FileFilterNode(unittest.TestCase):
-    testPath = ""
+@pytest.fixture(scope="module")
+def file_fixture(tmpdir_factory):
     testFiles = {
-        "file1": 2 * 1024 * 1024,  # M
-        "file2": 5 * 1024 * 1024,  # M
-        "file3": 578 * 1024,  # K
-        "file4": 10 * 1024,  # K
+        "file_these_1": 2 * 1024 * 1024,  # M
+        "file_are_21_end": 5 * 1024 * 1024,  # M
+        "file_four_31_end": 578 * 1024,  # K
+        "file_files_4": 10 * 1024,  # K
     }
 
-    def setUp(self):
-        logging.disable(logging.FATAL)
-        self.testPath = os.path.realpath(os.path.join(os.getcwd(), "_testfiles"))
-        os.makedirs(self.testPath)
+    path = tmpdir_factory.mktemp('data')
 
-        for name, size in self.testFiles.items():
-            fp = open(os.path.join(self.testPath, name), "wb")
-            fp.seek(size - 1)
-            fp.write(b"\0")
-            fp.close()
+    for name, size in testFiles.items():
+        fp = open(str(path.join(name)), "wb")
+        fp.seek(size - 1)
+        fp.write(b"\0")
+        fp.close()
 
-    def tearDown(self):
-        for name, size in self.testFiles.items():
-            os.unlink(os.path.join(self.testPath, name))
-        os.rmdir(self.testPath)
-
-    def test_filter_size_single(self):
-        fn = FileFilterNode()
-        fn.set_property("filter", [
-            ['file_size', '>', '120K']
-        ])
-
-        fs = FilesystemResource({'src': os.path.join(self.testPath, "*")})
-        self.assertEqual(4, len(fs.get_data()))
-
-        st = Stream()
-        st.add_resource(fs)
-        st.append_node(fn)
-        st.flow()
-
-        self.assertEqual(3, len(fs.get_data()))
-
-    def test_filter_size_multiple(self):
-        fn = FileFilterNode()
-        fn.set_property("filter", [
-            ['file_size', '>', '120K'],
-            ['file_size', '<', '4M']
-        ])
-
-        fs = FilesystemResource({'src': os.path.join(self.testPath, "*")})
-        self.assertEqual(4, len(fs.get_data()))
-
-        st = Stream()
-        st.add_resource(fs)
-        st.append_node(fn)
-        self.assertTrue(st.flow())
-
-        self.assertEqual(2, len(fs.get_data()))
+    return path
 
 
-if __name__ == '__main__':
-    unittest.main()
+def test_filter_size_single(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['file_size', '>', '120K']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 3
+
+
+def test_filter_size_multiple(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['file_size', '>', '120K'],
+        ['file_size', '<', '4M']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 2
+
+
+def test_filter_filename_single_contains(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['filename', 'contains', '1']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 3
+
+
+def test_filter_filename_single_matches(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['filename', 'matches', re.compile(r'file_\w+_\d+_end')]
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 2
+
+
+def test_filter_filename_single_contains_fail(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['filename', 'contains', 'hellowordl']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 0
+
+
+def test_filter_filename_single_starts(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['filename', 'startswith', 'file_these']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 1
+
+
+def test_filter_filename_single_ends(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['filename', 'endswith', '_end']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 2
+
+
+def test_filter_filename_multiple(file_fixture):
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['filename', 'endswith', '_end'],
+        ['filename', 'contains', '21']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 4
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+
+    assert len(fs.get_data()) == 1
+
+
+def test_filter_filetype(file_fixture):
+    file_fixture.mkdir('demo')
+
+    fn = FileFilterNode()
+    fn.set_property("filter", [
+        ['type', '=', 'file']
+    ])
+
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
+    assert len(fs.get_data()) == 5
+
+    st = Stream()
+    st.add_resource(fs)
+    st.append_node(fn)
+    assert st.flow()
+    print("____")
+    assert len(fs.get_data()) == 4
+
+    # reset
+    fs.set_property('src', str(file_fixture.join('*')))
+    assert len(fs.get_data()) == 5
+
+    fn.set_property("filter", [
+        ['type', '=', 'folder']
+    ])
+
+    assert st.flow()
+    assert len(fs.get_data()) == 1
