@@ -28,5 +28,5 @@ setuptools.setup(
     long_description_content_type="text/markdown",
 
     python_requires='>=3.4',
-    install_requires='[pillow]'
+    install_requires=['Pillow']
 )
