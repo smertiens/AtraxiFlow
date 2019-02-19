@@ -92,9 +92,9 @@ def test_copy_dir_correct(make_fixtures):
         'dest': dest
     })
 
-    assert not os.path.exists(make_fixtures.join("folder", "folder2"))
-    assert not os.path.exists(os.path.join(dest, "folder"))
-    assert not os.path.exists(os.path.join(dest, "testfile.txt"))
+    assert not os.path.exists(str(make_fixtures.join("folder", "folder2")))
+    assert not os.path.exists(str(os.path.join(dest, "folder")))
+    assert not os.path.exists(str(os.path.join(dest, "testfile.txt")))
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures))
@@ -102,8 +102,8 @@ def test_copy_dir_correct(make_fixtures):
     st.append_node(cp)
     assert st.flow()
 
-    assert os.path.exists(os.path.join(dest, "folder"))
-    assert os.path.exists(os.path.join(dest, "testfile.txt"))
+    assert os.path.exists(str(os.path.join(dest, "folder")))
+    assert os.path.exists(str(os.path.join(dest, "testfile.txt")))
 
 
 def test_copy_dir_dest_exists(make_fixtures):
@@ -114,7 +114,7 @@ def test_copy_dir_dest_exists(make_fixtures):
         'dest': str(dest)
     })
 
-    assert os.path.exists(dest)
+    assert os.path.exists(str(dest))
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures))
