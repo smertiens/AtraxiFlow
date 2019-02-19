@@ -14,11 +14,12 @@ import shutil
 from pathlib import Path
 
 from atraxiflow.core.data import DatetimeProcessor
+from atraxiflow.core.data import StringValueProcessor
+from atraxiflow.core.exceptions import *
 from atraxiflow.core.filesystem import FSObject
 from atraxiflow.core.properties import PropertyObject
 from atraxiflow.nodes.foundation import ProcessorNode
 from atraxiflow.nodes.foundation import Resource
-from atraxiflow.core.data import StringValueProcessor
 
 '''
 Filter format
@@ -63,7 +64,7 @@ class FileFilterNode(ProcessorNode):
             self.properties = {}
 
     def _filesize_value_to_number(self, str_size):
-        matches = re.match("(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
+        matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
 
         if matches is None:
             logging.log("Invalid filesize format: %s".format(str_size))
@@ -92,33 +93,77 @@ class FileFilterNode(ProcessorNode):
 
         :type fso: FSObject
         """
-        leftVal = None
-        rightVal = None
+        left_val = None
+        right_val = None
 
         if filter[0] == "file_size":
-            leftVal = fso.getFilesize()
-            rightVal = self._filesize_value_to_number(filter[2])
+            left_val = fso.getFilesize()
+            right_val = self._filesize_value_to_number(filter[2])
         elif filter[0] == "date_created":
-            leftVal = fso.getCreated()
-            rightVal = DatetimeProcessor.processString(filter[2])
+            left_val = fso.getCreated()
+            right_val = DatetimeProcessor.processString(filter[2])
         elif filter[0] == "date_modified":
-            leftVal = fso.getLastModified()
-            rightVal = DatetimeProcessor.processString(filter[2])
+            left_val = fso.getLastModified()
+            right_val = DatetimeProcessor.processString(filter[2])
+        elif filter[0] == "type":
+            left_val = 'folder' if fso.isFolder() else 'file'
+            print(fso, left_val)
+            right_val = filter[2]
 
-        # print (fso.getBasename(), ": ", leftVal, filter[1], rightVal)
+            if filter[1] != '=':
+                filter[1] = '='
+                logging.warning('Filter "type" only supports comparison "equal" (=)')
+
+        elif filter[0] == 'filename':
+
+            right_val = filter[2]
+            if filter[1] == 'contains':
+                return fso.getFilename().find(right_val) > -1
+            elif filter[1] == 'startswith':
+                return fso.getFilename().startswith(right_val)
+            elif filter[1] == 'endswith':
+                return fso.getFilename().endswith(right_val)
+            elif filter[1] == 'matches':
+                if type(right_val) != type(re.compile('')):
+                    logging.error('Value to compare needs to be a compiled regex when using "matches" operator.')
+                    raise ExecutionException('Cannot continue due to previous errors. See log for details.')
+                return right_val.match(fso.getFilename())
+            else:
+                logging.error(
+                    'Filter "file_name" only supports operators: contain, startswith, endswith, matches (regex).')
+                raise ExecutionException('Cannot continue due to previous errors. See log for details.')
+
+        elif filter[0] == 'filedir':
+
+            right_val = filter[2]
+            if filter[1] == 'contains':
+                return fso.getDirectory().find(right_val) > -1
+            elif filter[1] == 'startswith':
+                return fso.getDirectory().startswith(right_val)
+            elif filter[1] == 'endswith':
+                return fso.getDirectory().endswith(right_val)
+            elif filter[1] == 'matches':
+                if type(right_val) != type(re.compile('')):
+                    logging.error('Value to compare needs to be a compiled regex when using "matches" operator.')
+                    raise ExecutionException('Cannot continue due to previous errors. See log for details.')
+                return right_val.match(fso.getDirectory())
+            else:
+                logging.error(
+                    'Filter "file_name" only supports operators: contain, startswith, endswith, matches (regex).')
+                raise ExecutionException('Cannot continue due to previous errors. See log for details.')
 
         if filter[1] == "<":
-            return leftVal < rightVal
+            return left_val < right_val
         elif filter[1] == ">":
-            return leftVal > rightVal
+            return left_val > right_val
         elif filter[1] == "=":
-            return leftVal == rightVal
+            return left_val == right_val
         elif filter[1] == "<=":
-            return leftVal <= rightVal
+            return left_val <= right_val
         elif filter[1] == ">=":
-            return leftVal >= rightVal
+            return left_val >= right_val
         elif filter[1] == "!=":
-            return leftVal != rightVal
+            return left_val != right_val
         else:
             logging.error("Invalid operator: %s".format(filter[1]))
             return False
@@ -143,15 +188,10 @@ class FileFilterNode(ProcessorNode):
         return True
 
 
-"""
-Provides access to the filesysmtem.
-
-Properties:
-    src - a qualified a qualified path to a file folder, can include wildcards 
-"""
-
-
 class FilesystemResource(Resource):
+    """
+    Provides access to the filesysmtem.
+    """
 
     def __init__(self, name="", props=None):
         self._known_properties = {
@@ -257,12 +297,13 @@ class FSCopyNode(ProcessorNode):
 
         if not src_p.exists():
             logging.error("Source does not exist")
-            return False
+            raise FilesystemException('Source does not exist.')
 
         if src_p.is_file():
             if not dest_p.exists() and self.get_property("create_if_missing") is not True:
-                logging.error("Destination does not exist")
-                return False
+                logging.error("Destination does not exist and create_if_missing is False.")
+                raise FilesystemException('Destination does not exist.')
+
             elif not dest_p.exists() and self.get_property("create_if_missing") is True:
                 os.makedirs(str(dest_p.absolute()))
 

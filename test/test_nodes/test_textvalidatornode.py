@@ -86,7 +86,7 @@ def test_rule_regex_must_not_match():
         'sources': 'Text:neg',
         'rules': {
             'regex': {
-                'pattern': '\w+\s+\w+!',
+                'pattern': r'\w+\s+\w+!',
                 'mode': 'must_not_match'
             }
         }
@@ -112,7 +112,7 @@ def test_rule_regex_must_match():
         'sources': 'Text:neg',
         'rules': {
             'regex': {
-                'pattern': '\w+\s+\w+!',
+                'pattern': r'\w+\s+\w+!',
                 'mode': 'must_match'
             }
         }

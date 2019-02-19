@@ -9,15 +9,15 @@ from atraxiflow.core.stream import Stream
 from atraxiflow.nodes.common import ShellExecNode, EchoOutputNode
 
 
-
 def test_create_node():
     st = Stream()
     n = ShellExecNode()
     n.set_property('cmd', 'ls')
 
-    assert 'ls'== n.get_property('cmd')
+    assert 'ls' == n.get_property('cmd')
 
-#todo refactor to capture output
+
+# todo refactor to capture output
 def test_run_command():
     st = Stream()
     n = ShellExecNode()

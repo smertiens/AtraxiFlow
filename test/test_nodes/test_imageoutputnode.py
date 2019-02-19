@@ -16,19 +16,6 @@ from atraxiflow.nodes.graphics import ImageResizeNode
 from atraxiflow.nodes.graphics import ImageResource
 
 
-def tearDown(self):
-    for i in range(1, 4):
-        os.unlink(os.path.join(self.get_test_folder(), "img{0}_test.jpg".format(i)))
-        os.unlink(os.path.join(self.get_test_folder(), "img{0}.jpg".format(i)))
-    os.rmdir(self.get_test_folder())
-
-
-def setUp(self):
-    os.makedirs(self.get_test_folder())
-    for i in range(1, 4):
-        self.create_test_image(os.path.join(self.get_test_folder(), "img{0}.jpg".format(i)))
-
-
 def test_resize_and_output(tmpdir):
     for i in range(1, 4):
         Image.new('RGB', (800, 600)).save(str(tmpdir.join('img{0}.jpg'.format(i))))

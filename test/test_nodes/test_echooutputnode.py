@@ -31,7 +31,7 @@ def test_msg_out(capsys):
 
 
 # Todo: Fails under 3.5dev and 3.5 xenial, since the textresource is output first...
-#def test_res_out(capsys):
+# def test_res_out(capsys):
 def offline(capsys):
     st = Stream()
     fsres = FilesystemResource({'src': './*'})

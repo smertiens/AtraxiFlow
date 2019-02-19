@@ -7,24 +7,9 @@
 
 import os
 import re
-import shutil
 
 from atraxiflow.core.stream import *
 from atraxiflow.nodes.filesystem import FSRenameNode, FilesystemResource
-
-
-def setUp(self):
-    logging.getLogger().setLevel(logging.DEBUG)
-    os.makedirs(self.get_test_dir())
-
-    for s in ['testfile.txt', 'foo.bar', 'hello']:
-        fp = open(os.path.join(self.get_test_dir(), s), 'w')
-        fp.write('Hello World')
-        fp.close()
-
-
-def tearDown(self):
-    shutil.rmtree(self.get_test_dir())
 
 
 def test_rename_by_name_prop_single(tmpdir):
@@ -64,7 +49,7 @@ def test_rename_by_repl_prop(tmpdir):
     res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
     node = FSRenameNode({'replace': {
         'testfile': 'foobar',
-        re.compile('[\.txt]+$'): '.ext'
+        re.compile(r'[\.txt]+$'): '.ext'
     }})
 
     assert Stream.create().add_resource(res).append_node(node).flow()
@@ -81,7 +66,7 @@ def test_rename_by_repl_and_name_prop(tmpdir):
     res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
     node = FSRenameNode({'replace': {
         'helloworld': 'foobar',
-        re.compile('[\.txt]+$'): '.ext'
+        re.compile(r'[\.txt]+$'): '.ext'
     },
         'name': '{file.path}/helloworld.txt'
     })
