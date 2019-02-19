@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='atraxi-flow',
-    version='1.0.0b2',
+    version='1.0.0b3',
     packages=setuptools.find_packages('src'),
     package_dir={'':'src'},
     classifiers=[
@@ -26,5 +26,7 @@ setuptools.setup(
     description='The flexible python workflow tool',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    python_requires='>=3'
+
+    python_requires='>=3.4',
+    install_requires='[pillow]'
 )
