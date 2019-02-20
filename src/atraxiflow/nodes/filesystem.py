@@ -21,21 +21,20 @@ from atraxiflow.core.properties import PropertyObject
 from atraxiflow.nodes.foundation import ProcessorNode
 from atraxiflow.nodes.foundation import Resource
 
-'''
-Filter format
-
-[file_property, comparator, value]
-
-file_property:
-    filesize
-    date_created
-    date_modified
-
-comparator: < > = <= >= !=
-'''
-
 
 class FileFilterNode(ProcessorNode):
+    '''
+    Filter format
+
+    [file_property, comparator, value]
+
+    file_property:
+        filesize
+        date_created
+        date_modified
+
+    comparator: < > = <= >= !=
+    '''
 
     def __init__(self, name="", props=None):
         self.name = name
