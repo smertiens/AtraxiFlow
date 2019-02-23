@@ -12,6 +12,7 @@ from atraxiflow.core.gui import *
 from atraxiflow.nodes.foundation import Node, Resource
 from atraxiflow.core.events import EventObject
 
+
 def flow():
     return 'flow'
 
@@ -56,11 +57,11 @@ class AsyncBranch(Thread):
         Starts the stream of this branch
         :return: bool
         '''
-        self.get_logger().info("Starting new thread on branch {0}".format(self.get_name()))
+        self.stream.get_logger().info("Starting new thread on branch {0}".format(self.get_name()))
         return self.stream.flow()
 
 
-class Stream (EventObject):
+class Stream(EventObject):
     '''
     The main building block of a workflow. Streams hold all nodes and resources
     '''
@@ -299,6 +300,7 @@ class Stream (EventObject):
         '''
         self.get_logger().info("Starting processing")
         self.fire_event(self.EVENT_STREAM_STARTED)
+        nodes_processed = 0
 
         for node in self._nodes:
             if isinstance(node, AsyncBranch):
@@ -308,10 +310,17 @@ class Stream (EventObject):
             else:
                 self.get_logger().debug("Running node {0}".format(node.__class__.__name__))
                 self.fire_event(self.EVENT_NODE_STARTED)
-                if node.run(self) is False:
-                    return False
+                res = node.run(self)
+                nodes_processed += 1
                 self.fire_event(self.EVENT_NODE_FINISHED)
 
-        self.get_logger().info("Finished processing {0} nodes".format(len(self._nodes)))
+                if res is False:
+                    self.get_logger().warning("Node failed.")
+                    self.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
+                    self.fire_event(self.EVENT_STREAM_FINISHED)
+
+                    return False
+
+        self.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
         self.fire_event(self.EVENT_STREAM_FINISHED)
         return True

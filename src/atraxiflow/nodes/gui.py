@@ -26,7 +26,14 @@ class GUIFormInputNode(InputNode):
                 'type': 'list',
                 'required': False,
                 'hint': 'A list of properties for the GUI window',
-                'default': window()
+                'default': Window()
+            },
+            'text': {
+                'label': 'Text',
+                'type': 'string',
+                'required': False,
+                'hint': 'A description text for the form',
+                'default': ''
             },
             'btn_cancel_text': {
                 'label': 'Cancel button text',
@@ -41,11 +48,20 @@ class GUIFormInputNode(InputNode):
                 'required': False,
                 'hint': 'The text of the accept button',
                 'default': 'Okay'
+            },
+            'on_cancel': {
+                'label': 'Cancel action',
+                'type': 'string',
+                'required': False,
+                'hint': 'The action to take when the user cancels the dialog.',
+                'default': 'exit'
             }
         }
         self._listeners = {}
         self._controls = {}
         self._results = {}
+
+        self._canceled = False
 
         self.name, self.properties = self.get_properties_from_args(name, props)
 
@@ -62,7 +78,7 @@ class GUIFormInputNode(InputNode):
         app = None
         reuse_app = False
         if isinstance(stream.get_gui_context(), QtWidgets.QApplication):
-            app = stream.get_get_gui_context()
+            app = stream.get_gui_context()
             reuse_app = True
         else:
             app = QtWidgets.QApplication()
@@ -71,9 +87,8 @@ class GUIFormInputNode(InputNode):
         layout = QtWidgets.QGridLayout()
         wnd.setLayout(layout)
 
-        row = 0
-
         def btn_cancel_clicked():
+            self._canceled = True
             wnd.close()
 
         def btn_accept_clicked():
@@ -82,8 +97,18 @@ class GUIFormInputNode(InputNode):
                     self._results[name] = widget.text()
                 elif isinstance(widget, QtWidgets.QComboBox):
                     self._results[name] = widget.currentText()
+                elif isinstance(widget, QtWidgets.QTextEdit):
+                    self._results[name] = widget.toPlainText()
+                elif isinstance(widget, QtWidgets.QCheckBox):
+                    self._results[name] = widget.isChecked()
 
             wnd.close()
+
+        row = 0
+        if self.get_property('text') != '':
+            self.label_text = QtWidgets.QLabel(self.get_property('text'))
+            layout.addWidget(self.label_text, row, 0, columnSpan=2)
+            row = 1
 
         for name, control in self.get_property('fields').items():
             data = {}
@@ -111,6 +136,13 @@ class GUIFormInputNode(InputNode):
             elif data['type'] == 'textarea':
                 elem = QtWidgets.QTextEdit()
                 elem.setText(data['value'])
+
+                layout.addWidget(elem_label, row, 0, QtCore.Qt.AlignTop)
+                layout.addWidget(elem, row, 1)
+
+            elif data['type'] == 'checkbox':
+                elem = QtWidgets.QCheckBox()
+                elem.setChecked(data['value'] is True)
 
                 layout.addWidget(elem_label, row, 0, QtCore.Qt.AlignTop)
                 layout.addWidget(elem, row, 1)
@@ -167,16 +199,21 @@ class GUIFormInputNode(InputNode):
         if wnd_set['height'] != 'auto':
             wnd.setFixedHeight(wnd_set['height'])
 
-        wnd.show()
-
         if not reuse_app:
+            wnd.show()
             app.exec_()
+        else:
+            wnd.exec_()
 
     def run(self, stream):
         self.check_properties()
         check_qt5_environment()
 
         self._exec_qt5(stream)
+
+        if self._canceled:
+            if self.get_property('on_cancel') == 'exit':
+                return False
 
         # create text resources for results
         for name, data in self.get_data().items():

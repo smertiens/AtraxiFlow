@@ -62,6 +62,7 @@ class TextValidatorNode(ProcessorNode):
             }
         }
         self._listeners = {}
+        self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
 
     def _rule_not_empty(self, text, params=[]):
@@ -72,7 +73,7 @@ class TextValidatorNode(ProcessorNode):
 
     def _rule_min_len(self, text, params=[]):
         if not 'length' in params:
-            logging.error('Rule min_len: Missing parameter "length"')
+            self._stream.get_logger().error('Rule min_len: Missing parameter "length"')
             return False
 
         length = int(params['length'])
@@ -80,7 +81,7 @@ class TextValidatorNode(ProcessorNode):
 
     def _rule_max_len(self, text, params=[]):
         if not 'length' in params:
-            logging.error('Rule max_len: Missing parameter "length"')
+            self._stream.get_logger().error('Rule max_len: Missing parameter "length"')
             return False
 
         length = int(params['length'])
@@ -88,7 +89,7 @@ class TextValidatorNode(ProcessorNode):
 
     def _rule_regex(self, text, params=[]):
         if not 'pattern' in params:
-            logging.error('Rule regex: Missing parameter "pattern"')
+            self._stream.get_logger().error('Rule regex: Missing parameter "pattern"')
             return False
 
         mode = ''
@@ -124,7 +125,7 @@ class TextValidatorNode(ProcessorNode):
 
         for rule, params in rules.items():
             if not "_rule_{}".format(rule) in dir(self):
-                logging.error('Unrecognized rule: "{0}"'.format(rule))
+                self._stream.get_logger().error('Unrecognized rule: "{0}"'.format(rule))
             else:
                 f = getattr(self, "_rule_{}".format(rule))
                 if f(text, params) is False:
@@ -133,6 +134,7 @@ class TextValidatorNode(ProcessorNode):
         return True
 
     def run(self, stream):
+        self._stream = stream
         self.check_properties()
 
         resources = stream.get_resources(self.get_property('sources'))

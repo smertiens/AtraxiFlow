@@ -56,6 +56,7 @@ class FileFilterNode(ProcessorNode):
         }
 
         self._listeners = {}
+        self._stream = None
 
         if props:
             self.properties = props
@@ -66,7 +67,7 @@ class FileFilterNode(ProcessorNode):
         matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
 
         if matches is None:
-            logging.log("Invalid filesize format: %s".format(str_size))
+            self._stream.get_logger().log("Invalid filesize format: %s".format(str_size))
             return 0
 
         if matches.group(2) == "":
@@ -83,7 +84,7 @@ class FileFilterNode(ProcessorNode):
             elif matches.group(2) == "T":
                 f = 1024 * 1024 * 1024 * 1024
             else:
-                logging.log("Invalid filesize format suffix: %s".format(matches.group(2)))
+                self._stream.get_logger().log("Invalid filesize format suffix: %s".format(matches.group(2)))
 
             return int(matches.group(1)) * f
 
@@ -111,7 +112,7 @@ class FileFilterNode(ProcessorNode):
 
             if filter[1] != '=':
                 filter[1] = '='
-                logging.warning('Filter "type" only supports comparison "equal" (=)')
+                self._stream.get_logger().warning('Filter "type" only supports comparison "equal" (=)')
 
         elif filter[0] == 'filename':
 
@@ -124,11 +125,11 @@ class FileFilterNode(ProcessorNode):
                 return fso.getFilename().endswith(right_val)
             elif filter[1] == 'matches':
                 if type(right_val) != type(re.compile('')):
-                    logging.error('Value to compare needs to be a compiled regex when using "matches" operator.')
+                    self._stream.get_logger().error('Value to compare needs to be a compiled regex when using "matches" operator.')
                     raise ExecutionException('Cannot continue due to previous errors. See log for details.')
                 return right_val.match(fso.getFilename())
             else:
-                logging.error(
+                self._stream.get_logger().error(
                     'Filter "file_name" only supports operators: contain, startswith, endswith, matches (regex).')
                 raise ExecutionException('Cannot continue due to previous errors. See log for details.')
 
@@ -143,11 +144,11 @@ class FileFilterNode(ProcessorNode):
                 return fso.getDirectory().endswith(right_val)
             elif filter[1] == 'matches':
                 if type(right_val) != type(re.compile('')):
-                    logging.error('Value to compare needs to be a compiled regex when using "matches" operator.')
+                    self._stream.get_logger().error('Value to compare needs to be a compiled regex when using "matches" operator.')
                     raise ExecutionException('Cannot continue due to previous errors. See log for details.')
                 return right_val.match(fso.getDirectory())
             else:
-                logging.error(
+                self._stream.get_logger().error(
                     'Filter "file_name" only supports operators: contain, startswith, endswith, matches (regex).')
                 raise ExecutionException('Cannot continue due to previous errors. See log for details.')
 
@@ -164,11 +165,12 @@ class FileFilterNode(ProcessorNode):
         elif filter[1] == "!=":
             return left_val != right_val
         else:
-            logging.error("Invalid operator: %s".format(filter[1]))
+            self._stream.get_logger().error("Invalid operator: %s".format(filter[1]))
             return False
 
     def run(self, stream):
         self.check_properties()
+        self._stream = stream
 
         # filter FSObjects from every resource and filter them down
 
@@ -242,7 +244,7 @@ class FilesystemResource(Resource):
 
     def remove_data(self, obj):
         if obj not in self._fsobjects:
-            logging.error("Cannot remove: {0}, not found in this resource".format(obj))
+            self._stream.get_logger().error("Cannot remove: {0}, not found in this resource".format(obj))
             return
 
         self._fsobjects.remove(obj)
@@ -253,7 +255,7 @@ class FilesystemResource(Resource):
 
     def update_data(self, data):
         if not isinstance(data, list):
-            logging.error("Expected List, got {0}".format(type(data)))
+            self._stream.get_logger().error("Expected List, got {0}".format(type(data)))
             return
 
         self._fsobjects = data
@@ -295,33 +297,35 @@ class FSCopyNode(ProcessorNode):
         dest_p = Path(dest)
 
         if not src_p.exists():
-            logging.error("Source does not exist")
+            self._stream.get_logger().error("Source does not exist")
             raise FilesystemException('Source does not exist.')
 
         if src_p.is_file():
             if not dest_p.exists() and self.get_property("create_if_missing") is not True:
-                logging.error("Destination does not exist and create_if_missing is False.")
+                self._stream.get_logger().error("Destination does not exist and create_if_missing is False.")
                 raise FilesystemException('Destination does not exist.')
 
             elif not dest_p.exists() and self.get_property("create_if_missing") is True:
                 os.makedirs(str(dest_p.absolute()))
 
-            logging.info("Copying file {0} to {1}".format(src_p, dest_p))
+            self._stream.get_logger().info("Copying file {0} to {1}".format(src_p, dest_p))
             shutil.copy(str(src_p.absolute()), str(dest_p.absolute()))
 
         elif src_p.is_dir():
             if dest_p.exists():
-                logging.error("Destination directory already exists")
+                self._stream.get_logger().error("Destination directory already exists")
                 return False
 
-            logging.info("Copying directory {0} to {1}".format(src_p, dest_p))
+            self._stream.get_logger().info("Copying directory {0} to {1}".format(src_p, dest_p))
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
 
         return True
 
     def run(self, stream):
+        self._stream = stream
+
         if not self.check_properties():
-            logging.error("Cannot proceed because of previous errors")
+            self._stream.get_logger().error("Cannot proceed because of previous errors")
             return False
 
         resources = stream.get_resources(self.get_property('sources'))
@@ -362,18 +366,20 @@ class FSRenameNode(ProcessorNode):
         }
 
         self._listeners = {}
+        self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
 
     def run(self, stream):
+        self._stream = stream
         if not self.check_properties():
-            logging.error("Cannot proceed because of previous errors")
+            self._stream.get_logger().error("Cannot proceed because of previous errors")
             return False
 
         resources = stream.get_resources(self.get_property('sources'))
 
         for res in resources:
             if not isinstance(res, FilesystemResource):
-                logging.error("Expected FilesystemResource, got {0}".format(type(res)))
+                self._stream.get_logger().error("Expected FilesystemResource, got {0}".format(type(res)))
                 return False
 
             new_data = []
@@ -401,7 +407,7 @@ class FSRenameNode(ProcessorNode):
                             new_name = new_name.replace(key, val)
 
                 os.rename(fso.getAbsolutePath(), new_name)
-                logging.debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
+                self._stream.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
 
                 # update object
                 edited_fso = FSObject(new_name)

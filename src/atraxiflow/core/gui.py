@@ -10,14 +10,14 @@ import threading
 from atraxiflow.core.exceptions import *
 from atraxiflow.core.data import StringValueProcessor
 
+
 class FormField:
 
     def resolve(self, stream):
-        fieldsToResolve = ['value']
         processor = StringValueProcessor(stream)
 
         for key, value in self._data.items():
-            if key in fieldsToResolve:
+            if key in self._resolve_fields:
                 self._data[key] = processor.parse(value)
 
         return self._data
@@ -25,22 +25,27 @@ class FormField:
 
 class Textfield(FormField):
     def __init__(self, label, value=""):
+        self._resolve_fields = ['value', 'label']
         self._data = {
             'type': 'textfield',
             'label': label,
             'value': value
         }
 
+
 class Textarea(FormField):
     def __init__(self, label, value=""):
+        self._resolve_fields = ['value', 'label']
         self._data = {
             'type': 'textarea',
             'label': label,
             'value': value
         }
 
+
 class Combobox(FormField):
     def __init__(self, label, items=None, selected=None, editable=False):
+        self._resolve_fields = ['value', 'label']
         self._data = {
             'type': 'combobox',
             'label': label,
@@ -52,6 +57,7 @@ class Combobox(FormField):
 
 class Password(FormField):
     def __init__(self, label, value=""):
+        self._resolve_fields = ['value', 'label']
         self._data = {
             'type': 'password',
             'label': label,
@@ -59,7 +65,17 @@ class Password(FormField):
         }
 
 
-def window(title='New Window', width='auto', height='auto', resizable=False):
+class Checkbox(FormField):
+    def __init__(self, label, value=False):
+        self._resolve_fields = ['label']
+        self._data = {
+            'type': 'checkbox',
+            'label': label,
+            'value': value
+        }
+
+
+def Window(title='New Window', width='auto', height='auto', resizable=False):
     return {
         'title': title,
         'width': width,

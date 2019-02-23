@@ -4,9 +4,9 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-import setuptools
-from PySide2 import QtWidgets, QtCore, QtGui
 import logging
+
+from PySide2 import QtWidgets, QtCore
 
 
 class Qt5TextEditHandler(logging.Handler):
@@ -25,7 +25,7 @@ class Qt5TextEditHandler(logging.Handler):
 
         styles = 'color:black'
         if record.levelno == logging.WARNING:
-            styles = 'color:yellow'
+            styles = 'color:chocolate'
         elif record.levelno == logging.DEBUG:
             styles = 'color:gray'
         elif record.levelno >= logging.WARNING:
@@ -68,19 +68,23 @@ class ProcessingWindow(QtWidgets.QMainWindow):
         self.progressbar = QtWidgets.QProgressBar()
         self.layout.addWidget(self.progressbar)
 
+        self._run_stream()
+
+    def _run_stream(self):
         # set up log handler
         hdlr = Qt5TextEditHandler(self.text_logbox)
         hdlr.setLevel(logging.DEBUG)
-        stream.get_logger().addHandler(hdlr)
-        stream.get_logger().setLevel(logging.DEBUG)
+
+        self._stream.get_logger().addHandler(hdlr)
+        self._stream.get_logger().setLevel(logging.DEBUG)
+        logging.getLogger('root').addHandler(hdlr)
+        logging.getLogger('root').setLevel(logging.DEBUG)
 
         # set up progress bar
         def update_progressbar(data):
             self.progressbar.setValue(self.progressbar.value() + 1)
             self.progressbar.repaint()
 
-        self.progressbar.setMaximum(stream.get_node_count())
+        self.progressbar.setMaximum(self._stream.get_node_count())
         self.progressbar.setValue(0)
-        self._stream.add_listener(stream.EVENT_NODE_FINISHED, update_progressbar)
-
-
+        self._stream.add_listener(self._stream.EVENT_NODE_FINISHED, update_progressbar)

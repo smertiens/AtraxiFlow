@@ -165,7 +165,7 @@ class CLIInputNode(InputNode):
 
         if user_input == '':
             if self.get_property('on_empty') == 'fail':
-                logging.error('Input was empty. Stopping.')
+                stream.get_logger().error('Input was empty. Stopping.')
                 return False
 
         stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
