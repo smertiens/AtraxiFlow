@@ -8,9 +8,9 @@
 import logging
 from threading import Thread
 
-from atraxiflow.core.exceptions import ResourceException
+from atraxiflow.core.gui import *
 from atraxiflow.nodes.foundation import Node, Resource
-
+from atraxiflow.core.events import EventObject
 
 def flow():
     return 'flow'
@@ -56,19 +56,38 @@ class AsyncBranch(Thread):
         Starts the stream of this branch
         :return: bool
         '''
-        logging.info("Starting new thread on branch {0}".format(self.get_name()))
+        self.get_logger().info("Starting new thread on branch {0}".format(self.get_name()))
         return self.stream.flow()
 
 
-class Stream:
+class Stream (EventObject):
     '''
     The main building block of a workflow. Streams hold all nodes and resources
     '''
+
+    EVENT_STREAM_STARTED = 0
+    EVENT_STREAM_FINISHED = 1
+    EVENT_NODE_STARTED = 0
+    EVENT_NODE_FINISHED = 1
 
     def __init__(self):
         self._resource_map = {}
         self._branch_map = {}
         self._nodes = []
+        self._listeners = {}
+
+        self._gui_ctx = None
+
+    def set_gui_context(self, ctx):
+        '''
+        Holds a reference to a gui singleton (like QApplication)
+        :param ctx: The context instance
+        :return:
+        '''
+        self._gui_ctx = ctx
+
+    def get_gui_context(self):
+        return self._gui_ctx
 
     def __rshift__(self, other):
         '''
@@ -86,6 +105,16 @@ class Stream:
 
         return self
 
+    def get_node_count(self):
+        return len(self._nodes)
+
+    def get_logger(self):
+        '''
+        Returns the streams logger
+        :return: Logger
+        '''
+        return logging.getLogger('stream')
+
     def set_log_level(self, level):
         '''
         Sets the global log level. Use levels from pythons logging module.
@@ -94,9 +123,8 @@ class Stream:
         :return: Stream
         '''
 
-        logging.getLogger().setLevel(level)
+        self.get_logger().setLevel(level)
         return self
-
 
     def create():
         ''' Convenience function to create a new stream '''
@@ -122,7 +150,7 @@ class Stream:
         :return: AsyncBranch
         '''
         if name not in self._branch_map:
-            logging.error("Branch {0} could not be found".format(name))
+            self.get_logger().error("Branch {0} could not be found".format(name))
             return None
 
         return self._branch_map[name]
@@ -160,6 +188,15 @@ class Stream:
 
         res._stream = self
         return self
+
+    def set_gui_provider(self, provider):
+        '''
+        Sets the gui provider to be used by gui nodes in this stream
+
+        Provider can be: qt5 (default) | tk
+        :param provider: str
+        '''
+        self._gui_provider = provider
 
     def remove_resource(self, query):
         '''
@@ -260,17 +297,21 @@ class Stream:
 
         :return: bool - If false, errors have occured while processing the stream
         '''
-        logging.info("Starting processing")
+        self.get_logger().info("Starting processing")
+        self.fire_event(self.EVENT_STREAM_STARTED)
 
         for node in self._nodes:
             if isinstance(node, AsyncBranch):
-                logging.info("Starting new branch {0}".format(node.get_name()))
+                self.get_logger().info("Starting new branch {0}".format(node.get_name()))
                 node.get_stream().inherit(self)
                 node.start()
             else:
-                logging.debug("Running node {0}".format(node.__class__.__name__))
+                self.get_logger().debug("Running node {0}".format(node.__class__.__name__))
+                self.fire_event(self.EVENT_NODE_STARTED)
                 if node.run(self) is False:
                     return False
+                self.fire_event(self.EVENT_NODE_FINISHED)
 
-        logging.info("Finished processing {0} nodes".format(len(self._nodes)))
+        self.get_logger().info("Finished processing {0} nodes".format(len(self._nodes)))
+        self.fire_event(self.EVENT_STREAM_FINISHED)
         return True

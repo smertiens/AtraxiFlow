@@ -1,7 +1,10 @@
 from atraxiflow.core.stream import Stream
-from atraxiflow.nodes.echooutputnode import EchoOutputNode
+from atraxiflow.nodes.common import EchoOutputNode
+from atraxiflow.gui import *
 
-Stream \
+st = Stream \
     .create() \
-    .append_node(EchoOutputNode(props='Hello World')) \
-    .flow()
+    .append_node(EchoOutputNode(props='Hello World'))
+
+gui = GUI(st)
+gui.flow()
