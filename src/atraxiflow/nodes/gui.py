@@ -5,10 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.core.exceptions import *
+from atraxiflow.core.gui import *
 from atraxiflow.nodes.common import TextResource
 from atraxiflow.nodes.foundation import *
-from atraxiflow.core.gui import *
 
 
 class GUIFormInputNode(InputNode):
@@ -218,5 +217,79 @@ class GUIFormInputNode(InputNode):
         # create text resources for results
         for name, data in self.get_data().items():
             stream.add_resource(TextResource(name, {'text': data}))
+
+        return True
+
+
+class GUIMessageNode(ProcessorNode):
+
+    def __init__(self, name="", props=None):
+        self._known_properties = {
+            'title': {
+                'label': 'Title',
+                'type': 'string',
+                'required': False,
+                'hint': 'The title of the dialog',
+                'default': ''
+            },
+            'text': {
+                'label': 'Text',
+                'type': 'string',
+                'required': False,
+                'hint': 'The message of the dialog',
+                'default': ''
+            },
+            'icon': {
+                'label': 'Icon',
+                'type': 'string',
+                'required': False,
+                'hint': 'The icon of the dialog (info|question|warning|error)',
+                'default': 'info'
+            }
+        }
+        self._listeners = {}
+
+        self.name, self.properties = self.get_properties_from_args(name, props)
+
+    def _exec_qt5(self, stream):
+        from PySide2 import QtWidgets
+
+        app = None
+        reuse_app = False
+        if isinstance(stream.get_gui_context(), QtWidgets.QApplication):
+            app = stream.get_gui_context()
+            reuse_app = True
+        else:
+            app = QtWidgets.QApplication()
+
+        msgbox = QtWidgets.QMessageBox()
+        msgbox.setText(self.parse_string(stream, self.get_property('text')))
+        msgbox.setWindowTitle(self.parse_string(stream, self.get_property('title')))
+        msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+        if self.get_property('icon') == 'info':
+            msgbox.setIcon(QtWidgets.QMessageBox.Information)
+        elif self.get_property('icon') == 'question':
+            msgbox.setIcon(QtWidgets.QMessageBox.Question)
+        elif self.get_property('icon') == 'warning':
+            msgbox.setIcon(QtWidgets.QMessageBox.Warning)
+        elif self.get_property('icon') == 'error':
+            msgbox.setIcon(QtWidgets.QMessageBox.Critical)
+        else:
+            stream.get_logger().warning(
+                'Icon "{0}" not recognized. Try one of these: info, question, warning, error'.format(
+                    self.get_property('icon')))
+            msgbox.setIcon(QtWidgets.QMessageBox.NoIcon)
+
+        if not reuse_app:
+            app.exec_()
+
+        msgbox.exec_()
+
+    def run(self, stream):
+        self.check_properties()
+        check_qt5_environment()
+
+        self._exec_qt5(stream)
 
         return True

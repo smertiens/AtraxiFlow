@@ -7,7 +7,7 @@
 
 from atraxiflow.gui import *
 from atraxiflow.core.stream import *
-from atraxiflow.nodes.gui import GUIFormInputNode
+from atraxiflow.nodes.gui import *
 from atraxiflow.nodes.common import *
 st = Stream()
 
@@ -19,7 +19,7 @@ form_node = GUIFormInputNode({
     'text': 'How should I greet you?',
     'window': Window(title='Greeting')
 })
-out_node = EchoOutputNode({'msg': '{Text:greeting}, {Text:name}!'})
+out_node = GUIMessageNode({'title': 'Greeting', 'text': '{Text:greeting}, {Text:name}'})
 
 st >> form_node >> out_node
 
