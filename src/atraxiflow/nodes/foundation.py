@@ -5,8 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.core.properties import PropertyObject
 from atraxiflow.core.data import StringValueProcessor
+from atraxiflow.core.properties import PropertyObject
+
 
 class Node(PropertyObject):
 

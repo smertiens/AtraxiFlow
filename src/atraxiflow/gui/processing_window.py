@@ -52,7 +52,7 @@ class ProcessingWindow(QtWidgets.QMainWindow):
         self.hbox_header = QtWidgets.QHBoxLayout()
         self.label_logo = QtWidgets.QLabel('AtraxiFlow')
         self.label_logo.setStyleSheet("font-family: sans-serif; font-size:24px")
-        self.label_version = QtWidgets.QLabel('1.0.0')
+        self.label_version = QtWidgets.QLabel('')
         self.label_version.setStyleSheet("font-size:10px")
         self.btn_start = QtWidgets.QPushButton('Run')
         self.btn_start.connect(QtCore.SIGNAL('clicked()'), lambda: self._stream.flow())

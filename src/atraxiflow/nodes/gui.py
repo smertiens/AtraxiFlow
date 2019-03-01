@@ -13,6 +13,8 @@ from atraxiflow.nodes.foundation import *
 class GUIFormInputNode(InputNode):
 
     def __init__(self, name="", props=None):
+        from PySide2 import QtWidgets
+
         self._known_properties = {
             'fields': {
                 'label': 'Fields',
@@ -64,6 +66,8 @@ class GUIFormInputNode(InputNode):
 
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+        self._wnd = QtWidgets.QDialog()
+
     def get_data(self):
         '''
         Returns all fields.
@@ -74,21 +78,14 @@ class GUIFormInputNode(InputNode):
     def _exec_qt5(self, stream):
         from PySide2 import QtWidgets, QtCore
 
-        app = None
-        reuse_app = False
-        if isinstance(stream.get_gui_context(), QtWidgets.QApplication):
-            app = stream.get_gui_context()
-            reuse_app = True
-        else:
-            app = QtWidgets.QApplication()
+        app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
 
-        wnd = QtWidgets.QDialog()
         layout = QtWidgets.QGridLayout()
-        wnd.setLayout(layout)
+        self._wnd.setLayout(layout)
 
         def btn_cancel_clicked():
             self._canceled = True
-            wnd.close()
+            self._wnd.close()
 
         def btn_accept_clicked():
             for name, widget in self._controls.items():
@@ -101,7 +98,7 @@ class GUIFormInputNode(InputNode):
                 elif isinstance(widget, QtWidgets.QCheckBox):
                     self._results[name] = widget.isChecked()
 
-            wnd.close()
+            self._wnd.close()
 
         row = 0
         if self.get_property('text') != '':
@@ -191,18 +188,14 @@ class GUIFormInputNode(InputNode):
 
         # apply window settings
         wnd_set = self.get_property('window')
-        wnd.setWindowTitle(wnd_set['title'] + ' - AtraxiFlow')
+        self._wnd.setWindowTitle(wnd_set['title'] + ' - AtraxiFlow')
 
         if wnd_set['width'] != 'auto':
-            wnd.setFixedWidth(wnd_set['width'])
+            self._wnd.setFixedWidth(wnd_set['width'])
         if wnd_set['height'] != 'auto':
-            wnd.setFixedHeight(wnd_set['height'])
+            self._wnd.setFixedHeight(wnd_set['height'])
 
-        if not reuse_app:
-            wnd.show()
-            app.exec_()
-        else:
-            wnd.exec_()
+        self._wnd.show()
 
     def run(self, stream):
         self.check_properties()
@@ -224,6 +217,8 @@ class GUIFormInputNode(InputNode):
 class GUIMessageNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
+        from PySide2 import QtWidgets
+
         self._known_properties = {
             'title': {
                 'label': 'Title',
@@ -248,43 +243,35 @@ class GUIMessageNode(ProcessorNode):
             }
         }
         self._listeners = {}
-
         self.name, self.properties = self.get_properties_from_args(name, props)
+
+        self._msgbox = QtWidgets.QMessageBox()
 
     def _exec_qt5(self, stream):
         from PySide2 import QtWidgets
 
-        app = None
-        reuse_app = False
-        if isinstance(stream.get_gui_context(), QtWidgets.QApplication):
-            app = stream.get_gui_context()
-            reuse_app = True
-        else:
-            app = QtWidgets.QApplication()
+        app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
 
-        msgbox = QtWidgets.QMessageBox()
-        msgbox.setText(self.parse_string(stream, self.get_property('text')))
-        msgbox.setWindowTitle(self.parse_string(stream, self.get_property('title')))
-        msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+        self._msgbox.setText(self.parse_string(stream, self.get_property('text')))
+        # ignored in osx
+        self._msgbox.setWindowTitle(self.parse_string(stream, self.get_property('title')))
+        self._msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
 
         if self.get_property('icon') == 'info':
-            msgbox.setIcon(QtWidgets.QMessageBox.Information)
+            self._msgbox.setIcon(QtWidgets.QMessageBox.Information)
         elif self.get_property('icon') == 'question':
-            msgbox.setIcon(QtWidgets.QMessageBox.Question)
+            self._msgbox.setIcon(QtWidgets.QMessageBox.Question)
         elif self.get_property('icon') == 'warning':
-            msgbox.setIcon(QtWidgets.QMessageBox.Warning)
+            self._msgbox.setIcon(QtWidgets.QMessageBox.Warning)
         elif self.get_property('icon') == 'error':
-            msgbox.setIcon(QtWidgets.QMessageBox.Critical)
+            self._msgbox.setIcon(QtWidgets.QMessageBox.Critical)
         else:
             stream.get_logger().warning(
                 'Icon "{0}" not recognized. Try one of these: info, question, warning, error'.format(
                     self.get_property('icon')))
-            msgbox.setIcon(QtWidgets.QMessageBox.NoIcon)
+            self._msgbox.setIcon(QtWidgets.QMessageBox.NoIcon)
 
-        if not reuse_app:
-            app.exec_()
-
-        msgbox.exec_()
+        self._msgbox.exec_()
 
     def run(self, stream):
         self.check_properties()

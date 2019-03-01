@@ -5,10 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.gui import *
 from atraxiflow.core.stream import *
 from atraxiflow.nodes.gui import *
-from atraxiflow.nodes.common import *
+
 st = Stream()
 
 form_node = GUIFormInputNode({
@@ -21,7 +20,7 @@ form_node = GUIFormInputNode({
 })
 out_node = GUIMessageNode({'title': 'Greeting', 'text': '{Text:greeting}, {Text:name}'})
 
-st >> form_node >> out_node
+st >> form_node >> out_node >> flow_ui()
 
-gui = GUI(st)
-gui.flow()
+# gui = GUI(st)
+# gui.flow()

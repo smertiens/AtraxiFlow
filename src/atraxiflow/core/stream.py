@@ -8,13 +8,18 @@
 import logging
 from threading import Thread
 
-from atraxiflow.core.gui import *
-from atraxiflow.nodes.foundation import Node, Resource
 from atraxiflow.core.events import EventObject
+from atraxiflow.core.gui import *
+from atraxiflow.gui import GUI
+from atraxiflow.nodes.foundation import Node, Resource
 
 
 def flow():
     return 'flow'
+
+
+def flow_ui():
+    return 'flow_ui'
 
 
 class AsyncBranch(Thread):
@@ -88,6 +93,10 @@ class Stream(EventObject):
         self._gui_ctx = ctx
 
     def get_gui_context(self):
+        '''
+        Returns current gui context
+        :return: object
+        '''
         return self._gui_ctx
 
     def __rshift__(self, other):
@@ -103,6 +112,9 @@ class Stream(EventObject):
             self.add_resource(other)
         elif isinstance(other, str) and other == 'flow':
             self.flow()
+        elif isinstance(other, str) and other == 'flow_ui':
+            gui = GUI(self)
+            gui.flow()
 
         return self
 
@@ -189,15 +201,6 @@ class Stream(EventObject):
 
         res._stream = self
         return self
-
-    def set_gui_provider(self, provider):
-        '''
-        Sets the gui provider to be used by gui nodes in this stream
-
-        Provider can be: qt5 (default) | tk
-        :param provider: str
-        '''
-        self._gui_provider = provider
 
     def remove_resource(self, query):
         '''
@@ -316,7 +319,8 @@ class Stream(EventObject):
 
                 if res is False:
                     self.get_logger().warning("Node failed.")
-                    self.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
+                    self.get_logger().info(
+                        "Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
                     self.fire_event(self.EVENT_STREAM_FINISHED)
 
                     return False
