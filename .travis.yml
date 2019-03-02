@@ -1,28 +1,25 @@
-#dist: xenial
+dist: xenial
 language: python
-#addons:
-#  apt:
-#    packages:
-#      - xvfb
-
 python:
-  #- "3.4"
-  #- "3.5"
-  #- "3.5-dev"
+  - "3.4"
+  - "3.5"
+  - "3.5-dev"
   - "3.6"
-  #- "3.6-dev"
+  - "3.6-dev"
   - "3.7-dev"
-  #- "3.7"
+  - "3.7"
+
+env:
+  - TRAVIS_TEST="yes"
+
 # command to install dependencies
 install:
-  - export DISPLAY=':99.0'
-  - Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
   - pip install Pillow
   - pip install Pyside2
   - pip install pytest
   - pip install pytest-qt
   - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-# command to run tests
 
+# command to run tests
 script:
   - pytest
