@@ -1,15 +1,13 @@
 #dist: xenial
 language: python
-services:
-  - xvfb
 python:
-  - "3.4"
-  - "3.5"
-  - "3.5-dev"
+  #- "3.4"
+  #- "3.5"
+  #- "3.5-dev"
   - "3.6"
-  - "3.6-dev"
+  #- "3.6-dev"
   - "3.7-dev"
-  - "3.7"
+  #- "3.7"
 # command to install dependencies
 install:
   - pip install Pillow
@@ -19,4 +17,5 @@ install:
   - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 # command to run tests
 script:
+  - xvfb-run make test
   - pytest
