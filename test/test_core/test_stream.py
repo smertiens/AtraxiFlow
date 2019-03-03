@@ -186,10 +186,40 @@ def test_get_node_by_name():
 
 
 # TODO test
-def test_get_node_output_from_prev():
+def test_get_node_output_from_prev(tmpdir):
     pass
 
 
 # TODO test
 def test_get_node_output_by_name():
     pass
+
+
+def test_resource_name_invalid():
+    st = stream.Stream()
+
+    with pytest.raises(ExecutionException):
+        st.add_resource(TextResource('asdl.asdasd'))
+
+
+def test_resource_name_double():
+    st = stream.Stream()
+    st.add_resource(TextResource('demo'))
+
+    with pytest.raises(ExecutionException):
+        st.add_resource(TextResource('demo'))
+
+
+def test_node_name_invalid():
+    st = stream.Stream()
+
+    with pytest.raises(ExecutionException):
+        st.append_node(NullNode('aosdk.paoskd'))
+
+
+def test_node_name_double():
+    st = stream.Stream()
+    st.append_node(NullNode('demo'))
+
+    with pytest.raises(ExecutionException):
+        st.append_node(NullNode('demo'))

@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
+import logging, re
 from threading import Thread
 
 from atraxiflow.core.events import EventObject
@@ -79,20 +79,15 @@ class Stream(EventObject):
 
         self._pos = -1
 
-    def set_gui_context(self, ctx):
+    def _validate_name(self, name):
         '''
-        Holds a reference to a gui singleton (like QApplication)
-        :param ctx: The context instance
-        :return:
-        '''
-        self._gui_ctx = ctx
+        Check whether node/res name is valid
 
-    def get_gui_context(self):
+        :param name: The name to check
+        :type name: str
+        :rtype: bool
         '''
-        Returns current gui context
-        :return: object
-        '''
-        return self._gui_ctx
+        return re.match(r'^[\w _-]+$', name)
 
     def __rshift__(self, other):
         '''
@@ -177,6 +172,13 @@ class Stream(EventObject):
         :param node: Node
         :return: Stream
         '''
+
+        if node.get_name() != '' and not self._validate_name(node.get_name()):
+            raise ExecutionException("Invalid node name: {0}".format(node.get_name()))
+
+        if node.get_name() != '' and self.get_node_by_name(node.get_name()) is not None:
+            raise ExecutionException('A node by the name "{0}" already exists'.format(node.get_name()))
+
         self._nodes.append(node)
         return self
 
@@ -190,6 +192,13 @@ class Stream(EventObject):
 
         if res.get_prefix() == 'AX':
             raise ResourceException("The prefix 'AX' is reserved for internal use and cannot be used by resources.")
+
+        # check resource name - empty name is allowed
+        if res.get_name() != '' and not self._validate_name(res.get_name()):
+            raise ExecutionException("Invalid resource name: {0}".format(res.get_name()))
+
+        if res.get_name() != '' and self.get_resource_by_name(res.get_name()) is not None:
+            raise ExecutionException('A resource by the name "{0}" already exists'.format(res.get_name()))
 
         if res.get_prefix() in self._resource_map:
             self._resource_map[res.get_prefix()].append(res)
