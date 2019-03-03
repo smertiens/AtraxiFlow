@@ -131,6 +131,7 @@ class Stream(EventObject):
         self.get_logger().setLevel(level)
         return self
 
+    @staticmethod
     def create():
         ''' Convenience function to create a new stream '''
         return Stream()

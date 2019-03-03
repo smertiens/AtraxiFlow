@@ -188,6 +188,7 @@ class GUIFormInputNode(InputNode):
 
         # apply window settings
         wnd_set = self.get_property('window')
+        self._wnd.setWindowModality(QtCore.Qt.ApplicationModal)
         self._wnd.setWindowTitle(wnd_set['title'] + ' - AtraxiFlow')
 
         if wnd_set['width'] != 'auto':

@@ -22,5 +22,6 @@ out_node = GUIMessageNode({'title': 'Greeting', 'text': '{Text:greeting}, {Text:
 st.append_node(form_node)
 st.append_node(out_node)
 
-gui = GUIStream(st)
+gui = GUIStream.from_stream(st)
+#gui.set_autostart(True)
 gui.flow()

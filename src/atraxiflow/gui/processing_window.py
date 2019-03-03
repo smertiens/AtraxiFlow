@@ -37,7 +37,7 @@ class Qt5TextEditHandler(logging.Handler):
 
 class ProcessingWindow(QtWidgets.QMainWindow):
 
-    def __init__(self, stream, parent=None):
+    def __init__(self, stream, autostart = False, parent=None):
         super(ProcessingWindow, self).__init__(parent)
 
         self._stream = stream
@@ -69,6 +69,9 @@ class ProcessingWindow(QtWidgets.QMainWindow):
         self.layout.addWidget(self.progressbar)
 
         self._run_stream()
+
+        if autostart is True:
+            self._stream.flow()
 
     def _run_stream(self):
         # set up log handler

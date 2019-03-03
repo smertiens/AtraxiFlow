@@ -8,20 +8,36 @@
 import threading
 from atraxiflow.core.exceptions import *
 from atraxiflow.core.data import StringValueProcessor
-
+from atraxiflow.core.exceptions import *
 from atraxiflow.gui.processing_window import *
 
 
 class GUIStream():
 
-    def __init__(self, stream):
+    def __init__(self):
+        self._stream = None
+        self._autostart = False
+
+    @staticmethod
+    def from_stream(stream):
+        inst = GUIStream()
+        inst.set_stream(stream)
+        return inst
+
+    def set_stream(self, stream):
         self._stream = stream
 
+    def set_autostart(self, val):
+        self._autostart = val
+
     def flow(self):
+        if self._stream is None:
+            raise ExecutionException('No stream set for GUIStream. Use GUIStream.from_stream() or instance.set_strea().')
+
         app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
         self._stream.set_gui_context(app)
 
-        wnd = ProcessingWindow(self._stream)
+        wnd = ProcessingWindow(self._stream, self._autostart)
         wnd.show()
 
         app.exec_()
