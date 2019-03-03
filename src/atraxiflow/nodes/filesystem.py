@@ -308,7 +308,7 @@ class FSCopyNode(ProcessorNode):
             elif not dest_p.exists() and self.get_property("create_if_missing") is True:
                 os.makedirs(str(dest_p.absolute()))
 
-            self._stream.get_logger().info("Copying file {0} to {1}".format(src_p, dest_p))
+            self._stream.get_logger().debug("Copying file {0} to {1}".format(src_p, dest_p))
             shutil.copy(str(src_p.absolute()), str(dest_p.absolute()))
 
         elif src_p.is_dir():
@@ -316,7 +316,7 @@ class FSCopyNode(ProcessorNode):
                 self._stream.get_logger().error("Destination directory already exists")
                 return False
 
-            self._stream.get_logger().info("Copying directory {0} to {1}".format(src_p, dest_p))
+            self._stream.get_logger().debug("Copying directory {0} to {1}".format(src_p, dest_p))
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
 
         return True
@@ -387,9 +387,9 @@ class FSRenameNode(ProcessorNode):
 
                 edited_fso = fso
                 new_name = fso.getAbsolutePath()
+                svp = StringValueProcessor(stream)
 
                 if self.get_property('name') is not None:
-                    svp = StringValueProcessor(stream)
                     svp.add_variable('file.basename', fso.getBasename())
                     svp.add_variable('file.extension', fso.getExtension())
                     svp.add_variable('file.path', fso.getDirectory())
@@ -402,9 +402,9 @@ class FSRenameNode(ProcessorNode):
                         # since py > 3.7 returns 're.Pattern' as result of re.compile and
                         # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual object
                         if isinstance(key, type(re.compile(''))):
-                            new_name = key.sub(val, new_name)
+                            new_name = key.sub(svp.parse(val), new_name)
                         else:
-                            new_name = new_name.replace(key, val)
+                            new_name = new_name.replace(key, svp.parse(val))
 
                 os.rename(fso.getAbsolutePath(), new_name)
                 self._stream.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))

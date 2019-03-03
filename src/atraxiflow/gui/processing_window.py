@@ -9,6 +9,12 @@ import logging
 from PySide2 import QtWidgets, QtCore
 
 
+class LogboxFormatter(logging.Formatter):
+
+    def format(self, record):
+        super().format(record)
+        return '{0} {1}: {2}'.format(self.formatTime(record, '%H:%M:%S'), record.module, record.getMessage())
+
 class Qt5TextEditHandler(logging.Handler):
 
     def __init__(self, txt):
@@ -68,6 +74,8 @@ class ProcessingWindow(QtWidgets.QMainWindow):
         self.progressbar = QtWidgets.QProgressBar()
         self.layout.addWidget(self.progressbar)
 
+        self.text_logbox.setText('<span style="color:black">Welcome to AtraxiFlow!</span>')
+
         self._run_stream()
 
         if autostart is True:
@@ -76,6 +84,7 @@ class ProcessingWindow(QtWidgets.QMainWindow):
     def _run_stream(self):
         # set up log handler
         hdlr = Qt5TextEditHandler(self.text_logbox)
+        hdlr.setFormatter(LogboxFormatter())
         hdlr.setLevel(logging.DEBUG)
 
         self._stream.get_logger().addHandler(hdlr)

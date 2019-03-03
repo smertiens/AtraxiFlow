@@ -9,7 +9,6 @@ from atraxiflow.core.stream import *
 from atraxiflow.nodes.gui import *
 
 st = Stream()
-
 form_node = GUIFormInputNode({
     'fields': {
         'greeting': Combobox('Greeting', items=['Hello', 'Cheerio'], editable=True),
@@ -24,4 +23,5 @@ st.append_node(out_node)
 
 gui = GUIStream.from_stream(st)
 #gui.set_autostart(True)
+
 gui.flow()
