@@ -5,16 +5,19 @@
 # For more information on licensing see LICENSE file
 #
 import os
-import platform
 import pytest
-
-from PySide2 import QtWidgets
-
-from atraxiflow.core.stream import *
-from atraxiflow.nodes.gui import *
 
 if 'TRAVIS_TEST' in os.environ and os.environ['TRAVIS_TEST'] == 'yes':
     pytest.skip("Skipping gui tests when running on travis ci", allow_module_level=True)
+
+import platform
+try:
+    from PySide2 import QtWidgets
+except ImportError:
+    pass
+
+from atraxiflow.core.stream import *
+from atraxiflow.nodes.gui import *
 
 
 def test_gui_messagebox_basics(qtbot, monkeypatch):

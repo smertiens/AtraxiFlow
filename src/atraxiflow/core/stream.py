@@ -10,16 +10,11 @@ from threading import Thread
 
 from atraxiflow.core.events import EventObject
 from atraxiflow.core.gui import *
-from atraxiflow.gui import GUI
 from atraxiflow.nodes.foundation import Node, Resource
 
 
 def flow():
     return 'flow'
-
-
-def flow_ui():
-    return 'flow_ui'
 
 
 class AsyncBranch(Thread):
@@ -112,9 +107,6 @@ class Stream(EventObject):
             self.add_resource(other)
         elif isinstance(other, str) and other == 'flow':
             self.flow()
-        elif isinstance(other, str) and other == 'flow_ui':
-            gui = GUI(self)
-            gui.flow()
 
         return self
 
