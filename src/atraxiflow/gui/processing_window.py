@@ -15,6 +15,7 @@ class LogboxFormatter(logging.Formatter):
         super().format(record)
         return '{0} {1}: {2}'.format(self.formatTime(record, '%H:%M:%S'), record.module, record.getMessage())
 
+
 class Qt5TextEditHandler(logging.Handler):
 
     def __init__(self, txt):
@@ -43,12 +44,12 @@ class Qt5TextEditHandler(logging.Handler):
 
 class ProcessingWindow(QtWidgets.QMainWindow):
 
-    def __init__(self, stream, autostart = False, parent=None):
+    def __init__(self, stream, autostart=False, main_label='AtraxiFlow', version_label='', parent=None):
         super(ProcessingWindow, self).__init__(parent)
 
         self._stream = stream
         self.setWindowTitle('AtraxiFlow')
-        self.setFixedWidth(400)
+        self.setFixedWidth(500)
 
         self.layout = QtWidgets.QVBoxLayout()
         self.central_widget = QtWidgets.QWidget()
@@ -56,9 +57,9 @@ class ProcessingWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         self.hbox_header = QtWidgets.QHBoxLayout()
-        self.label_logo = QtWidgets.QLabel('AtraxiFlow')
+        self.label_logo = QtWidgets.QLabel(main_label)
         self.label_logo.setStyleSheet("font-family: sans-serif; font-size:24px")
-        self.label_version = QtWidgets.QLabel('')
+        self.label_version = QtWidgets.QLabel(version_label)
         self.label_version.setStyleSheet("font-size:10px")
         self.btn_start = QtWidgets.QPushButton('Run')
         self.btn_start.connect(QtCore.SIGNAL('clicked()'), lambda: self._stream.flow())
@@ -68,6 +69,7 @@ class ProcessingWindow(QtWidgets.QMainWindow):
         self.layout.addLayout(self.hbox_header)
 
         self.text_logbox = QtWidgets.QTextEdit()
+        self.text_logbox.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.text_logbox.setReadOnly(True)
         self.layout.addWidget(self.text_logbox)
 
@@ -76,12 +78,12 @@ class ProcessingWindow(QtWidgets.QMainWindow):
 
         self.text_logbox.setText('<span style="color:black">Welcome to AtraxiFlow!</span>')
 
-        self._run_stream()
+        self._setup_stream()
 
         if autostart is True:
             self._stream.flow()
 
-    def _run_stream(self):
+    def _setup_stream(self):
         # set up log handler
         hdlr = Qt5TextEditHandler(self.text_logbox)
         hdlr.setFormatter(LogboxFormatter())
@@ -100,3 +102,5 @@ class ProcessingWindow(QtWidgets.QMainWindow):
         self.progressbar.setMaximum(self._stream.get_node_count())
         self.progressbar.setValue(0)
         self._stream.add_listener(self._stream.EVENT_NODE_FINISHED, update_progressbar)
+        self._stream.add_listener(self._stream.EVENT_STREAM_STARTED, lambda data: self.btn_start.setEnabled(False))
+        self._stream.add_listener(self._stream.EVENT_STREAM_FINISHED, lambda data: self.btn_start.setEnabled(True))

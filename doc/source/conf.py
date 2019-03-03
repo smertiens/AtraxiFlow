@@ -194,3 +194,7 @@ epub_exclude_files = ['search.html']
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# autodoc will otherwise crash
+autodoc_mock_imports = []
+autodoc_mock_imports.append('PySide2')
