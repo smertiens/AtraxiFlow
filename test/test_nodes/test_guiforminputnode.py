@@ -80,7 +80,7 @@ def test_return_values(qtbot, monkeypatch):
     qtbot.mouseClick(form_node._btn_accept, QtCore.Qt.LeftButton)
 
     # check raw results
-    assert {'greeting': 'Cheerio', 'name': 'David'} == form_node.get_data()
+    assert {'greeting': 'Cheerio', 'name': 'David'} == form_node.get_output()
 
 
 def test_on_cancel(qtbot, monkeypatch):

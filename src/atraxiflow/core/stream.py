@@ -9,8 +9,8 @@ import logging
 from threading import Thread
 
 from atraxiflow.core.events import EventObject
-from atraxiflow.nodes.foundation import Node, Resource
 from atraxiflow.core.exceptions import *
+from atraxiflow.nodes.foundation import Node, Resource
 
 
 def flow():
@@ -77,7 +77,7 @@ class Stream(EventObject):
         self._nodes = []
         self._listeners = {}
 
-        self._gui_ctx = None
+        self._pos = -1
 
     def set_gui_context(self, ctx):
         '''
@@ -187,6 +187,10 @@ class Stream(EventObject):
         :param res: Resource
         :return: Stream
         '''
+
+        if res.get_prefix() == 'AX':
+            raise ResourceException("The prefix 'AX' is reserved for internal use and cannot be used by resources.")
+
         if res.get_prefix() in self._resource_map:
             self._resource_map[res.get_prefix()].append(res)
         else:
@@ -255,7 +259,19 @@ class Stream(EventObject):
 
         (prefix, key) = query.split(":")  # type: (str, str)
 
-        if not prefix in self._resource_map:
+        # check if an AX-query is made
+        if prefix == 'AX':
+            if key == 'prev_output':
+                # fetch output of previous node and treat it as a resource/list of resources
+                if self._get_stream_pos() <= 0:
+                    raise ExecutionException('Cannot use output of previous node: No previous node found.')
+                else:
+                    node = self._get_node_at(self._get_stream_pos() - 1)
+                    return node.get_output()
+            else:
+                raise ResourceException('Invalid resource query: "{0}"'.format(query))
+
+        if prefix not in self._resource_map:
             return []
 
         if key == "*":
@@ -288,6 +304,12 @@ class Stream(EventObject):
 
         return results
 
+    def _get_node_at(self, pos):
+        return self._nodes[pos]
+
+    def _get_stream_pos(self):
+        return self._pos
+
     def flow(self):
         '''
         Starts the stream processing
@@ -296,9 +318,12 @@ class Stream(EventObject):
         '''
         self.get_logger().info("Starting processing")
         self.fire_event(self.EVENT_STREAM_STARTED)
+        self._pos = -1
         nodes_processed = 0
 
         for node in self._nodes:
+            self._pos += 1
+
             if isinstance(node, AsyncBranch):
                 self.get_logger().info("Starting new branch {0}".format(node.get_name()))
                 node.get_stream().inherit(self)

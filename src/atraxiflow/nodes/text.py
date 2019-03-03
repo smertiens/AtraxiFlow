@@ -64,6 +64,10 @@ class TextValidatorNode(ProcessorNode):
         self._listeners = {}
         self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def _rule_not_empty(self, text, params=[]):
         if text == '' or text is None:

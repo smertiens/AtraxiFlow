@@ -71,7 +71,7 @@ class GUIFormInputNode(InputNode):
         self._btn_accept = QtWidgets.QPushButton()
         self._btn_cancel = QtWidgets.QPushButton()
 
-    def get_data(self):
+    def get_output(self):
         '''
         Returns all fields.
         :return: dict
@@ -209,7 +209,7 @@ class GUIFormInputNode(InputNode):
                 return False
 
         # create text resources for results
-        for name, data in self.get_data().items():
+        for name, data in self._results.items():
             stream.add_resource(TextResource(name, {'text': data}))
 
         return True

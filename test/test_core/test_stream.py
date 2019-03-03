@@ -5,6 +5,8 @@
 # For more information on licensing see LICENSE file
 #
 
+import pytest
+
 from atraxiflow.core import stream
 from atraxiflow.core.stream import flow
 from atraxiflow.nodes.common import DelayNode, TextResource
@@ -123,3 +125,53 @@ def test_operator_overloading():
     st = stream.Stream()
     st >> NullNode() >> NullNode() >> NullNode() >> flow()
     assert 3 == len(st._nodes)
+
+
+def test_fail_on_illegal_resource_prefix():
+    class TestRes(Resource):
+        def __init__(self, name="", props=None):
+            self.name = name
+            self._known_properties = {}
+            self._stream = None
+            self._listeners = {}
+
+            self.name, self.properties = self.get_properties_from_args(name, props)
+
+        def get_prefix(self):
+            return 'AX'
+
+        def remove_data(self, obj):
+            # remove data
+            pass
+
+        def update_data(self, data):
+            pass
+
+        def get_data(self, key=""):
+            self.check_properties()
+
+            # get data
+            return self.get_property(key)
+
+    st = stream.Stream()
+
+    with pytest.raises(ResourceException):
+        st.add_resource(TestRes())
+
+    st.add_resource(TextResource())
+
+
+def test_fail_on_illegal_stream_pos():
+    st = stream.Stream()
+    st.append_node(FSCopyNode({'sources': 'AX:prev_output', 'dest': '.'}))
+
+    with pytest.raises(ExecutionException):
+        st.flow()
+
+
+def test_fail_on_illegal_ax_query():
+    st = stream.Stream()
+    st.append_node(FSCopyNode({'sources': 'AX:something_else', 'dest': '.'}))
+
+    with pytest.raises(ResourceException):
+        st.flow()

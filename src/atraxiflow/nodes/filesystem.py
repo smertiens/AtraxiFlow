@@ -63,6 +63,12 @@ class FileFilterNode(ProcessorNode):
         else:
             self.properties = {}
 
+        self._out = []
+
+
+    def get_output(self):
+        return self._out
+
     def _filesize_value_to_number(self, str_size):
         matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
 
@@ -186,6 +192,8 @@ class FileFilterNode(ProcessorNode):
             current_objects = set(resource.get_data())
             resource.update_data(list(current_objects - objects_to_remove))
 
+            self._out = list(current_objects - objects_to_remove)
+
         return True
 
 
@@ -290,6 +298,10 @@ class FSCopyNode(ProcessorNode):
 
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def _do_copy(self, src, dest):
         # check if src and dest exist
@@ -338,6 +350,8 @@ class FSCopyNode(ProcessorNode):
                 if self._do_copy(src.getAbsolutePath(), dest) is not True:
                     return False
 
+                self._out.append(FilesystemResource({'src': src.getAbsolutePath()}))
+
         return True
 
 
@@ -368,6 +382,10 @@ class FSRenameNode(ProcessorNode):
         self._listeners = {}
         self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def run(self, stream):
         self._stream = stream
