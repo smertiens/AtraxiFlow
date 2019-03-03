@@ -4,16 +4,7 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-import os
 import pytest
-
-if 'TRAVIS_TEST' in os.environ and os.environ['TRAVIS_TEST'] == 'yes':
-    pytest.skip("Skipping gui tests when running on travis ci", allow_module_level=True)
-
-try:
-    from PySide2 import QtWidgets
-except ImportError:
-    pass
 
 from atraxiflow.core.stream import *
 from atraxiflow.nodes.gui import *
@@ -23,7 +14,7 @@ def test_basics(qtbot, monkeypatch):
     st = Stream()
     form_node = GUIFormInputNode({
         'fields': {
-            'greeting': Combobox('Greeting', items=['Hello', 'Cheerio']),
+            'greeting': Combobox('Greeting', items=['Hello', 'Cheerio'], editable=True),
             'name': Textfield('Name')
         },
         'text': 'How should I greet you?',
@@ -32,7 +23,7 @@ def test_basics(qtbot, monkeypatch):
     st.append_node(form_node)
     qtbot.addWidget(form_node._wnd)
 
-    monkeypatch.setattr(QtWidgets.QMainWindow, "show", lambda *args: [])
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
 
     assert st.flow()
     assert form_node._wnd.windowTitle() == 'Greeting - AtraxiFlow'
@@ -46,16 +37,68 @@ def test_basics(qtbot, monkeypatch):
         if isinstance(w, QtWidgets.QLabel):
             label_count += 1
             assert w.text() == 'Greeting' or w.text() == 'Name' or w.text() == 'How should I greet you?'
-        elif isinstance(w, QtWidgets.QLineEdit):
+        elif isinstance(w, QtWidgets.QLineEdit): # should be 2, since ComboBox is editable and will create another QLineEdit
             other_count += 1
         elif isinstance(w, QtWidgets.QComboBox):
+            assert w.isEditable()
             other_count += 1
         elif isinstance(w, QtWidgets.QPushButton):
             btn_count += 1
 
     assert label_count == 3
-    assert other_count == 2
+    assert other_count == 3
     assert btn_count == 2
+
+
+def test_return_values(qtbot, monkeypatch):
+    st = Stream()
+    form_node = GUIFormInputNode({
+        'fields': {
+            'greeting': Combobox('Greeting', items=['Hello', 'Cheerio'], editable=False),
+            'name': Textfield('Name')
+        },
+        'text': 'How should I greet you?',
+        'window': Window(title='Greeting')
+    })
+    st.append_node(form_node)
+    qtbot.addWidget(form_node._wnd)
+    qtbot.addWidget(form_node._btn_accept)
+    qtbot.addWidget(form_node._btn_cancel)
+
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
+
+    assert st.flow()
+
+    # check wether editable propert has been set
+    combo = form_node._wnd.findChildren(QtWidgets.QComboBox)[0]
+    combo.setCurrentIndex(1)
+
+    text = form_node._wnd.findChildren(QtWidgets.QLineEdit)[0]
+    text.setText('')
+    qtbot.keyClicks(text, 'David')
+
+    qtbot.mouseClick(form_node._btn_accept, QtCore.Qt.LeftButton)
+
+    # check raw results
+    assert {'greeting': 'Cheerio', 'name': 'David'} == form_node.get_data()
+
+
+def test_on_cancel(qtbot, monkeypatch):
+    st = Stream()
+    form_node = GUIFormInputNode({
+        'fields': {
+            'name': Textfield('Name')
+        },
+        'on_cancel': 'exit'
+    })
+    st.append_node(form_node)
+
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
+    form_node._canceled = True
+    assert not st.flow()
+
+    form_node.set_property('on_cancel', 'continue')
+    assert st.flow()
 
 
 def test_exception_on_unrecognized_field(qtbot, monkeypatch):
@@ -71,7 +114,7 @@ def test_exception_on_unrecognized_field(qtbot, monkeypatch):
     st.append_node(form_node)
     qtbot.addWidget(form_node._wnd)
 
-    monkeypatch.setattr(QtWidgets.QMainWindow, "show", lambda *args: [])
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
 
     with pytest.raises(GUIException):
         st.flow()
@@ -103,7 +146,7 @@ def test_field_text(qtbot, monkeypatch):
     st.append_node(form_node)
     qtbot.addWidget(form_node._wnd)
 
-    monkeypatch.setattr(QtWidgets.QMainWindow, "show", lambda *args: [])
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
 
     assert st.flow()
 
@@ -129,7 +172,7 @@ def test_field_password(qtbot, monkeypatch):
     st.append_node(form_node)
     qtbot.addWidget(form_node._wnd)
 
-    monkeypatch.setattr(QtWidgets.QMainWindow, "show", lambda *args: [])
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
 
     assert st.flow()
 
@@ -152,7 +195,7 @@ def test_field_textarea(qtbot, monkeypatch):
     st.append_node(form_node)
     qtbot.addWidget(form_node._wnd)
 
-    monkeypatch.setattr(QtWidgets.QMainWindow, "show", lambda *args: [])
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
 
     assert st.flow()
 
@@ -174,7 +217,7 @@ def test_field_checkbox(qtbot, monkeypatch):
     st.append_node(form_node)
     qtbot.addWidget(form_node._wnd)
 
-    monkeypatch.setattr(QtWidgets.QMainWindow, "show", lambda *args: [])
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
 
     assert st.flow()
 
@@ -197,7 +240,7 @@ def test_field_combobox_simple(qtbot, monkeypatch):
     st.append_node(form_node)
     qtbot.addWidget(form_node._wnd)
 
-    monkeypatch.setattr(QtWidgets.QMainWindow, "show", lambda *args: [])
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
 
     assert st.flow()
 

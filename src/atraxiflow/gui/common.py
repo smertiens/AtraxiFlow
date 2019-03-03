@@ -6,9 +6,25 @@
 #
 
 import threading
-
 from atraxiflow.core.exceptions import *
 from atraxiflow.core.data import StringValueProcessor
+
+from atraxiflow.gui.processing_window import *
+
+
+class GUIStream():
+
+    def __init__(self, stream):
+        self._stream = stream
+
+    def flow(self):
+        app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
+        self._stream.set_gui_context(app)
+
+        wnd = ProcessingWindow(self._stream)
+        wnd.show()
+
+        app.exec_()
 
 
 class FormField:

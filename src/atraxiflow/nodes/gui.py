@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.core.gui import *
+from atraxiflow.gui.common import *
 from atraxiflow.nodes.common import TextResource
 from atraxiflow.nodes.foundation import *
 
@@ -13,7 +13,6 @@ from atraxiflow.nodes.foundation import *
 class GUIFormInputNode(InputNode):
 
     def __init__(self, name="", props=None):
-        from PySide2 import QtWidgets
 
         self._known_properties = {
             'fields': {
@@ -66,7 +65,11 @@ class GUIFormInputNode(InputNode):
 
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+        # initialize widgets here to be able to access them in tests
+        self._app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
         self._wnd = QtWidgets.QDialog()
+        self._btn_accept = QtWidgets.QPushButton()
+        self._btn_cancel = QtWidgets.QPushButton()
 
     def get_data(self):
         '''
@@ -76,9 +79,6 @@ class GUIFormInputNode(InputNode):
         return self._results
 
     def _exec_qt5(self, stream):
-        from PySide2 import QtWidgets, QtCore
-
-        app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
 
         layout = QtWidgets.QGridLayout()
         self._wnd.setLayout(layout)
@@ -175,15 +175,15 @@ class GUIFormInputNode(InputNode):
             row += 1
 
         # Add buttons to layout
-        btn_accept = QtWidgets.QPushButton(self.get_property('btn_accept_text'))
-        btn_accept.connect(QtCore.SIGNAL('clicked()'), btn_accept_clicked)
-        btn_cancel = QtWidgets.QPushButton(self.get_property('btn_cancel_text'))
-        btn_cancel.connect(QtCore.SIGNAL('clicked()'), btn_cancel_clicked)
+        self._btn_accept.setText(self.get_property('btn_accept_text'))
+        self._btn_accept.connect(QtCore.SIGNAL('clicked()'), btn_accept_clicked)
+        self._btn_cancel.setText(self.get_property('btn_cancel_text'))
+        self._btn_cancel.connect(QtCore.SIGNAL('clicked()'), btn_cancel_clicked)
 
         hl = QtWidgets.QHBoxLayout()
         hl.addStretch(1)
-        hl.addWidget(btn_cancel)
-        hl.addWidget(btn_accept)
+        hl.addWidget(self._btn_cancel)
+        hl.addWidget(self._btn_accept)
         layout.addLayout(hl, row, 1)
 
         # apply window settings
@@ -195,7 +195,7 @@ class GUIFormInputNode(InputNode):
         if wnd_set['height'] != 'auto':
             self._wnd.setFixedHeight(wnd_set['height'])
 
-        self._wnd.show()
+        self._wnd.exec_()
 
     def run(self, stream):
         self.check_properties()
@@ -217,7 +217,6 @@ class GUIFormInputNode(InputNode):
 class GUIMessageNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
-        from PySide2 import QtWidgets
 
         self._known_properties = {
             'title': {
@@ -245,12 +244,11 @@ class GUIMessageNode(ProcessorNode):
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+        # initialize widgets here to be able to access them in tests
+        self._app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
         self._msgbox = QtWidgets.QMessageBox()
 
     def _exec_qt5(self, stream):
-        from PySide2 import QtWidgets
-
-        app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
 
         self._msgbox.setText(self.parse_string(stream, self.get_property('text')))
         # ignored in osx

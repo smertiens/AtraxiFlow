@@ -12,15 +12,15 @@ st = Stream()
 
 form_node = GUIFormInputNode({
     'fields': {
-        'greeting': Combobox('Greeting', items=['Hello', 'Cheerio']),
+        'greeting': Combobox('Greeting', items=['Hello', 'Cheerio'], editable=True),
         'name': Textfield('Name')
     },
     'text': 'How should I greet you?',
     'window': Window(title='Greeting')
 })
 out_node = GUIMessageNode({'title': 'Greeting', 'text': '{Text:greeting}, {Text:name}'})
+st.append_node(form_node)
+st.append_node(out_node)
 
-st >> form_node >> out_node >> flow_ui()
-
-# gui = GUI(st)
-# gui.flow()
+gui = GUIStream(st)
+gui.flow()

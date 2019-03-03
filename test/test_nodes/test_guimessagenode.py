@@ -4,17 +4,10 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-import os
-import pytest
-
-if 'TRAVIS_TEST' in os.environ and os.environ['TRAVIS_TEST'] == 'yes':
-    pytest.skip("Skipping gui tests when running on travis ci", allow_module_level=True)
 
 import platform
-try:
-    from PySide2 import QtWidgets
-except ImportError:
-    pass
+
+from PySide2 import QtWidgets
 
 from atraxiflow.core.stream import *
 from atraxiflow.nodes.gui import *

@@ -9,8 +9,8 @@ import logging
 from threading import Thread
 
 from atraxiflow.core.events import EventObject
-from atraxiflow.core.gui import *
 from atraxiflow.nodes.foundation import Node, Resource
+from atraxiflow.core.exceptions import *
 
 
 def flow():
