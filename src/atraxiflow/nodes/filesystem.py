@@ -65,7 +65,6 @@ class FileFilterNode(ProcessorNode):
 
         self._out = []
 
-
     def get_output(self):
         return self._out
 
@@ -131,7 +130,8 @@ class FileFilterNode(ProcessorNode):
                 return fso.getFilename().endswith(right_val)
             elif filter[1] == 'matches':
                 if type(right_val) != type(re.compile('')):
-                    self._stream.get_logger().error('Value to compare needs to be a compiled regex when using "matches" operator.')
+                    self._stream.get_logger().error(
+                        'Value to compare needs to be a compiled regex when using "matches" operator.')
                     raise ExecutionException('Cannot continue due to previous errors. See log for details.')
                 return right_val.match(fso.getFilename())
             else:
@@ -150,7 +150,8 @@ class FileFilterNode(ProcessorNode):
                 return fso.getDirectory().endswith(right_val)
             elif filter[1] == 'matches':
                 if type(right_val) != type(re.compile('')):
-                    self._stream.get_logger().error('Value to compare needs to be a compiled regex when using "matches" operator.')
+                    self._stream.get_logger().error(
+                        'Value to compare needs to be a compiled regex when using "matches" operator.')
                     raise ExecutionException('Cannot continue due to previous errors. See log for details.')
                 return right_val.match(fso.getDirectory())
             else:
@@ -322,6 +323,9 @@ class FSCopyNode(ProcessorNode):
 
             self._stream.get_logger().debug("Copying file {0} to {1}".format(src_p, dest_p))
             shutil.copy(str(src_p.absolute()), str(dest_p.absolute()))
+            self._out.append(FilesystemResource({
+                'src': os.path.join(str(dest_p.absolute()), str(src_p.name))
+            }))
 
         elif src_p.is_dir():
             if dest_p.exists():
@@ -330,6 +334,9 @@ class FSCopyNode(ProcessorNode):
 
             self._stream.get_logger().debug("Copying directory {0} to {1}".format(src_p, dest_p))
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
+            self._out.append(FilesystemResource({
+                'src': str(dest_p.absolute())
+            }))
 
         return True
 
@@ -349,8 +356,6 @@ class FSCopyNode(ProcessorNode):
 
                 if self._do_copy(src.getAbsolutePath(), dest) is not True:
                     return False
-
-                self._out.append(FilesystemResource({'src': src.getAbsolutePath()}))
 
         return True
 
@@ -425,6 +430,7 @@ class FSRenameNode(ProcessorNode):
                             new_name = new_name.replace(key, svp.parse(val))
 
                 os.rename(fso.getAbsolutePath(), new_name)
+                self._out.append(FilesystemResource({'src': new_name}))
                 self._stream.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
 
                 # update object

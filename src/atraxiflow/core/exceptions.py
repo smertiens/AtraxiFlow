@@ -28,3 +28,6 @@ class FilesystemException(Exception):
 
 class GUIException(Exception):
     pass
+
+class PropertyException(Exception):
+    pass
