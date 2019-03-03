@@ -24,7 +24,7 @@ class PropertyObject(EventObject):
         for name, opt in self._known_properties.items():
             if ("required" in opt and opt["required"] is True) and (name not in self.properties):
                 self.fire_event(self.EVENT_PROPERTIES_CHECKED, False)
-                raise PropertyException("Missing property: {0} in {1}".format(name, self.__class__.__name__))
+                raise PropertyException('Missing property "{0}" in {1}'.format(name, self.__class__.__name__))
 
             elif (name not in self.properties) and ("default" in opt):
                 self.properties[name] = opt['default']

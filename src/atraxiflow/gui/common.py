@@ -145,8 +145,8 @@ class Combobox(FormField):
 
     :param label: The label for the input
     :type label: str
-    :param items: The items to add to the combobox.
-    :type items: dict, list
+    :param items: The items to add to the combobox or a resource query to retrieve a list of strings
+    :type items: dict, list, str
     :param selected: The value or key of the default item
     :type selected: str
     :param editable: Determines wether the user can enter custom values

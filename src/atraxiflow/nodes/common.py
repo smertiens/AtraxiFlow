@@ -69,6 +69,32 @@ class ShellExecNode(ProcessorNode):
         self._out = [res_out, res_err]
 
 
+class ExecNode(ProcessorNode):
+
+    def __init__(self, name="", props=None):
+        self._known_properties = {
+            'callable': {
+                'type': "callable",
+                'required': True,
+                'hint': 'Callable to run'
+            }
+        }
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
+
+        self._out = []
+
+    def get_output(self):
+        return self._out
+
+    def run(self, stream):
+        self.check_properties()
+
+        obj = self.get_property('callable')
+        stream.get_logger().debug('Executing {0}()'.format(obj))
+        self._out = obj()
+
+
 class EchoOutputNode(OutputNode):
 
     def __init__(self, name="", props=None):

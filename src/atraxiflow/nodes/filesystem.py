@@ -43,8 +43,7 @@ class FileFilterNode(ProcessorNode):
                 'label': "List of filters",
                 'type': "list",
                 'required': True,
-                'hint': 'Filters all or given filesystem resources',
-                'default': {}
+                'hint': 'Filters all or given filesystem resources'
             },
             'sources': {
                 'label': "Sources",
@@ -58,10 +57,7 @@ class FileFilterNode(ProcessorNode):
         self._listeners = {}
         self._stream = None
 
-        if props:
-            self.properties = props
-        else:
-            self.properties = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
 
         self._out = []
 
@@ -112,7 +108,6 @@ class FileFilterNode(ProcessorNode):
             right_val = DatetimeProcessor.processString(filter[2])
         elif filter[0] == "type":
             left_val = 'folder' if fso.isFolder() else 'file'
-            print(fso, left_val)
             right_val = filter[2]
 
             if filter[1] != '=':
@@ -177,6 +172,7 @@ class FileFilterNode(ProcessorNode):
 
     def run(self, stream):
         self.check_properties()
+        self._out = []
         self._stream = stream
 
         # filter FSObjects from every resource and filter them down
@@ -187,13 +183,17 @@ class FileFilterNode(ProcessorNode):
             # collect objects that do not match the criteria
             for filter in self.get_property("filter"):
                 for fso in resource.get_data():
+
                     if not self._matches_filter(fso, filter):
                         objects_to_remove.add(fso)
 
+            # TODO rethink
             current_objects = set(resource.get_data())
             resource.update_data(list(current_objects - objects_to_remove))
 
-            self._out = list(current_objects - objects_to_remove)
+            for obj in (current_objects - objects_to_remove):
+                new_res = FilesystemResource({'src': obj.getAbsolutePath()})
+                self._out.append(new_res)
 
         return True
 
@@ -321,7 +321,7 @@ class FSCopyNode(ProcessorNode):
             elif not dest_p.exists() and self.get_property("create_if_missing") is True:
                 os.makedirs(str(dest_p.absolute()))
 
-            self._stream.get_logger().debug("Copying file {0} to {1}".format(src_p, dest_p))
+            self._stream.get_logger().debug("Copying file: {0} -> {1}".format(src_p, dest_p))
             shutil.copy(str(src_p.absolute()), str(dest_p.absolute()))
             self._out.append(FilesystemResource({
                 'src': os.path.join(str(dest_p.absolute()), str(src_p.name))
@@ -332,7 +332,7 @@ class FSCopyNode(ProcessorNode):
                 self._stream.get_logger().error("Destination directory already exists")
                 return False
 
-            self._stream.get_logger().debug("Copying directory {0} to {1}".format(src_p, dest_p))
+            self._stream.get_logger().debug("Copying directory: {0} -> {1}".format(src_p, dest_p))
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
             self._out.append(FilesystemResource({
                 'src': str(dest_p.absolute())
@@ -342,6 +342,7 @@ class FSCopyNode(ProcessorNode):
 
     def run(self, stream):
         self._stream = stream
+        self._out = []
 
         if not self.check_properties():
             self._stream.get_logger().error("Cannot proceed because of previous errors")
@@ -349,11 +350,13 @@ class FSCopyNode(ProcessorNode):
 
         resources = stream.get_resources(self.get_property('sources'))
 
+        if len(resources) == 0:
+            stream.get_logger().warning('No resources found for copying.')
+
         for res in resources:
             dest = self.parse_string(stream, self.get_property('dest'))
 
             for src in res.get_data():
-
                 if self._do_copy(src.getAbsolutePath(), dest) is not True:
                     return False
 
@@ -394,6 +397,8 @@ class FSRenameNode(ProcessorNode):
 
     def run(self, stream):
         self._stream = stream
+        self._out = []
+
         if not self.check_properties():
             self._stream.get_logger().error("Cannot proceed because of previous errors")
             return False

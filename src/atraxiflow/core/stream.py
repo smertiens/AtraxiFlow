@@ -68,8 +68,8 @@ class Stream(EventObject):
 
     EVENT_STREAM_STARTED = 0
     EVENT_STREAM_FINISHED = 1
-    EVENT_NODE_STARTED = 0
-    EVENT_NODE_FINISHED = 1
+    EVENT_NODE_STARTED = 2
+    EVENT_NODE_FINISHED = 3
 
     def __init__(self):
         self._resource_map = {}
@@ -235,6 +235,18 @@ class Stream(EventObject):
 
         return None
 
+    def get_node_by_name(self, name):
+        '''
+
+        :param name: THe node name to look for
+        :return: Node or None
+        '''
+        for n in self._nodes:
+            if n.get_name() == name:
+                return n
+
+        return None
+
     def get_resources(self, query):
         '''
         Get one or more resources from the stream, using given query string
@@ -261,15 +273,32 @@ class Stream(EventObject):
 
         # check if an AX-query is made
         if prefix == 'AX':
-            if key == 'prev_output':
-                # fetch output of previous node and treat it as a resource/list of resources
-                if self._get_stream_pos() <= 0:
-                    raise ExecutionException('Cannot use output of previous node: No previous node found.')
-                else:
-                    node = self._get_node_at(self._get_stream_pos() - 1)
-                    return node.get_output()
+            if key.find('.') == -1:
+                raise ResourceException('Unknown resource query: "{0}"'.format(query))
             else:
-                raise ResourceException('Invalid resource query: "{0}"'.format(query))
+                elements = key.split('.')
+
+                if elements[0] == 'prev':
+                    if elements[1] == 'output':
+                        # fetch output of previous node and treat it as a resource/list of resources
+                        if self._get_stream_pos() <= 0:
+                            raise ExecutionException('Cannot use output of previous node: No previous node found.')
+                        else:
+                            node = self._get_node_at(self._get_stream_pos() - 1)
+                            return node.get_output()
+                    else:
+                        raise ResourceException('Invalid resource query: "{0}"'.format(query))
+                else:
+                    # assume elements[0] is a node name
+                    node = self.get_node_by_name(elements[0])
+
+                    if node is None:
+                        raise ResourceException('Invalid resource query: "{0}", node "{1}" not found.'.format(query, elements[0]))
+
+                    if elements[1] == 'output':
+                        return node.get_output()
+                    else:
+                        raise ResourceException('Invalid resource query: "{0}"'.format(query))
 
         if prefix not in self._resource_map:
             return []

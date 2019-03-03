@@ -163,7 +163,7 @@ def test_fail_on_illegal_resource_prefix():
 
 def test_fail_on_illegal_stream_pos():
     st = stream.Stream()
-    st.append_node(FSCopyNode({'sources': 'AX:prev_output', 'dest': '.'}))
+    st.append_node(FSCopyNode({'sources': 'AX:prev.output', 'dest': '.'}))
 
     with pytest.raises(ExecutionException):
         st.flow()
@@ -175,3 +175,21 @@ def test_fail_on_illegal_ax_query():
 
     with pytest.raises(ResourceException):
         st.flow()
+
+
+def test_get_node_by_name():
+    st = stream.Stream()
+    node = NullNode('demo_node')
+    st.append_node(node)
+
+    assert st.get_node_by_name('demo_node') == node
+
+
+# TODO test
+def test_get_node_output_from_prev():
+    pass
+
+
+# TODO test
+def test_get_node_output_by_name():
+    pass

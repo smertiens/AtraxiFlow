@@ -5,6 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
+from atraxiflow.core.util import *
 from atraxiflow.gui.common import *
 from atraxiflow.nodes.common import TextResource
 from atraxiflow.nodes.foundation import *
@@ -160,6 +161,21 @@ class GUIFormInputNode(InputNode):
 
                         if value == data['selected']:
                             elem.setCurrentIndex(elem.count() - 1)
+                elif isinstance(data['items'], str):
+                    res_result = stream.get_resources(data['items'])
+
+                    if res_result is not None:
+                        if not is_iterable(res_result):
+                            res_result = [res_result]
+
+                        for resource in res_result:
+                            data = resource.get_data()
+
+                            if is_iterable(data):
+                                for data_single in data:
+                                    elem.addItem(str(data_single))
+                            else:
+                                elem.addItem(str(data))
                 else:
                     raise GUIException("Invalid item-list format for combobox. Expected dict or list.")
 

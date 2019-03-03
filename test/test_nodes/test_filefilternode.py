@@ -12,6 +12,7 @@ import pytest
 from atraxiflow.core.stream import Stream
 from atraxiflow.nodes.filesystem import FileFilterNode
 from atraxiflow.nodes.filesystem import FilesystemResource
+from atraxiflow.core.debug import *
 
 
 @pytest.fixture(scope="module")
@@ -35,10 +36,9 @@ def file_fixture(tmpdir_factory):
 
 
 def test_filter_size_single(file_fixture):
-    fn = FileFilterNode()
-    fn.set_property("filter", [
+    fn = FileFilterNode({"filter": [
         ['file_size', '>', '120K']
-    ])
+    ]})
 
     fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
@@ -55,7 +55,7 @@ def test_filter_size_single(file_fixture):
 
 
 def test_filter_size_multiple(file_fixture):
-    fn = FileFilterNode()
+    fn = FileFilterNode('fil')
     fn.set_property("filter", [
         ['file_size', '>', '120K'],
         ['file_size', '<', '4M']
@@ -71,6 +71,7 @@ def test_filter_size_multiple(file_fixture):
 
     assert len(fs.get_data()) == 2
     # check output
+    #Debug.print_resources(st, 'AX:fil.output')
     assert len(fn.get_output()) == 2
 
 
@@ -204,7 +205,6 @@ def test_filter_filetype(file_fixture):
     st.add_resource(fs)
     st.append_node(fn)
     assert st.flow()
-    print("____")
     assert len(fs.get_data()) == 4
     # check output
     assert len(fn.get_output()) == 4
