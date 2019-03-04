@@ -168,7 +168,10 @@ class Stream(EventObject):
         :return: None
         '''
         self._resource_map = other_stream._resource_map
-        self._nodes = other_stream._nodes
+
+        for node in other_stream._nodes:
+            if not isinstance(node, AsyncBranch):
+                self._nodes.append(node)
 
     def append_node(self, node):
         '''
@@ -307,7 +310,8 @@ class Stream(EventObject):
                     node = self.get_node_by_name(elements[0])
 
                     if node is None:
-                        raise ResourceException('Invalid resource query: "{0}", node "{1}" not found.'.format(query, elements[0]))
+                        raise ResourceException(
+                            'Invalid resource query: "{0}", node "{1}" not found.'.format(query, elements[0]))
 
                     if elements[1] == 'output':
                         return node.get_output()
@@ -369,6 +373,7 @@ class Stream(EventObject):
 
             if isinstance(node, AsyncBranch):
                 self.get_logger().info("Starting new branch {0}".format(node.get_name()))
+
                 node.get_stream().inherit(self)
                 node.start()
             else:
