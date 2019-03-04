@@ -67,7 +67,7 @@ class GUIFormInputNode(InputNode):
         self.name, self.properties = self.get_properties_from_args(name, props)
 
         # initialize widgets here to be able to access them in tests
-        self._app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
+        self._app = get_qt_app()
         self._wnd = QtWidgets.QDialog()
         self._btn_accept = QtWidgets.QPushButton()
         self._btn_cancel = QtWidgets.QPushButton()
@@ -262,7 +262,7 @@ class GUIMessageNode(ProcessorNode):
         self.name, self.properties = self.get_properties_from_args(name, props)
 
         # initialize widgets here to be able to access them in tests
-        self._app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
+        self._app = get_qt_app()
         self._msgbox = QtWidgets.QMessageBox()
 
     def _exec_qt5(self, stream):

@@ -8,6 +8,7 @@ import pytest
 
 from atraxiflow.core.stream import *
 from atraxiflow.nodes.gui import *
+from atraxiflow.nodes.filesystem import *
 
 
 def test_basics(qtbot, monkeypatch):
@@ -37,7 +38,8 @@ def test_basics(qtbot, monkeypatch):
         if isinstance(w, QtWidgets.QLabel):
             label_count += 1
             assert w.text() == 'Greeting' or w.text() == 'Name' or w.text() == 'How should I greet you?'
-        elif isinstance(w, QtWidgets.QLineEdit): # should be 2, since ComboBox is editable and will create another QLineEdit
+        elif isinstance(w,
+                        QtWidgets.QLineEdit):  # should be 2, since ComboBox is editable and will create another QLineEdit
             other_count += 1
         elif isinstance(w, QtWidgets.QComboBox):
             assert w.isEditable()
@@ -256,3 +258,57 @@ def test_field_combobox_simple(qtbot, monkeypatch):
         expected_widgets = 1
 
     assert expected_widgets == 1
+
+
+def test_field_combobox_key_val(qtbot, monkeypatch):
+    st = Stream()
+    items_expected = {'Item 1': 'val 1', 'Item 2': 'val 2', 'Item 3': 'val 3'}
+    form_node = GUIFormInputNode({
+        'fields': {
+            'name': Combobox('Hello', items_expected, selected='Item 2')
+        }
+    })
+    st.append_node(form_node)
+    qtbot.addWidget(form_node._wnd)
+
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
+
+    assert st.flow()
+
+    cbo = form_node._wnd.findChildren(QtWidgets.QComboBox)[0]
+
+    items = {}
+    for i in range(0, cbo.count()):
+        items[cbo.itemData(i)] = cbo.itemText(i)
+
+    assert items == items_expected
+
+
+def test_field_combobox_resquery(qtbot, monkeypatch, tmpdir):
+    tmpdir.mkdir('demo_folder')
+    tmpdir.mkdir('another_folder')
+    p = tmpdir.join('*')
+
+    st = Stream()
+    st.add_resource(FilesystemResource('fs', {'src': str(p)}))
+
+    form_node = GUIFormInputNode({
+        'fields': {
+            'name': Combobox('Hello', items='FS:fs')
+        }
+    })
+    st.append_node(form_node)
+    qtbot.addWidget(form_node._wnd)
+
+    monkeypatch.setattr(form_node._wnd, "exec_", lambda *args: [])
+
+    assert st.flow()
+
+    cbo = form_node._wnd.findChildren(QtWidgets.QComboBox)[0]
+
+    items = []
+    for i in range(0, cbo.count()):
+        items.append(cbo.itemText(i))
+
+    assert str(tmpdir.join('demo_folder')) in items
+    assert str(tmpdir.join('another_folder')) in items

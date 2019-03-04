@@ -138,6 +138,10 @@ class Stream(EventObject):
         :param name: The name of the new branch
         :return: bool
         '''
+
+        if not self._validate_name(name) or name == '':
+            raise ExecutionException('Invalid branch name: "{0}"'.format(name))
+
         branch = AsyncBranch(name, Stream())
         self.append_node(branch)
         self._branch_map[branch.get_name()] = branch
@@ -164,6 +168,7 @@ class Stream(EventObject):
         :return: None
         '''
         self._resource_map = other_stream._resource_map
+        self._nodes = other_stream._nodes
 
     def append_node(self, node):
         '''

@@ -16,6 +16,9 @@ from atraxiflow.core.stream import *
 from atraxiflow.gui.processing_window import *
 
 
+def get_qt_app():
+    return QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
+
 class GUIStream():
     '''
     Provide the user with a simple user interface
@@ -62,11 +65,9 @@ class GUIStream():
         '''
         if self._stream is None:
             raise ExecutionException(
-                'No stream set for GUIStream. Use GUIStream.from_stream() or instance.set_strea().')
+                'No stream set for GUIStream. Use GUIStream.from_stream() or instance.set_stream().')
 
-        app = QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
-        self._stream.set_gui_context(app)
-
+        app = get_qt_app()
         wnd = ProcessingWindow(self._stream, self._autostart)
         wnd.show()
 
