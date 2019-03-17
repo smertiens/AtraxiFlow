@@ -49,13 +49,15 @@ class TextValidatorNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'sources': {
-                'type': "string",
+                'type': "resource_query",
+                'label': 'Sources',
                 'required': False,
                 'hint': 'The resource query to obtain TextResources to check',
                 'default': 'Text:*'
             },
             'rules': {
                 'type': "list",
+                'label': 'Rules',
                 'required': False,
                 'hint': 'A list of validation rules',
                 'default': {}

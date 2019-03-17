@@ -21,17 +21,20 @@ class ShellExecNode(ProcessorNode):
         self._known_properties = {
             'cmd': {
                 'type': "string",
+                'label':'Command',
                 'required': True,
                 'hint': 'Command to execute'
             },
             'output': {
                 'type': "string",
+                'label': 'Output resource',
                 'required': False,
                 'hint': 'Name of the TextResource to save output of the command to',
                 'default': 'last_shellexec_out'
             },
             'errors': {
                 'type': "string",
+                'label': 'Error resource',
                 'required': False,
                 'hint': 'Name of the TextResource to save errors of the command to',
                 'default': 'last_shellexec_errors'
@@ -67,12 +70,14 @@ class EchoOutputNode(OutputNode):
         self._known_properties = {
             'msg': {
                 'type': "string",
+                'label': 'Message',
                 'required': False,
                 'hint': 'Text to output',
                 "default": None
             },
             'res' : {
-                'type': "string",
+                'type': "resource_query",
+                'label': 'Use resource',
                 'required': False,
                 'hint': 'Resource query to be output',
                 "default": None
@@ -108,6 +113,8 @@ class DelayNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'time': {
+                'type': 'number',
+                'label': 'Seconds',
                 'required': False,
                 'hint': 'Delay time in seconds',
                 'default': '5'
@@ -143,12 +150,14 @@ class CLIInputNode(InputNode):
         self._known_properties = {
             'save_to': {
                 'type': "string",
+                'label': 'Save to',
                 'required': False,
                 'hint': 'The name of the text resource to save the input to.',
                 'default': 'last_cli_input'
             },
             'prompt': {
                 'type': "string",
+                'label': 'Prompt',
                 'required': False,
                 'hint': 'The text to display when prompting the user for input.',
                 'default': 'Please enter: '
