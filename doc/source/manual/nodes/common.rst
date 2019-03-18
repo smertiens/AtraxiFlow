@@ -26,7 +26,7 @@ This node executes a command and provides it's output in form of a :ref:`textres
 
 **Output**
 
-The node will output a python list with stdout and stderr.
+The node will output stdout and stderr as TextResources.
 
 **Example**
 
@@ -186,7 +186,7 @@ This node prompts the user for input on the console.
 
 **Output**
 
-This node will outout the text the user entered.
+This node will outout the text the user entered as TextResource.
 
 
 **Example**

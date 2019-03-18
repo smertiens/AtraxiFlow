@@ -12,12 +12,14 @@ from atraxiflow.core.stream import *
 def test_basic(capsys):
     def callback():
         print('Hello callback!')
+        return 'done'
 
     st = Stream()
     ex = ExecNode({'callable': callback})
     st >> ex
 
     assert st.flow()
+    assert ex.get_output() == 'done'
 
     captured = capsys.readouterr()
     assert captured[0] == 'Hello callback!\n'

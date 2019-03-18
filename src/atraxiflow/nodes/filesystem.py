@@ -187,9 +187,7 @@ class FileFilterNode(ProcessorNode):
                     if not self._matches_filter(fso, filter):
                         objects_to_remove.add(fso)
 
-            # TODO rethink
             current_objects = set(resource.get_data())
-            resource.update_data(list(current_objects - objects_to_remove))
 
             for obj in (current_objects - objects_to_remove):
                 new_res = FilesystemResource({'src': obj.getAbsolutePath()})
@@ -437,11 +435,5 @@ class FSRenameNode(ProcessorNode):
                 os.rename(fso.getAbsolutePath(), new_name)
                 self._out.append(FilesystemResource({'src': new_name}))
                 self._stream.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
-
-                # update object
-                edited_fso = FSObject(new_name)
-
-                new_data.append(edited_fso)
-                res.update_data(new_data)
 
         return True

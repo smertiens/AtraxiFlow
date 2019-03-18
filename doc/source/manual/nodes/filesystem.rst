@@ -102,13 +102,20 @@ This will leave all files in the stream, that are larger than 120 kilobytes and 
 .. code-block:: python
 
     from atraxiflow.nodes.filesystem import FileFilterNode, FilesystemResource
+    from atraxiflow.core.stream import *
 
-    node = FileFilterNode({ 'filter', [
-        ['file_size', '>', '120K'],
-        ['file_size', '<', '4M']
-    ]})
+    node = FileFilterNode({
+        'filter', [
+            ['file_size', '>', '120K'],
+            ['file_size', '<', '4M']
+        ],
+        'sources': 'FS:*'
+     })
 
     fs = FilesystemResource({'src': '/documents/files/*'})
+    Stream.create() >> fs >> node >> flow()
+
+    filtered_resources = node.get_output()
 
 
 FSRenameNode
@@ -181,3 +188,5 @@ This node outputs a list of  :ref:`fsres`, containing the renamed files and fold
         re.compile(r'[\.txt]+$') : '.ext'
     }})
     Stream.create()->add_resource(res)->append_node(node)->flow()
+
+    renamed_files = node.get_output()

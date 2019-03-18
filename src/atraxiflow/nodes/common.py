@@ -5,7 +5,6 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
 import shlex
 import subprocess
 import sys
@@ -62,8 +61,8 @@ class ShellExecNode(ProcessorNode):
             stdout = stdout_raw.decode("utf-8")
             stderr = stderr_raw.decode("utf-8")
 
-        res_err = TextResource(self.get_property('output'), {'text': stdout})
-        res_out = TextResource(self.get_property('errors'), {'text': stderr})
+        res_out = TextResource(self.get_property('output'), {'text': stdout})
+        res_err = TextResource(self.get_property('errors'), {'text': stderr})
         stream.add_resource(res_err)
         stream.add_resource(res_out)
         self._out = [res_out, res_err]
@@ -218,6 +217,7 @@ class CLIInputNode(InputNode):
                 stream.get_logger().error('Input was empty. Stopping.')
                 return False
 
-        stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
-        self._out = user_input
+        user_input_res = TextResource(self.get_property('save_to'), {"text": user_input})
+        stream.add_resource(user_input_res)
+        self._out = user_input_res
         return True

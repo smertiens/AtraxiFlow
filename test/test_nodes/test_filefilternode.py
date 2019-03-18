@@ -5,14 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
-import re
-
 import pytest
 
-from atraxiflow.core.stream import Stream
+from atraxiflow.core.debug import *
 from atraxiflow.nodes.filesystem import FileFilterNode
 from atraxiflow.nodes.filesystem import FilesystemResource
-from atraxiflow.core.debug import *
 
 
 @pytest.fixture(scope="module")
@@ -48,8 +45,6 @@ def test_filter_size_single(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 3
-
     # check output
     assert len(fn.get_output()) == 3
 
@@ -69,9 +64,6 @@ def test_filter_size_multiple(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 2
-    # check output
-    #Debug.print_resources(st, 'AX:fil.output')
     assert len(fn.get_output()) == 2
 
 
@@ -89,8 +81,6 @@ def test_filter_filename_single_contains(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 3
-    # check output
     assert len(fn.get_output()) == 3
 
 
@@ -108,8 +98,6 @@ def test_filter_filename_single_matches(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 2
-    # check output
     assert len(fn.get_output()) == 2
 
 
@@ -127,8 +115,6 @@ def test_filter_filename_single_contains_fail(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 0
-    # check output
     assert len(fn.get_output()) == 0
 
 
@@ -146,8 +132,6 @@ def test_filter_filename_single_starts(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 1
-    # check output
     assert len(fn.get_output()) == 1
 
 
@@ -165,8 +149,6 @@ def test_filter_filename_single_ends(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 2
-    # check output
     assert len(fn.get_output()) == 2
 
 
@@ -185,8 +167,6 @@ def test_filter_filename_multiple(file_fixture):
     st.append_node(fn)
     assert st.flow()
 
-    assert len(fs.get_data()) == 1
-    # check output
     assert len(fn.get_output()) == 1
 
 
@@ -205,19 +185,17 @@ def test_filter_filetype(file_fixture):
     st.add_resource(fs)
     st.append_node(fn)
     assert st.flow()
-    assert len(fs.get_data()) == 4
+
     # check output
     assert len(fn.get_output()) == 4
 
     # reset
     fs.set_property('src', str(file_fixture.join('*')))
-    assert len(fs.get_data()) == 5
 
     fn.set_property("filter", [
         ['type', '=', 'folder']
     ])
 
     assert st.flow()
-    assert len(fs.get_data()) == 1
-    # check output
+
     assert len(fn.get_output()) == 1
