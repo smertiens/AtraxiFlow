@@ -5,6 +5,5 @@ Developer manual
     :maxdepth: 2
     :caption: Contents:
 
-    core
     node
     utils

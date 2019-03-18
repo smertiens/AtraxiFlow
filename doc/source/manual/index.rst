@@ -7,5 +7,5 @@ User manual
 
     streams
     resources
-    nodes
+    nodes/index
     gui

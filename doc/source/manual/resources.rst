@@ -48,6 +48,23 @@ what kind of resource you are looking for. The key is usually the resource name.
     node = FileFilterNode({ 'sources': 'FS:images'}) # will only filter files from the resource 'images'
 
 
+
+Built-in queries (AX)
+*********************
+
+You can use the special **AX**-Prefix to get different resources.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Query
+     - Description
+   * - AX:prev.output
+     - Returns the output of the previous node in the stream.
+   * - AX.nodename.output
+     - Return the output of the node named "nodename"
+
+
 .. _fsres:
 
 FilesystemResource (FS)
