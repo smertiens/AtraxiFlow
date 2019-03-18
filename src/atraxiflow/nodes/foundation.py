@@ -10,9 +10,6 @@ from atraxiflow.core.data import StringValueProcessor
 
 class Node(PropertyObject):
 
-    def get_known_properties(self):
-        return self._known_properties
-
     def get_name(self):
         return self.name
 
