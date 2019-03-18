@@ -19,17 +19,20 @@ class ShellExecNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'cmd': {
+                'label': 'Commmand',
                 'type': "string",
                 'required': True,
                 'hint': 'Command to execute'
             },
             'output': {
+                'label': 'Stdout',
                 'type': "string",
                 'required': False,
                 'hint': 'Name of the TextResource to save output of the command to',
                 'default': 'last_shellexec_out'
             },
             'errors': {
+                'label': 'Stderr',
                 'type': "string",
                 'required': False,
                 'hint': 'Name of the TextResource to save errors of the command to',
@@ -73,7 +76,8 @@ class ExecNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'callable': {
-                'type': "callable",
+                'label': 'Callable',
+                'type': "string",
                 'required': True,
                 'hint': 'Callable to run'
             }
@@ -99,13 +103,15 @@ class EchoOutputNode(OutputNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'msg': {
+                'label': 'Message',
                 'type': "string",
                 'required': False,
                 'hint': 'Text to output',
                 "default": None
             },
             'res': {
-                'type': "string",
+                'label': 'Resource',
+                'type': "resource_query",
                 'required': False,
                 'hint': 'Resource query to be output',
                 "default": None
@@ -146,6 +152,8 @@ class DelayNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'time': {
+                'label': 'Time',
+                'type': 'number',
                 'required': False,
                 'hint': 'Delay time in seconds',
                 'default': '5'
@@ -186,12 +194,14 @@ class CLIInputNode(InputNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'save_to': {
+                'label': 'Save to',
                 'type': "string",
                 'required': False,
                 'hint': 'The name of the text resource to save the input to.',
                 'default': 'last_cli_input'
             },
             'prompt': {
+                'label': 'Prompt',
                 'type': "string",
                 'required': False,
                 'hint': 'The text to display when prompting the user for input.',

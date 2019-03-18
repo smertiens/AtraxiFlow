@@ -22,7 +22,7 @@ class ImageResource(Resource):
         self._known_properties = {
             'src': {
                 'label': "Source",
-                'type': "string|image",
+                'type': "string",
                 'required': True,
                 'hint': 'An image file or object',
                 'default': '',
@@ -85,14 +85,14 @@ class ImageResizeNode(ProcessorNode):
         self._known_properties = {
             'target_w': {
                 'label': "New width",
-                'type': "string|number",
+                'type': "string",
                 'required': False,
                 'hint': '',
                 'default': 'auto'
             },
             'target_h': {
                 'label': "New height",
-                'type': "string|number",
+                'type': "string",
                 'required': False,
                 'hint': '',
                 'default': 'auto'
@@ -171,14 +171,14 @@ class ImageOutputNode(OutputNode):
         self._known_properties = {
             'source': {
                 'label': "Source",
-                'type': "string",
+                'type': "resource_query",
                 'required': False,
                 'hint': 'A pattern to load resources with',
                 'default': ''
             },
             'output_file': {
                 'label': "Output file",
-                'type': "string",
+                'type': "file",
                 'required': True,
                 'hint': 'Output path and file name. You can use variables.',
                 'default': ''

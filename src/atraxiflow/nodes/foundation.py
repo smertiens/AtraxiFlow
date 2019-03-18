@@ -30,6 +30,7 @@ class Node(PropertyObject):
     def get_output(self):
         raise Exception("Node class must implement get_output-method")
 
+
 class ProcessorNode(Node):
     pass
 

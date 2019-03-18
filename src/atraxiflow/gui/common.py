@@ -19,7 +19,8 @@ from atraxiflow.gui.processing_window import *
 def get_qt_app():
     return QtWidgets.QApplication.instance() if QtWidgets.QApplication.instance() is not None else QtWidgets.QApplication()
 
-class GUIStream():
+
+class GUIStream:
     '''
     Provide the user with a simple user interface
     '''
@@ -156,6 +157,7 @@ class Combobox(FormField):
     :return: The configuration values for the form field
     :rtype: dict
     '''
+
     def __init__(self, label, items=None, selected=None, editable=False):
         self._resolve_fields = ['value', 'label']
         self._data = {
@@ -179,6 +181,7 @@ class Password(FormField):
     :return: The configuration values for the form field
     :rtype: dict
     '''
+
     def __init__(self, label, value=""):
         self._resolve_fields = ['value', 'label']
         self._data = {
@@ -200,6 +203,7 @@ class Checkbox(FormField):
     :return: The configuration values for the form field
     :rtype: dict
     '''
+
     def __init__(self, label, value=False):
         self._resolve_fields = ['label']
         self._data = {

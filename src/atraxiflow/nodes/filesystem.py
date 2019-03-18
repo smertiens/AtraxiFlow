@@ -7,7 +7,6 @@
 
 
 import glob
-import logging
 import os
 import re
 import shutil
@@ -42,16 +41,37 @@ class FileFilterNode(ProcessorNode):
             'filter': {
                 'label': "List of filters",
                 'type': "list",
+                'list_item': [
+                    {
+                        'name': 'prop',
+                        'label': 'Property',
+                        'type': 'combobox',
+                        'value': ['filesize', 'date_created', 'date_modified', 'type', 'filename', 'filedir']
+                    },
+                    {
+                        'name': 'comp',
+                        'label': 'Comparator',
+                        'type': 'combobox',
+                        'value': ['=', '<', '>', '<=', '>=', '!=', 'contains', 'startswith', 'endswith']
+                    },
+                    {
+                        'name': 'value',
+                        'label': 'Value',
+                        'type': 'text'
+                    }
+                ],
+                'list_item_formatter': self.format_list_item,
                 'required': True,
                 'hint': 'Filters all or given filesystem resources'
             },
             'sources': {
                 'label': "Sources",
-                'type': "string",
+                'type': "resource_query",
                 'required': False,
                 'hint': 'A resource query',
                 'default': 'FS:*'
-            }
+            },
+
         }
 
         self._listeners = {}
@@ -60,6 +80,12 @@ class FileFilterNode(ProcessorNode):
         self.name, self.properties = self.get_properties_from_args(name, props)
 
         self._out = []
+
+    def format_list_item(self, format, data):
+        if format == 'list':
+            return '{0} {1} {2}'.format(data['prop'], data['comp'], data['value'])
+        elif format == 'store':
+            return data
 
     def get_output(self):
         return self._out
@@ -282,13 +308,15 @@ class FSCopyNode(ProcessorNode):
                 'default': ''
             },
             'create_if_missing': {
+                'label': 'Create missing folders',
                 'type': "bool",
                 'required': False,
                 'hint': 'Creates the destination path if it is missing',
                 'default': True
             },
             'sources': {
-                'type': "string",
+                'label': 'Sources',
+                'type': "resource_query",
                 'required': False,
                 'hint': 'Resource query for FilesystemResources',
                 'default': 'FS:*'
@@ -366,19 +394,37 @@ class FSRenameNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'name': {
+                'label': 'Target name',
                 'type': "string",
                 'required': False,
                 'hint': 'A string to rename the given files to',
                 'default': None
             },
             'replace': {
+                'label': 'Replace',
                 'type': "list",
+                'list_item': [
+                    {
+                        'name': 'search',
+                        'label': 'Search',
+                        'type': 'text',
+                        'value': ''
+                    },
+                    {
+                        'name': 'replace',
+                        'label': 'Replace',
+                        'type': 'text',
+                        'value': ''
+                    }
+                ],
+                'list_item_formatter': self.format_list_item,
                 'required': False,
                 'hint': 'A list of strings to replace. The key can be a compiled regular expression.',
                 'default': None
             },
             'sources': {
-                'type': "string",
+                'label': 'Sources',
+                'type': "resource_query",
                 'required': False,
                 'hint': 'Resource query for FilesystemResources',
                 'default': 'FS:*'
@@ -389,6 +435,12 @@ class FSRenameNode(ProcessorNode):
         self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
         self._out = []
+
+    def format_list_item(self, format, data):
+        if format == 'list':
+            return '{0} -> {1}'.format(data['search'], data['replace'])
+        elif format == 'store':
+            return data
 
     def get_output(self):
         return self._out
