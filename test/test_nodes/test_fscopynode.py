@@ -12,7 +12,7 @@ import pytest
 from atraxiflow.core.exceptions import *
 from atraxiflow.core.stream import Stream
 from atraxiflow.nodes.filesystem import FilesystemResource, FSCopyNode
-
+from atraxiflow.core.filesystem import *
 
 def get_test_stream():
     st = Stream()
@@ -43,6 +43,13 @@ def test_copy_file_correct(make_fixtures):
     assert st.flow()
 
     assert os.path.exists(str(make_fixtures.join('folder', 'testfile.txt')))
+
+    # check output
+    out = cp.get_output()[0]
+    assert  isinstance(out, FilesystemResource)
+    fso = out.get_data()[0]
+    assert isinstance(fso, FSObject)
+    assert fso.getAbsolutePath() == str(make_fixtures.join('folder', 'testfile.txt'))
 
 
 def test_copy_file_dir_not_exists_create(make_fixtures):
@@ -104,6 +111,13 @@ def test_copy_dir_correct(make_fixtures):
 
     assert os.path.exists(str(os.path.join(dest, "folder")))
     assert os.path.exists(str(os.path.join(dest, "testfile.txt")))
+
+    # check output
+    out = cp.get_output()[0]
+    assert isinstance(out, FilesystemResource)
+    fso = out.get_data()[0]
+    assert isinstance(fso, FSObject)
+    assert fso.getAbsolutePath() == dest
 
 
 def test_copy_dir_dest_exists(make_fixtures):

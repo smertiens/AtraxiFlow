@@ -22,7 +22,7 @@ class ImageResource(Resource):
         self._known_properties = {
             'src': {
                 'label': "Source",
-                'type': "file,image",
+                'type': "string|image",
                 'required': True,
                 'hint': 'An image file or object',
                 'default': '',
@@ -72,7 +72,7 @@ class ImageResource(Resource):
 
     def update_data(self, data):
         if not isinstance(data, ImageObject):
-            logging.error("Expected ImageObject, got {0}".format(type(data)))
+            self._stream.get_logger().error("Expected ImageObject, got {0}".format(type(data)))
             return
 
         self._imgobject = data
@@ -85,21 +85,21 @@ class ImageResizeNode(ProcessorNode):
         self._known_properties = {
             'target_w': {
                 'label': "New width",
-                'type': "text",
+                'type': "string|number",
                 'required': False,
                 'hint': '',
                 'default': 'auto'
             },
             'target_h': {
                 'label': "New height",
-                'type': "text",
+                'type': "string|number",
                 'required': False,
                 'hint': '',
                 'default': 'auto'
             },
             'source': {
                 'label': "Resources to use",
-                'type': "text",
+                'type': "string",
                 'required': False,
                 'hint': '',
                 'default': ''
@@ -107,7 +107,12 @@ class ImageResizeNode(ProcessorNode):
         }
 
         self._listeners = {}
+        self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def _do_resize(self, img):
         # Calculate final size
@@ -115,7 +120,7 @@ class ImageResizeNode(ProcessorNode):
         h = self.get_property('target_h')
 
         if w == 'auto' and h == 'auto':
-            logging.error('Only one dimension (width or height) can be set to "auto" at the same time.')
+            self._stream.get_logger().error('Only one dimension (width or height) can be set to "auto" at the same time.')
             return img
         elif w == 'auto':
             w = int(h) * (img.width() / img.height())
@@ -127,6 +132,7 @@ class ImageResizeNode(ProcessorNode):
         return img
 
     def run(self, stream):
+        self._stream = stream
         if not graphics.check_environment():
             return False
 
@@ -165,14 +171,14 @@ class ImageOutputNode(OutputNode):
         self._known_properties = {
             'source': {
                 'label': "Source",
-                'type': "text",
+                'type': "string",
                 'required': False,
                 'hint': 'A pattern to load resources with',
                 'default': ''
             },
             'output_file': {
                 'label': "Output file",
-                'type': "file",
+                'type': "string",
                 'required': True,
                 'hint': 'Output path and file name. You can use variables.',
                 'default': ''
@@ -181,6 +187,10 @@ class ImageOutputNode(OutputNode):
 
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def _get_parsed_output_string(self, imgobject):
         map = {

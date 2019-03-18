@@ -40,6 +40,11 @@ class ShellExecNode(ProcessorNode):
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+        self._out = []
+
+    def get_output(self):
+        return self._out
+
     def run(self, stream):
         self.check_properties()
         args = shlex.split(self.get_property('cmd'))
@@ -57,8 +62,37 @@ class ShellExecNode(ProcessorNode):
             stdout = stdout_raw.decode("utf-8")
             stderr = stderr_raw.decode("utf-8")
 
-        stream.add_resource(TextResource(self.get_property('output'), {'text': stdout}))
-        stream.add_resource(TextResource(self.get_property('errors'), {'text': stderr}))
+        res_err = TextResource(self.get_property('output'), {'text': stdout})
+        res_out = TextResource(self.get_property('errors'), {'text': stderr})
+        stream.add_resource(res_err)
+        stream.add_resource(res_out)
+        self._out = [res_out, res_err]
+
+
+class ExecNode(ProcessorNode):
+
+    def __init__(self, name="", props=None):
+        self._known_properties = {
+            'callable': {
+                'type': "callable",
+                'required': True,
+                'hint': 'Callable to run'
+            }
+        }
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
+
+        self._out = []
+
+    def get_output(self):
+        return self._out
+
+    def run(self, stream):
+        self.check_properties()
+
+        obj = self.get_property('callable')
+        stream.get_logger().debug('Executing {0}()'.format(obj))
+        self._out = obj()
 
 
 class EchoOutputNode(OutputNode):
@@ -71,7 +105,7 @@ class EchoOutputNode(OutputNode):
                 'hint': 'Text to output',
                 "default": None
             },
-            'res' : {
+            'res': {
                 'type': "string",
                 'required': False,
                 'hint': 'Resource query to be output',
@@ -80,6 +114,11 @@ class EchoOutputNode(OutputNode):
         }
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
+
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def run(self, stream):
         self.check_properties()
@@ -117,6 +156,9 @@ class DelayNode(ProcessorNode):
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+    def get_output(self):
+        return None
+
     def run(self, stream):
         self.check_properties()
 
@@ -132,6 +174,9 @@ class NullNode(ProcessorNode):
 
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
+
+    def get_output(self):
+        return None
 
     def run(self, stream):
         return True
@@ -157,6 +202,11 @@ class CLIInputNode(InputNode):
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+        self._out = []
+
+    def get_output(self):
+        return self._out
+
     def run(self, stream):
         self.check_properties()
 
@@ -165,8 +215,9 @@ class CLIInputNode(InputNode):
 
         if user_input == '':
             if self.get_property('on_empty') == 'fail':
-                logging.error('Input was empty. Stopping.')
+                stream.get_logger().error('Input was empty. Stopping.')
                 return False
 
         stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
+        self._out = user_input
         return True

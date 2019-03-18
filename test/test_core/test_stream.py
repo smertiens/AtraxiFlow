@@ -5,6 +5,8 @@
 # For more information on licensing see LICENSE file
 #
 
+import pytest
+
 from atraxiflow.core import stream
 from atraxiflow.core.stream import flow
 from atraxiflow.nodes.common import DelayNode, TextResource
@@ -123,3 +125,101 @@ def test_operator_overloading():
     st = stream.Stream()
     st >> NullNode() >> NullNode() >> NullNode() >> flow()
     assert 3 == len(st._nodes)
+
+
+def test_fail_on_illegal_resource_prefix():
+    class TestRes(Resource):
+        def __init__(self, name="", props=None):
+            self.name = name
+            self._known_properties = {}
+            self._stream = None
+            self._listeners = {}
+
+            self.name, self.properties = self.get_properties_from_args(name, props)
+
+        def get_prefix(self):
+            return 'AX'
+
+        def remove_data(self, obj):
+            # remove data
+            pass
+
+        def update_data(self, data):
+            pass
+
+        def get_data(self, key=""):
+            self.check_properties()
+
+            # get data
+            return self.get_property(key)
+
+    st = stream.Stream()
+
+    with pytest.raises(ResourceException):
+        st.add_resource(TestRes())
+
+    st.add_resource(TextResource())
+
+
+def test_fail_on_illegal_stream_pos():
+    st = stream.Stream()
+    st.append_node(FSCopyNode({'sources': 'AX:prev.output', 'dest': '.'}))
+
+    with pytest.raises(ExecutionException):
+        st.flow()
+
+
+def test_fail_on_illegal_ax_query():
+    st = stream.Stream()
+    st.append_node(FSCopyNode({'sources': 'AX:something_else', 'dest': '.'}))
+
+    with pytest.raises(ResourceException):
+        st.flow()
+
+
+def test_get_node_by_name():
+    st = stream.Stream()
+    node = NullNode('demo_node')
+    st.append_node(node)
+
+    assert st.get_node_by_name('demo_node') == node
+
+
+# TODO test
+def test_get_node_output_from_prev(tmpdir):
+    pass
+
+
+# TODO test
+def test_get_node_output_by_name():
+    pass
+
+
+def test_resource_name_invalid():
+    st = stream.Stream()
+
+    with pytest.raises(ExecutionException):
+        st.add_resource(TextResource('asdl.asdasd'))
+
+
+def test_resource_name_double():
+    st = stream.Stream()
+    st.add_resource(TextResource('demo'))
+
+    with pytest.raises(ExecutionException):
+        st.add_resource(TextResource('demo'))
+
+
+def test_node_name_invalid():
+    st = stream.Stream()
+
+    with pytest.raises(ExecutionException):
+        st.append_node(NullNode('aosdk.paoskd'))
+
+
+def test_node_name_double():
+    st = stream.Stream()
+    st.append_node(NullNode('demo'))
+
+    with pytest.raises(ExecutionException):
+        st.append_node(NullNode('demo'))
