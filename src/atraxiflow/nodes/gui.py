@@ -20,11 +20,32 @@ class GUIFormInputNode(InputNode):
                 'label': 'Fields',
                 'type': 'list',
                 'required': True,
-                'hint': 'A list of fields to be added to the form'
+                'hint': 'A list of fields to be added to the form',
+                'list_item_formatter': self.format_list_item,
+                'list_item': [
+                    {
+                        'name': 'field_name',
+                        'label': 'Field name',
+                        'type': 'text',
+                        'value': ''
+                    },
+                    {
+                        'name': 'label',
+                        'label': 'Label',
+                        'type': 'text',
+                        'value': ''
+                    },
+                    {
+                        'name': 'field_type',
+                        'label': 'Field type',
+                        'type': 'combobox',
+                        'value': ['textfield', 'password', 'textarea', 'checkbox', 'combobox']
+                    }
+                ],
             },
             'window': {
                 'label': 'Window properties',
-                'type': 'list',
+                'type': 'window_properties',
                 'required': False,
                 'hint': 'A list of properties for the GUI window',
                 'default': Window()
@@ -52,7 +73,8 @@ class GUIFormInputNode(InputNode):
             },
             'on_cancel': {
                 'label': 'Cancel action',
-                'type': 'string',
+                'type': 'simple_list',
+                'items': ['exit', 'continue'],
                 'required': False,
                 'hint': 'The action to take when the user cancels the dialog.',
                 'default': 'exit'
@@ -71,6 +93,12 @@ class GUIFormInputNode(InputNode):
         self._wnd = QtWidgets.QDialog()
         self._btn_accept = QtWidgets.QPushButton()
         self._btn_cancel = QtWidgets.QPushButton()
+
+    def format_list_item(self, format, data):
+        if format == 'list':
+            return '{0} ({1})'.format(data['field_name'], data['field_type'])
+        elif format == 'store':
+            return data
 
     def get_output(self):
         '''
@@ -252,7 +280,8 @@ class GUIMessageNode(ProcessorNode):
             },
             'icon': {
                 'label': 'Icon',
-                'type': 'string',
+                'type': 'simple_list',
+                'items': ['info', 'question', 'warning', 'error'],
                 'required': False,
                 'hint': 'The icon of the dialog (info|question|warning|error)',
                 'default': 'info'

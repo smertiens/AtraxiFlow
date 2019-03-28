@@ -22,7 +22,7 @@ class ImageResource(Resource):
         self._known_properties = {
             'src': {
                 'label': "Source",
-                'type': "string",
+                'type': "file",
                 'required': True,
                 'hint': 'An image file or object',
                 'default': '',
@@ -99,7 +99,7 @@ class ImageResizeNode(ProcessorNode):
             },
             'source': {
                 'label': "Resources to use",
-                'type': "string",
+                'type': "resource_query",
                 'required': False,
                 'hint': '',
                 'default': ''
