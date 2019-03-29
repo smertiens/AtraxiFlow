@@ -10,3 +10,4 @@ fileformat.txt
 dist
 build
 demo_*
+build_*.sh
