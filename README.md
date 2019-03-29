@@ -3,25 +3,33 @@ The flexible python workflow tool
 
 [![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
 
-* Create easy-to-read automation scripts in minutes
-* Allows you to create your own nodes and resources
-* Requires at least python 3.4
-
-**Changes in 1.0.0b3**
-
-* Added additional filters to FileFilterNode (see: [online documentation](https://docs.atraxi-flow.com/manual/nodes.html#filefilternode))
+* Create easy-to-read automation scripts in minutes - work with files, folders, images or anything else 
+* Add your own logic as AtraxiFlow node and share it with others
+* Use a console for in- and output or add one of the UI nodes to show graphical messages and input forms 
+built with Qt5
 
 **Learn**
 
-* Read more about [the concept](https://docs.atraxi-flow.com/basics.html)
-* Get started using [the online documentation](https://docs.atraxi-flow.com/index.html)
+* See what you can do and check out the [examples](https://github.com/smertiens/AtraxiExamples)
+* Get started with the user manual [user manual](https://docs.atraxi-flow.com/manual/index.html)
+* Learn how to write your own nodes in minutes with the [developer manual](https://docs.atraxi-flow.com/dev/index.html)
 
 **Install**
 ```
 pip install atraxi-flow
 ```
 
-**Example**
+**Requirements**
+
+* Python 3.4 or higher
+* If you want to use the UI nodes and functions, you will need to install [Pyside2](https://pypi.org/project/PySide2/) (optional)
+
+**Latest Changes**
+
+_1.0.0: First production release_  
+
+
+**Example script**
 
 ```python
 from atraxiflow.nodes.common import CLIInputNode, EchoOutputNode
