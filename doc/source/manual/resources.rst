@@ -48,11 +48,12 @@ what kind of resource you are looking for. The key is usually the resource name.
     node = FileFilterNode({ 'sources': 'FS:images'}) # will only filter files from the resource 'images'
 
 
+.. _builtinq:
 
 Built-in queries (AX)
 *********************
 
-You can use the special **AX**-Prefix to get different resources.
+You can use the special **AX**-Prefix to get resources that are provided as output from a the previous/any other node.
 
 .. list-table::
    :header-rows: 1

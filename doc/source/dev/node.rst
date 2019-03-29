@@ -37,6 +37,9 @@ Basic node skeleton
 
             self.name, self.properties = self.get_properties_from_args(name, props)
 
+        def get_output(self):
+            return None
+
         def run(self, stream):
             self.check_properties()
             print ("Hello World!")
@@ -46,8 +49,7 @@ This code shows us some of the basic concepts behind AtraxiFlow:
 
 * Import the ProcessorNode class, every node inherits from one the three parent node classes (see :ref:`basics`)
 * The node class can have the same name as the file but it doesn't have to
-* Every node needs to override the :py:meth:`constructor` and the :py:meth:`run()` method
-
+* Every node needs to override the :py:meth:`constructor`, the :py:meth:`run()` method and the :py:meth:`get_output()` method
 
 .. code-block:: python
 
@@ -83,6 +85,20 @@ execution was successful (True) or not (False). If the node returns *false*, the
 and the :py:meth:`flow()` method will return *False*
 Before using your nodes properties, you should call :py:meth:`self.check_properties()`. This will ensure all required
 properties are set (or stop processing with an error) and all empty properties are filled with their default values.
+
+.. code-block:: python
+
+    def get_output(self):
+            return None
+
+This will determine the nodes output. Since our demo node simply prints a text to the screen, it does not have an output.
+It still makes sense for other nodes, for example a node that manipulates an image would provide the edited image
+as output. It is important to note, that nodes **should not alter existing resources**, but rather return a new one via
+it's output.
+
+The :py:meth:`get_output()`-method needs to return an instance of :py:class:`Resource`, a list of Resources or None.
+
+A nodes output can also be accessed using :ref:`builtinq`.
 
 
 Managing node properties
