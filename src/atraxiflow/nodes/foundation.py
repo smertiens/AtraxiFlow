@@ -5,13 +5,17 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.core.properties import PropertyObject
 from atraxiflow.core.data import StringValueProcessor
+from atraxiflow.core.properties import PropertyObject
+
 
 class Node(PropertyObject):
 
     def get_name(self):
         return self.name
+
+    def set_stream(self, stream):
+        self._stream = stream
 
     def run(self, stream):
         raise Exception("Node class must implement run-method")
@@ -22,6 +26,9 @@ class Node(PropertyObject):
         :return: StringValueProcessor
         '''
         return StringValueProcessor(stream).parse(string)
+
+    def get_output(self):
+        raise Exception("Node class must implement get_output-method")
 
 
 class ProcessorNode(Node):
@@ -50,7 +57,7 @@ class Resource(PropertyObject):
         Returns the name of the resource
         :return: str
         '''
-        return self.name;
+        return self.name
 
     def get_prefix(self):
         '''
@@ -67,3 +74,6 @@ class Resource(PropertyObject):
 
     def resolve_variable(self, varname):
         return self.get_data()
+
+    def set_stream(self, stream):
+        self._stream = stream

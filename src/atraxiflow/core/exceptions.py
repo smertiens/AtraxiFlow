@@ -24,3 +24,10 @@ class ExecutionException(Exception):
 
 class FilesystemException(Exception):
     pass
+
+
+class GUIException(Exception):
+    pass
+
+class PropertyException(Exception):
+    pass

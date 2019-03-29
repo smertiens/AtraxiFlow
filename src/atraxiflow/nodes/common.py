@@ -5,7 +5,6 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
 import shlex
 import subprocess
 import sys
@@ -20,17 +19,20 @@ class ShellExecNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'cmd': {
+                'label': 'Commmand',
                 'type': "string",
                 'required': True,
                 'hint': 'Command to execute'
             },
             'output': {
+                'label': 'Stdout',
                 'type': "string",
                 'required': False,
                 'hint': 'Name of the TextResource to save output of the command to',
                 'default': 'last_shellexec_out'
             },
             'errors': {
+                'label': 'Stderr',
                 'type': "string",
                 'required': False,
                 'hint': 'Name of the TextResource to save errors of the command to',
@@ -39,6 +41,11 @@ class ShellExecNode(ProcessorNode):
         }
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
+
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def run(self, stream):
         self.check_properties()
@@ -57,8 +64,38 @@ class ShellExecNode(ProcessorNode):
             stdout = stdout_raw.decode("utf-8")
             stderr = stderr_raw.decode("utf-8")
 
-        stream.add_resource(TextResource(self.get_property('output'), {'text': stdout}))
-        stream.add_resource(TextResource(self.get_property('errors'), {'text': stderr}))
+        res_out = TextResource(self.get_property('output'), {'text': stdout})
+        res_err = TextResource(self.get_property('errors'), {'text': stderr})
+        stream.add_resource(res_err)
+        stream.add_resource(res_out)
+        self._out = [res_out, res_err]
+
+
+class ExecNode(ProcessorNode):
+
+    def __init__(self, name="", props=None):
+        self._known_properties = {
+            'callable': {
+                'label': 'Callable',
+                'type': "string",
+                'required': True,
+                'hint': 'Callable to run'
+            }
+        }
+        self._listeners = {}
+        self.name, self.properties = self.get_properties_from_args(name, props)
+
+        self._out = []
+
+    def get_output(self):
+        return self._out
+
+    def run(self, stream):
+        self.check_properties()
+
+        obj = self.get_property('callable')
+        stream.get_logger().debug('Executing {0}()'.format(obj))
+        self._out = obj()
 
 
 class EchoOutputNode(OutputNode):
@@ -66,13 +103,15 @@ class EchoOutputNode(OutputNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'msg': {
+                'label': 'Message',
                 'type': "string",
                 'required': False,
                 'hint': 'Text to output',
                 "default": None
             },
-            'res' : {
-                'type': "string",
+            'res': {
+                'label': 'Resource',
+                'type': "resource_query",
                 'required': False,
                 'hint': 'Resource query to be output',
                 "default": None
@@ -80,6 +119,11 @@ class EchoOutputNode(OutputNode):
         }
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
+
+        self._out = []
+
+    def get_output(self):
+        return self._out
 
     def run(self, stream):
         self.check_properties()
@@ -108,6 +152,8 @@ class DelayNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'time': {
+                'label': 'Time',
+                'type': 'number',
                 'required': False,
                 'hint': 'Delay time in seconds',
                 'default': '5'
@@ -116,6 +162,9 @@ class DelayNode(ProcessorNode):
 
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
+
+    def get_output(self):
+        return None
 
     def run(self, stream):
         self.check_properties()
@@ -133,6 +182,9 @@ class NullNode(ProcessorNode):
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+    def get_output(self):
+        return None
+
     def run(self, stream):
         return True
 
@@ -142,12 +194,14 @@ class CLIInputNode(InputNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'save_to': {
+                'label': 'Save to',
                 'type': "string",
                 'required': False,
                 'hint': 'The name of the text resource to save the input to.',
                 'default': 'last_cli_input'
             },
             'prompt': {
+                'label': 'Prompt',
                 'type': "string",
                 'required': False,
                 'hint': 'The text to display when prompting the user for input.',
@@ -157,6 +211,11 @@ class CLIInputNode(InputNode):
         self._listeners = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
+        self._out = []
+
+    def get_output(self):
+        return self._out
+
     def run(self, stream):
         self.check_properties()
 
@@ -165,8 +224,10 @@ class CLIInputNode(InputNode):
 
         if user_input == '':
             if self.get_property('on_empty') == 'fail':
-                logging.error('Input was empty. Stopping.')
+                stream.get_logger().error('Input was empty. Stopping.')
                 return False
 
-        stream.add_resource(TextResource(self.get_property('save_to'), {"text": user_input}))
+        user_input_res = TextResource(self.get_property('save_to'), {"text": user_input})
+        stream.add_resource(user_input_res)
+        self._out = user_input_res
         return True

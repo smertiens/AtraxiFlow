@@ -8,34 +8,23 @@
 import logging
 
 from atraxiflow.core.events import EventObject
-
+from atraxiflow.core.exceptions import *
 
 class PropertyObject(EventObject):
     EVENT_PROPERTY_CHANGED = 'property_changed'
     EVENT_PROPERTIES_CHECKED = 'properties_checked'
 
     def check_properties(self):
+        '''
+        Check and merge properties
 
-        # check if a primary property is used
-        # if type(self.properties) is not dict:
-        #     foundMatch = False
-        #     for name, opt in self._known_properties.items():
-        #         if ("primary" in opt) and (opt["primary"] is True):
-        #             self.properties = dict([(name, self.properties)])
-        #             # self.fire_event(self.EVENT_PROPERTY_CHANGED, name)
-        #             foundMatch = True
-        #
-        #     if foundMatch is not True:
-        #         logging.error("Single argument given, but no primary property defined that will take it.")
-        #         self.fire_event(self.EVENT_PROPERTIES_CHECKED, False)
-        #         return False
+        :return: boolean
+        '''
 
-        # check and merge properties
         for name, opt in self._known_properties.items():
             if ("required" in opt and opt["required"] is True) and (name not in self.properties):
-                logging.error("Missing property: {0} in {1}".format(name, self.__class__.__name__))
                 self.fire_event(self.EVENT_PROPERTIES_CHECKED, False)
-                return False
+                raise PropertyException('Missing property "{0}" in {1}'.format(name, self.__class__.__name__))
 
             elif (name not in self.properties) and ("default" in opt):
                 self.properties[name] = opt['default']

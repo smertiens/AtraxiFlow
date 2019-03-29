@@ -5,9 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
+import pytest
 from atraxiflow.core.properties import PropertyObject
 from atraxiflow.nodes.common import NullNode
 from atraxiflow.nodes.filesystem import FilesystemResource
+from atraxiflow.core.exceptions import *
 
 cb_one_run = ''
 
@@ -77,7 +79,9 @@ def test_required_props_okay_other_set_by_default():
 def test_required_prop_missing_other_one_there():
     n = get_test_node()
     n.set_property('prop2', 'hello')
-    assert not n.check_properties()
+
+    with pytest.raises(PropertyException):
+        n.check_properties()
 
     n.set_property('prop1', 'world')
     assert n.check_properties()
@@ -85,7 +89,9 @@ def test_required_prop_missing_other_one_there():
 
 def test_all_props_missing():
     n = get_test_node()
-    assert not n.check_properties()
+
+    with pytest.raises(PropertyException):
+        n.check_properties()
 
 
 def test_register_callables():

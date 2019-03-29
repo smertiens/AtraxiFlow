@@ -9,13 +9,11 @@ import os
 
 
 class FSObject:
-    path = ""
-
     def __init__(self, new_path=""):
         self.path = new_path
 
     def __str__(self):
-        return "FSObject: " + self.path
+        return self.path
 
     def exists(self):
         return os.path.exists(self.path)

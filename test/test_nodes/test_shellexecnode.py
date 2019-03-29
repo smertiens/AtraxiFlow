@@ -17,7 +17,6 @@ def test_create_node():
     assert 'ls' == n.get_property('cmd')
 
 
-# todo refactor to capture output
 def test_run_command():
     st = Stream()
     n = ShellExecNode()
@@ -25,5 +24,9 @@ def test_run_command():
     st.append_node(n)
     st.append_node(EchoOutputNode(props={'msg': '{Res::last_shellexec_out}'}))
     assert st.flow()
-
     assert 'HelloWorld' == st.get_resource_by_name('last_shellexec_out').get_data().replace('\n', '')
+
+    # check output
+    out = n.get_output()
+    assert len(out) == 2
+    assert out[0].get_data().replace('\n', '') == 'HelloWorld'

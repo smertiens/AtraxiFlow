@@ -98,3 +98,8 @@ You can use :py:meth:`Stream.get_branch()` to add to a branch later in your scri
         .append_node(EchoOutputNode({'msg': 'Last but not least.'}))
 
 
+
+Running streams within a user interface
+---------------------------------------
+
+See :ref:`streamui`.

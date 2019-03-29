@@ -49,20 +49,48 @@ class TextValidatorNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'sources': {
-                'type': "string",
+                'label': 'Sources',
+                'type': "resource_query",
                 'required': False,
                 'hint': 'The resource query to obtain TextResources to check',
                 'default': 'Text:*'
             },
             'rules': {
+                'label': 'Rules',
                 'type': "list",
+                'list_item': [
+                    {
+                        'name': 'rule',
+                        'label': 'Rule',
+                        'type': 'combobox',
+                        'value': ['not_empty', 'min_len', 'max_len', 'regex']
+                    },
+                    {
+                        'name': 'param1',
+                        'label': 'Param 1',
+                        'type': 'text',
+                        'value': ''
+                    }
+                ],
+                'list_item_formatter': self.format_list_item,
                 'required': False,
                 'hint': 'A list of validation rules',
                 'default': {}
             }
         }
         self._listeners = {}
+        self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
+        self._out = []
+
+    def format_list_item(self, format, data):
+        if format == 'list':
+            return '{0} ({1})'.format(data['rule'], data['param1'])
+        elif format == 'store':
+            return data
+
+    def get_output(self):
+        return self._out
 
     def _rule_not_empty(self, text, params=[]):
         if text == '' or text is None:
@@ -72,7 +100,7 @@ class TextValidatorNode(ProcessorNode):
 
     def _rule_min_len(self, text, params=[]):
         if not 'length' in params:
-            logging.error('Rule min_len: Missing parameter "length"')
+            self._stream.get_logger().error('Rule min_len: Missing parameter "length"')
             return False
 
         length = int(params['length'])
@@ -80,7 +108,7 @@ class TextValidatorNode(ProcessorNode):
 
     def _rule_max_len(self, text, params=[]):
         if not 'length' in params:
-            logging.error('Rule max_len: Missing parameter "length"')
+            self._stream.get_logger().error('Rule max_len: Missing parameter "length"')
             return False
 
         length = int(params['length'])
@@ -88,7 +116,7 @@ class TextValidatorNode(ProcessorNode):
 
     def _rule_regex(self, text, params=[]):
         if not 'pattern' in params:
-            logging.error('Rule regex: Missing parameter "pattern"')
+            self._stream.get_logger().error('Rule regex: Missing parameter "pattern"')
             return False
 
         mode = ''
@@ -123,16 +151,17 @@ class TextValidatorNode(ProcessorNode):
         '''
 
         for rule, params in rules.items():
-            if not "_rule_{}".format(rule) in dir(self):
-                logging.error('Unrecognized rule: "{0}"'.format(rule))
+            if not "_rule_{0}".format(rule) in dir(self):
+                self._stream.get_logger().error('Unrecognized rule: "{0}"'.format(rule))
             else:
-                f = getattr(self, "_rule_{}".format(rule))
+                f = getattr(self, "_rule_{0}".format(rule))
                 if f(text, params) is False:
                     return False
 
         return True
 
     def run(self, stream):
+        self._stream = stream
         self.check_properties()
 
         resources = stream.get_resources(self.get_property('sources'))

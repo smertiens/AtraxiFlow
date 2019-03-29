@@ -2,9 +2,10 @@ User manual
 ===========
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
 
-   streams
-   resources
-   nodes
+    streams
+    resources
+    nodes/index
+    gui

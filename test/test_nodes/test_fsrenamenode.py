@@ -6,8 +6,8 @@
 #
 
 import os
-import re
 
+from atraxiflow.core.filesystem import FSObject
 from atraxiflow.core.stream import *
 from atraxiflow.nodes.filesystem import FSRenameNode, FilesystemResource
 
@@ -23,7 +23,10 @@ def test_rename_by_name_prop_single(tmpdir):
     assert Stream.create().add_resource(res).append_node(node).flow()
     assert os.path.exists(str(tmpdir.join('testfile_something.txt')))
 
-    assert str(tmpdir.join('testfile_something.txt')) == res.get_data()[0].getAbsolutePath()
+    # check output
+    out = node.get_output()[0].get_data()[0]
+    assert isinstance(out, FSObject)
+    assert str(tmpdir.join('testfile_something.txt')) == out.getAbsolutePath()
 
 
 def test_rename_by_name_prop_multi(tmpdir):
@@ -40,6 +43,12 @@ def test_rename_by_name_prop_multi(tmpdir):
     assert os.path.exists(str(tmpdir.join('foo_something.bar')))
     assert os.path.exists(str(tmpdir.join('hello_something.')))
 
+    # check output
+    assert len(node.get_output()) == 3
+    for out_res in node.get_output():
+        fso = out_res.get_data()[0]
+        assert isinstance(fso, FSObject)
+
 
 def test_rename_by_repl_prop(tmpdir):
     for s in ['testfile.txt', 'foo.bar', 'hello']:
@@ -55,7 +64,7 @@ def test_rename_by_repl_prop(tmpdir):
     assert Stream.create().add_resource(res).append_node(node).flow()
     assert os.path.exists(str(tmpdir.join('foobar.ext')))
 
-    assert str(tmpdir.join('foobar.ext')) == res.get_data()[0].getAbsolutePath()
+    assert str(tmpdir.join('foobar.ext')) == node.get_output()[0].get_data()[0].getAbsolutePath()
 
 
 def test_rename_by_repl_and_name_prop(tmpdir):
@@ -74,4 +83,4 @@ def test_rename_by_repl_and_name_prop(tmpdir):
     assert Stream.create().add_resource(res).append_node(node).flow()
     assert os.path.exists(str(tmpdir.join('foobar.ext')))
 
-    assert str(tmpdir.join('foobar.ext')) == res.get_data()[0].getAbsolutePath()
+    assert str(tmpdir.join('foobar.ext')) == node.get_output()[0].get_data()[0].getAbsolutePath()

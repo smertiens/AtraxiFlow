@@ -5,10 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
+import logging, re
 from threading import Thread
 
-from atraxiflow.core.exceptions import ResourceException
+from atraxiflow.core.events import EventObject
+from atraxiflow.core.exceptions import *
 from atraxiflow.nodes.foundation import Node, Resource
 
 
@@ -56,19 +57,37 @@ class AsyncBranch(Thread):
         Starts the stream of this branch
         :return: bool
         '''
-        logging.info("Starting new thread on branch {0}".format(self.get_name()))
+        self.stream.get_logger().info("Starting new thread on branch {0}".format(self.get_name()))
         return self.stream.flow()
 
 
-class Stream:
+class Stream(EventObject):
     '''
     The main building block of a workflow. Streams hold all nodes and resources
     '''
+
+    EVENT_STREAM_STARTED = 0
+    EVENT_STREAM_FINISHED = 1
+    EVENT_NODE_STARTED = 2
+    EVENT_NODE_FINISHED = 3
 
     def __init__(self):
         self._resource_map = {}
         self._branch_map = {}
         self._nodes = []
+        self._listeners = {}
+
+        self._pos = -1
+
+    def _validate_name(self, name):
+        '''
+        Check whether node/res name is valid
+
+        :param name: The name to check
+        :type name: str
+        :rtype: bool
+        '''
+        return re.match(r'^[\w _-]+$', name)
 
     def __rshift__(self, other):
         '''
@@ -86,6 +105,16 @@ class Stream:
 
         return self
 
+    def get_node_count(self):
+        return len(self._nodes)
+
+    def get_logger(self):
+        '''
+        Returns the streams logger
+        :return: Logger
+        '''
+        return logging.getLogger('stream')
+
     def set_log_level(self, level):
         '''
         Sets the global log level. Use levels from pythons logging module.
@@ -94,10 +123,10 @@ class Stream:
         :return: Stream
         '''
 
-        logging.getLogger().setLevel(level)
+        self.get_logger().setLevel(level)
         return self
 
-
+    @staticmethod
     def create():
         ''' Convenience function to create a new stream '''
         return Stream()
@@ -109,6 +138,10 @@ class Stream:
         :param name: The name of the new branch
         :return: bool
         '''
+
+        if not self._validate_name(name) or name == '':
+            raise ExecutionException('Invalid branch name: "{0}"'.format(name))
+
         branch = AsyncBranch(name, Stream())
         self.append_node(branch)
         self._branch_map[branch.get_name()] = branch
@@ -122,7 +155,7 @@ class Stream:
         :return: AsyncBranch
         '''
         if name not in self._branch_map:
-            logging.error("Branch {0} could not be found".format(name))
+            self.get_logger().error("Branch {0} could not be found".format(name))
             return None
 
         return self._branch_map[name]
@@ -136,6 +169,10 @@ class Stream:
         '''
         self._resource_map = other_stream._resource_map
 
+        for node in other_stream._nodes:
+            if not isinstance(node, AsyncBranch):
+                self._nodes.append(node)
+
     def append_node(self, node):
         '''
         Add a node to the stream queue
@@ -143,6 +180,13 @@ class Stream:
         :param node: Node
         :return: Stream
         '''
+
+        if node.get_name() != '' and not self._validate_name(node.get_name()):
+            raise ExecutionException("Invalid node name: {0}".format(node.get_name()))
+
+        if node.get_name() != '' and self.get_node_by_name(node.get_name()) is not None:
+            raise ExecutionException('A node by the name "{0}" already exists'.format(node.get_name()))
+
         self._nodes.append(node)
         return self
 
@@ -153,6 +197,17 @@ class Stream:
         :param res: Resource
         :return: Stream
         '''
+
+        if res.get_prefix() == 'AX':
+            raise ResourceException("The prefix 'AX' is reserved for internal use and cannot be used by resources.")
+
+        # check resource name - empty name is allowed
+        if res.get_name() != '' and not self._validate_name(res.get_name()):
+            raise ExecutionException("Invalid resource name: {0}".format(res.get_name()))
+
+        if res.get_name() != '' and self.get_resource_by_name(res.get_name()) is not None:
+            raise ExecutionException('A resource by the name "{0}" already exists'.format(res.get_name()))
+
         if res.get_prefix() in self._resource_map:
             self._resource_map[res.get_prefix()].append(res)
         else:
@@ -197,6 +252,18 @@ class Stream:
 
         return None
 
+    def get_node_by_name(self, name):
+        '''
+
+        :param name: THe node name to look for
+        :return: Node or None
+        '''
+        for n in self._nodes:
+            if n.get_name() == name:
+                return n
+
+        return None
+
     def get_resources(self, query):
         '''
         Get one or more resources from the stream, using given query string
@@ -221,7 +288,37 @@ class Stream:
 
         (prefix, key) = query.split(":")  # type: (str, str)
 
-        if not prefix in self._resource_map:
+        # check if an AX-query is made
+        if prefix == 'AX':
+            if key.find('.') == -1:
+                raise ResourceException('Unknown resource query: "{0}"'.format(query))
+            else:
+                elements = key.split('.')
+
+                if elements[0] == 'prev':
+                    if elements[1] == 'output':
+                        # fetch output of previous node and treat it as a resource/list of resources
+                        if self._get_stream_pos() <= 0:
+                            raise ExecutionException('Cannot use output of previous node: No previous node found.')
+                        else:
+                            node = self._get_node_at(self._get_stream_pos() - 1)
+                            return node.get_output()
+                    else:
+                        raise ResourceException('Invalid resource query: "{0}"'.format(query))
+                else:
+                    # assume elements[0] is a node name
+                    node = self.get_node_by_name(elements[0])
+
+                    if node is None:
+                        raise ResourceException(
+                            'Invalid resource query: "{0}", node "{1}" not found.'.format(query, elements[0]))
+
+                    if elements[1] == 'output':
+                        return node.get_output()
+                    else:
+                        raise ResourceException('Invalid resource query: "{0}"'.format(query))
+
+        if prefix not in self._resource_map:
             return []
 
         if key == "*":
@@ -254,23 +351,46 @@ class Stream:
 
         return results
 
+    def _get_node_at(self, pos):
+        return self._nodes[pos]
+
+    def _get_stream_pos(self):
+        return self._pos
+
     def flow(self):
         '''
         Starts the stream processing
 
         :return: bool - If false, errors have occured while processing the stream
         '''
-        logging.info("Starting processing")
+        self.get_logger().info("Starting processing")
+        self.fire_event(self.EVENT_STREAM_STARTED)
+        self._pos = -1
+        nodes_processed = 0
 
         for node in self._nodes:
+            self._pos += 1
+
             if isinstance(node, AsyncBranch):
-                logging.info("Starting new branch {0}".format(node.get_name()))
+                self.get_logger().info("Starting new branch {0}".format(node.get_name()))
+
                 node.get_stream().inherit(self)
                 node.start()
             else:
-                logging.debug("Running node {0}".format(node.__class__.__name__))
-                if node.run(self) is False:
+                self.get_logger().debug("Running node {0}".format(node.__class__.__name__))
+                self.fire_event(self.EVENT_NODE_STARTED)
+                res = node.run(self)
+                nodes_processed += 1
+                self.fire_event(self.EVENT_NODE_FINISHED)
+
+                if res is False:
+                    self.get_logger().warning("Node failed.")
+                    self.get_logger().info(
+                        "Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
+                    self.fire_event(self.EVENT_STREAM_FINISHED)
+
                     return False
 
-        logging.info("Finished processing {0} nodes".format(len(self._nodes)))
+        self.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
+        self.fire_event(self.EVENT_STREAM_FINISHED)
         return True
