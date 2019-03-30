@@ -23,6 +23,12 @@ This node executes a command and provides it's output in form of a :ref:`textres
    * - errors
      - The name that should be assigned to the TextResource that holds the commands errors ("stderr")
      - No. Default: 'last_shellexec_errors'
+   * - echo_command
+     - If True, outputs the command to the console
+     - No. Default: False
+   * - echo_output
+     - If True, writes the command's output to the console
+     - No. Default: False
 
 **Output**
 

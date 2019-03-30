@@ -80,6 +80,7 @@ class GUIFormInputNode(InputNode):
                 'default': 'exit'
             }
         }
+
         self._listeners = {}
         self._controls = {}
         self._results = {}
@@ -93,6 +94,12 @@ class GUIFormInputNode(InputNode):
         self._wnd = QtWidgets.QDialog()
         self._btn_accept = QtWidgets.QPushButton()
         self._btn_cancel = QtWidgets.QPushButton()
+
+    @staticmethod
+    def get_creator_properties():
+        return {
+            'hide': True
+        }
 
     def format_list_item(self, format, data):
         if format == 'list':
