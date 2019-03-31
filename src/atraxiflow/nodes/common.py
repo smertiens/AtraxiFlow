@@ -37,6 +37,18 @@ class ShellExecNode(ProcessorNode):
                 'required': False,
                 'hint': 'Name of the TextResource to save errors of the command to',
                 'default': 'last_shellexec_errors'
+            },
+            'echo_command': {
+                'label': 'Echo command',
+                'type': "boolean",
+                'required': False,
+                'default': False
+            },
+            'echo_output': {
+                'label': 'Echo output',
+                'type': "boolean",
+                'required': False,
+                'default': False
             }
         }
         self._listeners = {}
@@ -49,20 +61,35 @@ class ShellExecNode(ProcessorNode):
 
     def run(self, stream):
         self.check_properties()
-        args = shlex.split(self.get_property('cmd'))
+        cmd = self.parse_string(stream, self.get_property('cmd'))
+        args = shlex.split(cmd)
 
         stdout = ''
         stderr = ''
-        if sys.version_info >= (3, 5):
-            # using CompletedProcess
-            result = subprocess.run(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            stdout = result.stdout.decode("utf-8")
-            stderr = result.stderr.decode("utf-8")
+
+        if self.get_property('echo_command') is True:
+            print(cmd)
+
+        result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        if self.get_property('echo_output') is True:
+            while result.poll() is None:
+                line = result.stdout.readline().decode('utf-8')
+                print(line.replace('\n', ''))
+                stdout += line
+                line = result.stderr.readline().decode('utf-8')
+                print(line.replace('\n', ''))
+                stderr += line
         else:
-            p = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            stdout_raw, stderr_raw = p.communicate()
+            stdout_raw, stderr_raw = result.communicate()
             stdout = stdout_raw.decode("utf-8")
             stderr = stderr_raw.decode("utf-8")
+
+        if stream.get_resource_by_name(self.get_property('output')) is not None:
+            stream.remove_resource('Text:{0}'.format(self.get_property('output')))
+
+        if stream.get_resource_by_name(self.get_property('errors')) is not None:
+            stream.remove_resource('Text:{0}'.format(self.get_property('errors')))
 
         res_out = TextResource(self.get_property('output'), {'text': stdout})
         res_err = TextResource(self.get_property('errors'), {'text': stderr})

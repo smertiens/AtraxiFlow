@@ -26,7 +26,9 @@ pip install atraxi-flow
 
 **Latest Changes**
 
-_1.0.0: First production release_  
+_1.0.1:_ ShellExecNode: new options "echo_command" and "echo_output"
+
+_1.0.0:_ First production release  
 
 
 **Example script**

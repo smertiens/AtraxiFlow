@@ -29,4 +29,30 @@ def test_run_command():
     # check output
     out = n.get_output()
     assert len(out) == 2
-    assert out[0].get_data().replace('\n', '') == 'HelloWorld'
+    assert out[0].get_data() == 'HelloWorld\n'
+
+
+def test_option_output_command(capsys):
+    st = Stream()
+    n = ShellExecNode()
+    n.set_property('cmd', 'echo HelloWorld')
+    n.set_property('echo_command', True)
+    st.append_node(n)
+
+    assert st.flow()
+
+    captured = capsys.readouterr()
+    assert captured[0] == n.get_property('cmd') + '\n'
+
+
+def test_option_output(capsys):
+    st = Stream()
+    n = ShellExecNode()
+    n.set_property('cmd', 'echo HelloWorld')
+    n.set_property('echo_output', True)
+    st.append_node(n)
+
+    assert st.flow()
+
+    captured = capsys.readouterr()
+    assert captured[0] == 'HelloWorld\n\n'
