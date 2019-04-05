@@ -9,17 +9,59 @@ import logging
 import re
 from datetime import datetime, timedelta
 
-from atraxiflow.core.exceptions import ValueException
-
 
 class DatetimeProcessor:
-    def processString(str):
-        if "today" == str:
+
+    def get_logger(self):
+        '''
+        Returns the classes logger
+        :return: Logger
+        '''
+        return logging.getLogger(DatetimeProcessor.__module__)
+
+    def process_string(self, date_str):
+        if 'today' == date_str:
             return datetime.now()
-        elif "yesterday" == str:
+        elif 'yesterday' == date_str:
             return datetime.now() - timedelta(days=1)
+        elif 'tomorrow' == date_str:
+            return datetime.now() + timedelta(days=1)
         else:
-            return datetime.strptime(str)
+            fmt = ''
+            # Determine datetime format
+            # European date format (dd.mm.YY / YYYY)
+            res = re.match(r'^\d{2}.\d{2}.\d{2}(\d{2})*( \d{2}:\d{2}(:\d{2})*)*$', date_str)
+            if res:
+                if res.groups()[0] == None:
+                    fmt = '%d.%m.%y'
+                else:
+                    fmt = '%d.%m.%Y'
+
+                if res.groups()[1] is not None:
+                    fmt += ' %H:%M'
+
+                if res.groups()[2] is not None:
+                    fmt += ':%S'
+
+            # American date format (mmm/dd/YY / YYYY)
+            res = re.match(r'^\d{2}/\d{2}/\d{2}(\d{2})*( \d{2}:\d{2}(:\d{2})*)*$', date_str)
+            if res:
+                if res.groups()[0] == None:
+                    fmt = '%m/%d/%y'
+                else:
+                    fmt = '%m/%d/%Y'
+
+                if res.groups()[1] is not None:
+                    fmt += ' %H:%M'
+
+                if res.groups()[2] is not None:
+                    fmt += ':%S'
+
+            if fmt == '':
+                self.get_logger().error('Unrecognized date/time format: {0}. Using current date/time.'.format(date_str))
+                return datetime.now()
+
+            return datetime.strptime(date_str, fmt)
 
 
 class StringValueProcessor:

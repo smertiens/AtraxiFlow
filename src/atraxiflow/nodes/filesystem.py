@@ -134,15 +134,17 @@ class FileFilterNode(ProcessorNode):
         left_val = None
         right_val = None
 
+        dtp = DatetimeProcessor()
+
         if filter[0] == "file_size":
             left_val = fso.getFilesize()
             right_val = self._filesize_value_to_number(filter[2])
         elif filter[0] == "date_created":
             left_val = fso.getCreated()
-            right_val = DatetimeProcessor.processString(filter[2])
+            right_val = dtp.process_string(filter[2])
         elif filter[0] == "date_modified":
             left_val = fso.getLastModified()
-            right_val = DatetimeProcessor.processString(filter[2])
+            right_val = dtp.process_string(filter[2])
         elif filter[0] == "type":
             left_val = 'folder' if fso.isFolder() else 'file'
             right_val = filter[2]
