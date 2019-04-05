@@ -6,6 +6,7 @@
 #
 
 import os
+from datetime import datetime
 
 
 class FSObject:
@@ -55,10 +56,10 @@ class FSObject:
         return os.path.getsize(self.path)
 
     def getLastModified(self):
-        return os.path.getmtime(self.path)
+        return datetime.fromtimestamp(os.path.getmtime(self.path))
 
     def getLastAccessed(self):
-        return os.path.getatime(self.path)
+        return datetime.fromtimestamp(os.path.getatime(self.path))
 
     def getCreated(self):
-        return os.path.getctime(self.path)
+        return datetime.fromtimestamp(os.path.getctime(self.path))

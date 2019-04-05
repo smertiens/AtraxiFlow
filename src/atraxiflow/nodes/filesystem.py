@@ -41,12 +41,12 @@ class FileFilterNode(ProcessorNode):
             'filter': {
                 'label': "List of filters",
                 'type': "list",
-                'list_item': [
+                'creator:list_item_fields': [
                     {
                         'name': 'prop',
                         'label': 'Property',
                         'type': 'combobox',
-                        'value': ['filesize', 'date_created', 'date_modified', 'type', 'filename', 'filedir']
+                        'value': ['file_size', 'date_created', 'date_modified', 'type', 'filename', 'filedir']
                     },
                     {
                         'name': 'comp',
@@ -60,7 +60,7 @@ class FileFilterNode(ProcessorNode):
                         'type': 'text'
                     }
                 ],
-                'list_item_formatter': self.format_list_item,
+                'creator:list_item_formatter': self.format_list_item,
                 'required': True,
                 'hint': 'Filters all or given filesystem resources'
             },
@@ -82,10 +82,20 @@ class FileFilterNode(ProcessorNode):
         self._out = []
 
     def format_list_item(self, format, data):
-        if format == 'list':
-            return '{0} {1} {2}'.format(data['prop'], data['comp'], data['value'])
+        if format == 'list_item':
+            return '{0} {1} "{2}"'.format(data['prop'], data['comp'], data['value'])
         elif format == 'store':
             return data
+        elif format == 'node_value':
+            # TODO: Iterate node values
+            if isinstance(data, list):
+                out = []
+                for row in data:
+                    out.append([row['prop'], row['comp'], row['value']])
+
+                return out
+            else:
+                return [data['prop'], data['comp'], data['value']]
 
     def get_output(self):
         return self._out
@@ -102,13 +112,14 @@ class FileFilterNode(ProcessorNode):
             return int(matches.group(1))
         else:
             f = 1
-            if matches.group(2) == "K":
+            ext = matches.group(2).upper()
+            if ext == "K":
                 f = 1024
-            elif matches.group(2) == "M":
+            elif ext == "M":
                 f = 1024 * 1024
-            elif matches.group(2) == "G":
+            elif ext == "G":
                 f = 1024 * 1024 * 1024
-            elif matches.group(2) == "T":
+            elif ext == "T":
                 f = 1024 * 1024 * 1024 * 1024
             else:
                 self._stream.get_logger().log("Invalid filesize format suffix: %s".format(matches.group(2)))

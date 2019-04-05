@@ -8,6 +8,8 @@
 
 import os, platform, logging, sys
 
+AXF_VERSION = '1.0.1'
+
 ### Initialize environment ###
 
 axf_user_dir = os.path.expanduser('~')
