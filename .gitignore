@@ -11,3 +11,5 @@ dist
 build
 demo_*
 build_*.sh
+test/htmlcov
+test/.coverage
