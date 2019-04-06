@@ -84,7 +84,7 @@ This node outputs a list of  :ref:`fsres`, containing the matched files and fold
    * - filesize
      - Filter by filesize. You can use the exact number in bytes or a conveniance format (1K, 1M, 1G, 1T)
    * - date_created
-     - Filter by the files created date. You can enter the dates as string ("12.01.2017") or use "today", "yesterday"
+     - Filter by the files creation date. You can enter the dates as string ("12.01.2017" / "01/12/2017") or use "today", "yesterday", "tomorrow"
    * - date_modified
      - Filter by the files last modified date
    * - type

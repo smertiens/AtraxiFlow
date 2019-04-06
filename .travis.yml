@@ -11,11 +11,13 @@ python:
 
 install:
   - pip install Pillow
+  - pip install coverage
   #- pip install Pyside2  - no installable package for python 3.4
   - pip install pytest
+  - pip install pytest-cov
   #- pip install pytest-qt - ui tests not working atm
   - export PYTHONPATH=$PYTHONPATH:$(pwd)/src
 
 # command to run tests
 script:
-  - pytest
+  - pytest --cov=atraxiflow

@@ -142,9 +142,33 @@ class FileFilterNode(ProcessorNode):
         elif filter[0] == "date_created":
             left_val = fso.getCreated()
             right_val = dtp.process_string(filter[2])
+
+            if dtp.get_range() == DatetimeProcessor.RANGE_DATE:
+                left_val.replace(hour=0, minute=0, second=0, microsecond=0)
+                right_val.replace(hour=0, minute=0, second=0, microsecond=0)
+            elif dtp.get_range() == DatetimeProcessor.RANGE_DATETIME_SHORT:
+                left_val.replace(second=0, microsecond=0)
+                right_val.replace(second=0, microsecond=0)
+            elif dtp.get_range() == DatetimeProcessor.RANGE_DATETIME_LONG:
+                left_val.replace(microsecond=0)
+                right_val.replace(microsecond=0)
+
         elif filter[0] == "date_modified":
             left_val = fso.getLastModified()
             right_val = dtp.process_string(filter[2])
+
+            if dtp.get_range() == DatetimeProcessor.RANGE_DATE:
+                left_val = left_val.replace(hour=0, minute=0, second=0, microsecond=0)
+                right_val = right_val.replace(hour=0, minute=0, second=0, microsecond=0)
+            elif dtp.get_range() == DatetimeProcessor.RANGE_DATETIME_SHORT:
+                left_val = left_val.replace(second=0, microsecond=0)
+                right_val = right_val.replace(second=0, microsecond=0)
+            elif dtp.get_range() == DatetimeProcessor.RANGE_DATETIME_LONG:
+                left_val = left_val.replace(microsecond=0)
+                right_val = right_val.replace(microsecond=0)
+
+            print(left_val, right_val)
+
         elif filter[0] == "type":
             left_val = 'folder' if fso.isFolder() else 'file'
             right_val = filter[2]

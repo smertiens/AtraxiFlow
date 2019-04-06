@@ -12,6 +12,13 @@ from datetime import datetime, timedelta
 
 class DatetimeProcessor:
 
+    RANGE_DATE = 'RANGE_DATE'
+    RANGE_DATETIME_SHORT = 'RANGE_DATETIME_SHORT'
+    RANGE_DATETIME_LONG = 'RANGE_DATETIME_LONG'
+
+    def __init__(self):
+        self._range = None
+
     def get_logger(self):
         '''
         Returns the classes logger
@@ -19,12 +26,18 @@ class DatetimeProcessor:
         '''
         return logging.getLogger(DatetimeProcessor.__module__)
 
+    def get_range(self):
+        return self._range
+
     def process_string(self, date_str):
         if 'today' == date_str:
+            self._range = self.RANGE_DATE
             return datetime.now()
         elif 'yesterday' == date_str:
+            self._range = self.RANGE_DATE
             return datetime.now() - timedelta(days=1)
         elif 'tomorrow' == date_str:
+            self._range = self.RANGE_DATE
             return datetime.now() + timedelta(days=1)
         else:
             fmt = ''
@@ -32,33 +45,41 @@ class DatetimeProcessor:
             # European date format (dd.mm.YY / YYYY)
             res = re.match(r'^\d{2}.\d{2}.\d{2}(\d{2})*( \d{2}:\d{2}(:\d{2})*)*$', date_str)
             if res:
+                self._range = self.RANGE_DATE
+
                 if res.groups()[0] == None:
                     fmt = '%d.%m.%y'
                 else:
                     fmt = '%d.%m.%Y'
 
                 if res.groups()[1] is not None:
+                    self._range = self.RANGE_DATETIME_SHORT
                     fmt += ' %H:%M'
 
                 if res.groups()[2] is not None:
+                    self._range = self.RANGE_DATETIME_LONG
                     fmt += ':%S'
 
             # American date format (mmm/dd/YY / YYYY)
             res = re.match(r'^\d{2}/\d{2}/\d{2}(\d{2})*( \d{2}:\d{2}(:\d{2})*)*$', date_str)
             if res:
+                self._range = self.RANGE_DATE
                 if res.groups()[0] == None:
                     fmt = '%m/%d/%y'
                 else:
                     fmt = '%m/%d/%Y'
 
                 if res.groups()[1] is not None:
+                    self._range = self.RANGE_DATETIME_SHORT
                     fmt += ' %H:%M'
 
                 if res.groups()[2] is not None:
+                    self._range = self.RANGE_DATETIME_LONG
                     fmt += ':%S'
 
             if fmt == '':
                 self.get_logger().error('Unrecognized date/time format: {0}. Using current date/time.'.format(date_str))
+                self._range = self.RANGE_DATETIME_LONG
                 return datetime.now()
 
             return datetime.strptime(date_str, fmt)
