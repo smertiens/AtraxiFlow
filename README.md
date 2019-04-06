@@ -2,6 +2,8 @@
 The flexible python workflow tool
 
 [![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
+[![Documentation Status](https://readthedocs.org/projects/atraxiflow/badge/?version=latest)](https://atraxiflow.readthedocs.io/en/latest/?badge=latest)
+[![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)
 
 * Create easy-to-read automation scripts in minutes - work with files, folders, images or anything else 
 * Add your own logic as AtraxiFlow node and share it with others
@@ -11,8 +13,8 @@ built with Qt5
 **Learn**
 
 * See what you can do and check out the [examples](https://github.com/smertiens/AtraxiExamples)
-* Get started with the user manual [user manual](https://docs.atraxi-flow.com/manual/index.html)
-* Learn how to write your own nodes in minutes with the [developer manual](https://docs.atraxi-flow.com/dev/index.html)
+* Get started with the [user manual](https://atraxiflow.readthedocs.io/en/latest/manual)
+* Learn how to write your own nodes in minutes with the [developer manual](https://atraxiflow.readthedocs.io/en/latest/dev)
 
 **Install**
 ```
@@ -25,6 +27,8 @@ pip install atraxi-flow
 * If you want to use the UI nodes and functions, you will need to install [Pyside2](https://pypi.org/project/PySide2/) (optional)
 
 **Latest Changes**
+
+_1.0.2:_ Fixes in DateTimeProcessor and improved file date/time comparison in FileFilterNode
 
 _1.0.1:_ ShellExecNode: new options "echo_command" and "echo_output"
 
