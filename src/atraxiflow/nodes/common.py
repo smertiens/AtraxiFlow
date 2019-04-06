@@ -19,7 +19,7 @@ class ShellExecNode(ProcessorNode):
     def __init__(self, name="", props=None):
         self._known_properties = {
             'cmd': {
-                'label': 'Commmand',
+                'label': 'Command',
                 'type': "string",
                 'required': True,
                 'hint': 'Command to execute'
@@ -40,13 +40,13 @@ class ShellExecNode(ProcessorNode):
             },
             'echo_command': {
                 'label': 'Echo command',
-                'type': "boolean",
+                'type': "bool",
                 'required': False,
                 'default': False
             },
             'echo_output': {
                 'label': 'Echo output',
-                'type': "boolean",
+                'type': "bool",
                 'required': False,
                 'default': False
             }
@@ -141,7 +141,7 @@ class EchoOutputNode(OutputNode):
                 'type': "resource_query",
                 'required': False,
                 'hint': 'Resource query to be output',
-                "default": None
+                "default": ''
             }
         }
         self._listeners = {}
@@ -158,7 +158,7 @@ class EchoOutputNode(OutputNode):
         if self.get_property('msg') is not None:
             print(self.parse_string(stream, self.get_property('msg')))
 
-        if self.get_property('res') is not None:
+        if self.get_property('res') != '':
 
             resources = stream.get_resources(self.get_property('res'))
 
@@ -183,7 +183,7 @@ class DelayNode(ProcessorNode):
                 'type': 'number',
                 'required': False,
                 'hint': 'Delay time in seconds',
-                'default': '5'
+                'default': 5
             }
         }
 
