@@ -87,7 +87,6 @@ class FileFilterNode(ProcessorNode):
         elif format == 'store':
             return data
         elif format == 'node_value':
-            # TODO: Iterate node values
             if isinstance(data, list):
                 out = []
                 for row in data:
@@ -435,12 +434,12 @@ class FSRenameNode(ProcessorNode):
                 'type': "string",
                 'required': False,
                 'hint': 'A string to rename the given files to',
-                'default': None
+                'default': ''
             },
             'replace': {
                 'label': 'Replace',
                 'type': "list",
-                'list_item': [
+                'creator:list_item_fields': [
                     {
                         'name': 'search',
                         'label': 'Search',
@@ -454,7 +453,7 @@ class FSRenameNode(ProcessorNode):
                         'value': ''
                     }
                 ],
-                'list_item_formatter': self.format_list_item,
+                'creator:list_item_formatter': self.format_list_item,
                 'required': False,
                 'hint': 'A list of strings to replace. The key can be a compiled regular expression.',
                 'default': None
@@ -474,10 +473,17 @@ class FSRenameNode(ProcessorNode):
         self._out = []
 
     def format_list_item(self, format, data):
-        if format == 'list':
+        if format == 'list_item':
             return '{0} -> {1}'.format(data['search'], data['replace'])
         elif format == 'store':
             return data
+        elif format == 'node_value':
+            if isinstance(data, list):
+                out = {}
+                for row in data:
+                    out[row['search']] = row['replace']
+
+                return out
 
     def get_output(self):
         return self._out
@@ -504,7 +510,7 @@ class FSRenameNode(ProcessorNode):
                 new_name = fso.getAbsolutePath()
                 svp = StringValueProcessor(stream)
 
-                if self.get_property('name') is not None:
+                if self.get_property('name') != '':
                     svp.add_variable('file.basename', fso.getBasename())
                     svp.add_variable('file.extension', fso.getExtension())
                     svp.add_variable('file.path', fso.getDirectory())

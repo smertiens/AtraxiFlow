@@ -8,8 +8,12 @@ class {# ClassName #}({# Type #}):
         self._listeners = {}
 
         self.name, self.properties = self.get_properties_from_args(name, props)
+        self._out = None
 
     def run(self, stream):
         self.check_properties()
         print ("Hello World!")
         return True
+
+    def get_output(self):
+        return self._out

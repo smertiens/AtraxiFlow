@@ -162,6 +162,9 @@ class EchoOutputNode(OutputNode):
 
             resources = stream.get_resources(self.get_property('res'))
 
+            if not isinstance(resources, list):
+                resources = [resources]
+
             for res in resources:
                 data = res.get_data()
 
