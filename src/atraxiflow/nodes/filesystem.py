@@ -439,6 +439,7 @@ class FSRenameNode(ProcessorNode):
             'replace': {
                 'label': 'Replace',
                 'type': "list",
+                # TODO: add possibility to use REGEX in Creator
                 'creator:list_item_fields': [
                     {
                         'name': 'search',

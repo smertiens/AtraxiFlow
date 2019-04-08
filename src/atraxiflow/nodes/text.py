@@ -22,7 +22,8 @@ class TextResource(Resource):
                 'type': "string",
                 'required': False,
                 'hint': 'A simple text',
-                'default': ''
+                'default': '',
+                'creator:multiline': True
             }
         }
 
