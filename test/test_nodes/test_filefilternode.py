@@ -6,7 +6,7 @@
 #
 
 import pytest
-
+import re
 from atraxiflow.core.debug import *
 from atraxiflow.nodes.filesystem import FileFilterNode
 from atraxiflow.nodes.filesystem import FilesystemResource

@@ -5,10 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
-
 from atraxiflow.core.events import EventObject
 from atraxiflow.core.exceptions import *
+
 
 class PropertyObject(EventObject):
     EVENT_PROPERTY_CHANGED = 'property_changed'

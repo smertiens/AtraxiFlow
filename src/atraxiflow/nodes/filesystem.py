@@ -504,10 +504,8 @@ class FSRenameNode(ProcessorNode):
                 self._stream.get_logger().error("Expected FilesystemResource, got {0}".format(type(res)))
                 return False
 
-            new_data = []
             for fso in res.get_data():
 
-                edited_fso = fso
                 new_name = fso.getAbsolutePath()
                 svp = StringValueProcessor(stream)
 

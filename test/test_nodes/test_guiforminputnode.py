@@ -5,10 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 import pytest
-
+from PySide2 import QtWidgets, QtCore
 from atraxiflow.core.stream import *
-from atraxiflow.nodes.gui import *
 from atraxiflow.nodes.filesystem import *
+from atraxiflow.nodes.gui import *
 
 
 def test_basics(qtbot, monkeypatch):

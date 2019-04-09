@@ -3,6 +3,7 @@ The flexible python workflow tool
 
 [![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
 [![Documentation Status](https://readthedocs.org/projects/atraxiflow/badge/?version=latest)](https://atraxiflow.readthedocs.io/en/latest/?badge=latest)
+[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/smertiens/AtraxiFlow.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/smertiens/AtraxiFlow/context:python)
 [![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)
 
 * Create easy-to-read automation scripts in minutes - work with files, folders, images or anything else 

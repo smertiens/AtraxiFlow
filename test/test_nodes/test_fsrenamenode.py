@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-import os
+import os, re
 
 from atraxiflow.core.filesystem import FSObject
 from atraxiflow.core.stream import *

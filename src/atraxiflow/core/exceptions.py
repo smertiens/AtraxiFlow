@@ -5,6 +5,9 @@
 # For more information on licensing see LICENSE file
 #
 
+__all__ = ['ResourceException', 'EnvironmentException', 'ValueException', 'ExecutionException', 'FilesystemException',
+           'GUIException', 'PropertyException']
+
 
 class ResourceException(Exception):
     pass
@@ -28,6 +31,7 @@ class FilesystemException(Exception):
 
 class GUIException(Exception):
     pass
+
 
 class PropertyException(Exception):
     pass
