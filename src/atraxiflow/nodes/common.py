@@ -23,7 +23,8 @@ class ShellExecNode(ProcessorNode):
                 'label': 'Command',
                 'type': "string",
                 'required': True,
-                'hint': 'Command to execute'
+                'hint': 'Command to execute',
+                'creator:multiline': True
             },
             'output': {
                 'label': 'Stdout',
@@ -184,6 +185,17 @@ class EchoOutputNode(OutputNode):
                     print(data)
 
         return True
+
+
+def echo(msg):
+    """
+    Convenience function to create an EchoOutputNode
+
+    :param msg: The message to output
+    :rtype: EchoOutputNode
+    """
+
+    return EchoOutputNode({'msg': msg})
 
 
 class DelayNode(ProcessorNode):

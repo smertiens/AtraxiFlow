@@ -6,7 +6,7 @@
 #
 
 from atraxiflow.core.stream import Stream
-from atraxiflow.nodes.common import EchoOutputNode
+from atraxiflow.nodes.common import EchoOutputNode, echo
 from atraxiflow.nodes.filesystem import FilesystemResource
 from atraxiflow.nodes.text import TextResource
 
@@ -16,6 +16,17 @@ def test_create_node():
     n = EchoOutputNode('demo', {'msg': 'hello world'})
 
     assert 'hello world' == n.get_property('msg')
+
+
+def test_convenience_function(capsys):
+    assert isinstance(echo(''), EchoOutputNode)
+
+    st = Stream()
+    st >> echo('Hello World')
+    assert st.flow()
+
+    captured = capsys.readouterr()
+    assert captured[0] == 'Hello World\n'
 
 
 def test_msg_out(capsys):
