@@ -7,7 +7,7 @@
 
 import shlex
 import subprocess
-import sys
+import os
 import time
 
 from atraxiflow.nodes.foundation import *
@@ -70,16 +70,19 @@ class ShellExecNode(ProcessorNode):
         if self.get_property('echo_command') is True:
             print(cmd)
 
-        result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
 
         if self.get_property('echo_output') is True:
             while result.poll() is None:
-                line = result.stdout.readline().decode('utf-8')
-                print(line.replace('\n', ''))
-                stdout += line
-                line = result.stderr.readline().decode('utf-8')
-                print(line.replace('\n', ''))
-                stderr += line
+                line = result.stdout.readline().decode('utf-8').replace(os.linesep, '')
+                if line != '':
+                    print(line)
+                    stdout += line
+
+                line = result.stderr.readline().decode('utf-8').replace(os.linesep, '')
+                if line != '':
+                    print(line)
+                    stderr += line
         else:
             stdout_raw, stderr_raw = result.communicate()
             stdout = stdout_raw.decode("utf-8")

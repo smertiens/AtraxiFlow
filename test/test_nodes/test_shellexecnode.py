@@ -5,6 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
+import os
 from atraxiflow.core.stream import Stream
 from atraxiflow.nodes.common import ShellExecNode, EchoOutputNode
 
@@ -24,12 +25,12 @@ def test_run_command():
     st.append_node(n)
     st.append_node(EchoOutputNode(props={'msg': '{Res::last_shellexec_out}'}))
     assert st.flow()
-    assert 'HelloWorld' == st.get_resource_by_name('last_shellexec_out').get_data().replace('\n', '')
+    assert 'HelloWorld' == st.get_resource_by_name('last_shellexec_out').get_data().replace(os.linesep, '')
 
     # check output
     out = n.get_output()
     assert len(out) == 2
-    assert out[0].get_data() == 'HelloWorld\n'
+    assert out[0].get_data() == 'HelloWorld' + os.linesep
 
 
 def test_option_output_command(capsys):
@@ -42,7 +43,9 @@ def test_option_output_command(capsys):
     assert st.flow()
 
     captured = capsys.readouterr()
-    assert captured[0] == n.get_property('cmd') + '\n'
+    # do not use os.linespe, since the command is output using "print", which ia by default
+    # ending the line with a single \n also on windows systems
+    assert captured[0].replace('\n', '') == n.get_property('cmd')
 
 
 def test_option_output(capsys):
@@ -55,4 +58,4 @@ def test_option_output(capsys):
     assert st.flow()
 
     captured = capsys.readouterr()
-    assert captured[0] == 'HelloWorld\n\n'
+    assert captured[0] == 'HelloWorld\n'
