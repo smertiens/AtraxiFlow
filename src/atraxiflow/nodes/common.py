@@ -9,6 +9,7 @@ import shlex
 import subprocess
 import os
 import time
+import platform
 
 from atraxiflow.nodes.foundation import *
 from atraxiflow.nodes.text import TextResource
@@ -70,7 +71,12 @@ class ShellExecNode(ProcessorNode):
         if self.get_property('echo_command') is True:
             print(cmd)
 
-        result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+        if platform.system() == 'Windows':
+            # this will invoke a system shell on windows and should not interfere with executing
+            # other binaries.
+            result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+        else:
+            result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
         if self.get_property('echo_output') is True:
             while result.poll() is None:
