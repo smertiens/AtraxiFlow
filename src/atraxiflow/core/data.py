@@ -47,7 +47,7 @@ class DatetimeProcessor:
             if res:
                 self._range = self.RANGE_DATE
 
-                if res.groups()[0] == None:
+                if res.groups()[0] is None:
                     fmt = '%d.%m.%y'
                 else:
                     fmt = '%d.%m.%Y'
@@ -64,7 +64,7 @@ class DatetimeProcessor:
             res = re.match(r'^\d{2}/\d{2}/\d{2}(\d{2})*( \d{2}:\d{2}(:\d{2})*)*$', date_str)
             if res:
                 self._range = self.RANGE_DATE
-                if res.groups()[0] == None:
+                if res.groups()[0] is None:
                     fmt = '%m/%d/%y'
                 else:
                     fmt = '%m/%d/%Y'

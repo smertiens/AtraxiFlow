@@ -4,10 +4,11 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
+__all__ = ['LogboxFormatter', 'Qt5TextEditHandler', 'ProcessingWindow']
+
 import logging
 
 from PySide2 import QtWidgets, QtCore
-
 
 class LogboxFormatter(logging.Formatter):
 

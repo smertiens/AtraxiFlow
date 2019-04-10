@@ -39,16 +39,10 @@ class GUIFormInputNode(InputNode):
                         'name': 'field_type',
                         'label': 'Field type',
                         'type': 'combobox',
-                        'value': ['textfield', 'password', 'textarea', 'checkbox', 'combobox']
+                        # TODO: Add combobox with a corresponding dialog in creator
+                        'value': ['textfield', 'password', 'textarea', 'checkbox']
                     }
                 ],
-            },
-            'window': {
-                'label': 'Window properties',
-                'type': 'window_properties',
-                'required': False,
-                'hint': 'A list of properties for the GUI window',
-                'default': Window()
             },
             'text': {
                 'label': 'Text',
@@ -78,6 +72,13 @@ class GUIFormInputNode(InputNode):
                 'required': False,
                 'hint': 'The action to take when the user cancels the dialog.',
                 'default': 'exit'
+            },
+            'window': {
+                'label': 'Window properties',
+                'type': 'window_properties',
+                'required': False,
+                'hint': 'A list of properties for the GUI window',
+                'default': Window()
             }
         }
 
@@ -96,10 +97,21 @@ class GUIFormInputNode(InputNode):
         self._btn_cancel = QtWidgets.QPushButton()
 
     def format_list_item(self, format, data):
-        if format == 'list':
+        if format == 'list_item':
             return '{0} ({1})'.format(data['field_name'], data['field_type'])
         elif format == 'store':
             return data
+        elif format == 'node_value':
+            if isinstance(data, list):
+                out = {}
+                for row in data:
+                    out[row['field_name']] = {
+                        'type': row['field_type'],
+                        'label': row['label'],
+                        'value': ''
+                    }
+
+                return out
 
     def get_output(self):
         '''

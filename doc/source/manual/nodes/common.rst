@@ -150,8 +150,11 @@ This node has no output.
     from atraxiflow.nodes.EchoOutputNode import EchoOutputNode
 
     # we will create this without a name, since we usually don't need to reference it again
-    text_res = EchoOutputNode(props = {'msg': 'hello world'})
+    node = EchoOutputNode(props = {'msg': 'hello world'})
 
+    # you can also use thec echo() convenience function
+    st = Stream()
+    st >> echo('Hello World')
 
 NullNode
 ********

@@ -7,8 +7,9 @@
 
 import shlex
 import subprocess
-import sys
+import os
 import time
+import platform
 
 from atraxiflow.nodes.foundation import *
 from atraxiflow.nodes.text import TextResource
@@ -22,7 +23,8 @@ class ShellExecNode(ProcessorNode):
                 'label': 'Command',
                 'type': "string",
                 'required': True,
-                'hint': 'Command to execute'
+                'hint': 'Command to execute',
+                'creator:multiline': True
             },
             'output': {
                 'label': 'Stdout',
@@ -70,16 +72,24 @@ class ShellExecNode(ProcessorNode):
         if self.get_property('echo_command') is True:
             print(cmd)
 
-        result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        if platform.system() == 'Windows':
+            # this will invoke a system shell on windows and should not interfere with executing
+            # other binaries.
+            result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE, shell=True)
+        else:
+            result = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
         if self.get_property('echo_output') is True:
             while result.poll() is None:
-                line = result.stdout.readline().decode('utf-8')
-                print(line.replace('\n', ''))
-                stdout += line
-                line = result.stderr.readline().decode('utf-8')
-                print(line.replace('\n', ''))
-                stderr += line
+                line = result.stdout.readline().decode('utf-8').replace(os.linesep, '')
+                if line != '':
+                    print(line)
+                    stdout += line
+
+                line = result.stderr.readline().decode('utf-8').replace(os.linesep, '')
+                if line != '':
+                    print(line)
+                    stderr += line
         else:
             stdout_raw, stderr_raw = result.communicate()
             stdout = stdout_raw.decode("utf-8")
@@ -162,6 +172,9 @@ class EchoOutputNode(OutputNode):
 
             resources = stream.get_resources(self.get_property('res'))
 
+            if not isinstance(resources, list):
+                resources = [resources]
+
             for res in resources:
                 data = res.get_data()
 
@@ -172,6 +185,17 @@ class EchoOutputNode(OutputNode):
                     print(data)
 
         return True
+
+
+def echo(msg):
+    """
+    Convenience function to create an EchoOutputNode
+
+    :param msg: The message to output
+    :rtype: EchoOutputNode
+    """
+
+    return EchoOutputNode({'msg': msg})
 
 
 class DelayNode(ProcessorNode):
