@@ -13,6 +13,7 @@ import platform
 
 from atraxiflow.nodes.foundation import *
 from atraxiflow.nodes.text import TextResource
+from atraxiflow.nodes.filesystem import FilesystemResource
 
 
 class ShellExecNode(ProcessorNode):
@@ -145,16 +146,19 @@ class EchoOutputNode(OutputNode):
                 'required': False,
                 'hint': 'Text to output',
                 "default": None
-            },
-            'res': {
-                'label': 'Resource',
-                'type': "resource_query",
-                'required': False,
-                'hint': 'Resource query to be output',
-                "default": ''
             }
         }
+
+        self._known_inputs = {
+            'resource': {
+                'required': False,
+                'hint': 'Resource to print',
+                'accepts': [TextResource, FilesystemResource]
+            }
+        }
+
         self._listeners = {}
+        self._inputs = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
 
         self._out = []
@@ -164,25 +168,20 @@ class EchoOutputNode(OutputNode):
 
     def run(self, stream):
         self.check_properties()
+        self.check_inputs()
 
         if self.get_property('msg') is not None:
             print(self.parse_string(stream, self.get_property('msg')))
 
-        if self.get_property('res') != '':
+        if self.has_input('resource'):
+            res = self.get_input('resource', True)[0]
+            data = res.get_data()
 
-            resources = stream.get_resources(self.get_property('res'))
-
-            if not isinstance(resources, list):
-                resources = [resources]
-
-            for res in resources:
-                data = res.get_data()
-
-                if type(data) in [dict, list, map, tuple]:
-                    for subdata in data:
-                        print(subdata)
-                else:
-                    print(data)
+            if type(data) in [dict, list, map, tuple]:
+                for subdata in data:
+                    print(subdata)
+            else:
+                print(data)
 
         return True
 

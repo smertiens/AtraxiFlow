@@ -41,6 +41,18 @@ def test_msg_out(capsys):
     assert captured[0] == 'Hello World\n'
 
 
+def test_input_res(capsys):
+    st = Stream()
+    n = EchoOutputNode()
+    in_node = TextResource({'text': 'Hello World'})
+    n.connect('resource', in_node)
+    st >> n
+
+    assert st.flow()
+
+    captured = capsys.readouterr()
+    assert captured[0] == 'Hello World\n'
+
 # Todo: Fails under 3.5dev and 3.5 xenial, since the textresource is output first...
 # def test_res_out(capsys):
 def offline(capsys):
