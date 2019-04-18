@@ -8,7 +8,7 @@
 
 import os, platform, logging, sys
 
-AXF_VERSION = '1.0.1'
+AXF_VERSION = '1.0.3'
 
 ### Initialize environment ###
 

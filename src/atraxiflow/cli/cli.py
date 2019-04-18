@@ -42,48 +42,10 @@ def create_from_template(tpl, name, tp):
         '{# Type #}': parentNode
     }
 
-    for search, replace in replace_map.items():
-        content = content.replace(search, replace)
+    content = content.maketrans(replace_map)
 
     fp = open(os.path.join(base_path, 'nodes', name + '.py'), 'w')
     fp.write(content)
     fp.close()
 
     print("Created file {0} in nodes".format(name + '.py'))
-
-
-def dump_nodes(outputfile, format):
-    nm = NodeManager()
-    nodes = nm.find_available_nodes()
-    data = {"nodes": []}
-
-    for node in nodes:
-        n = node()
-        props = []
-        nodeType = ""
-
-        for name, opts in n.get_known_properties().items():
-            opts['name'] = name
-            props.append(opts)
-
-        if issubclass(node, InputNode):
-            nodeType = 'input'
-        elif issubclass(node, OutputNode):
-            nodeType = 'output'
-        elif issubclass(node, ProcessorNode):
-            nodeType = 'processor'
-        elif issubclass(node, Resource):
-            nodeType = 'resource'
-
-        data['nodes'].append({
-            'nodeClass': n.__class__.__name__,
-            'nodeType': nodeType,
-            'props': props
-        })
-
-    fp = open(outputfile, "w+")
-
-    if format == "json":
-        json.dump(data, fp)
-
-    fp.close()
