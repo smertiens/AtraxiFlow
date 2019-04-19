@@ -166,8 +166,6 @@ class FileFilterNode(ProcessorNode):
                 left_val = left_val.replace(microsecond=0)
                 right_val = right_val.replace(microsecond=0)
 
-            print(left_val, right_val)
-
         elif filter[0] == "type":
             left_val = 'folder' if fso.isFolder() else 'file'
             right_val = filter[2]
