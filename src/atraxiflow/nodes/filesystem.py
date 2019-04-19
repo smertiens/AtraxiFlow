@@ -350,6 +350,13 @@ class FSCopyNode(ProcessorNode):
                 'hint': 'Creates the destination path if it is missing',
                 'default': True
             },
+            'dry': {
+                'label': 'Dry run',
+                'type': "bool",
+                'required': False,
+                'hint': 'If true no files/folders will be renamed, only a message in the log will be created',
+                'default': False
+            },
             'sources': {
                 'label': 'Sources',
                 'type': "resource_query",
@@ -419,8 +426,11 @@ class FSCopyNode(ProcessorNode):
             dest = self.parse_string(stream, self.get_property('dest'))
 
             for src in res.get_data():
-                if self._do_copy(src.getAbsolutePath(), dest) is not True:
-                    return False
+                if self.get_property('dry') is True:
+                    self._stream.get_logger().info("DRY RUN: Copy {0} -> {1}".format(src.getAbsolutePath(), dest))
+                else:
+                    if self._do_copy(src.getAbsolutePath(), dest) is not True:
+                        return False
 
         return True
 
@@ -465,6 +475,13 @@ class FSRenameNode(ProcessorNode):
                 'required': False,
                 'hint': 'Resource query for FilesystemResources',
                 'default': 'FS:*'
+            },
+            'dry': {
+                'label': 'Dry run',
+                'type': "bool",
+                'required': False,
+                'hint': 'If true no files/folders will be renamed, only a message in the log will be created',
+                'default': False
             }
         }
 
@@ -526,8 +543,11 @@ class FSRenameNode(ProcessorNode):
                         else:
                             new_name = new_name.replace(key, svp.parse(val))
 
-                os.rename(fso.getAbsolutePath(), new_name)
-                self._out.append(FilesystemResource({'src': new_name}))
-                self._stream.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
+                if self.get_property('dry') is True:
+                    self._stream.get_logger().info("DRY RUN: Rename {0} -> {1}".format(fso.getAbsolutePath(), new_name))
+                else:
+                    os.rename(fso.getAbsolutePath(), new_name)
+                    self._out.append(FilesystemResource({'src': new_name}))
+                    self._stream.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
 
         return True

@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-import os, re
+import os, re, logging
 
 from atraxiflow.core.filesystem import FSObject
 from atraxiflow.core.stream import *
@@ -27,6 +27,23 @@ def test_rename_by_name_prop_single(tmpdir):
     out = node.get_output()[0].get_data()[0]
     assert isinstance(out, FSObject)
     assert str(tmpdir.join('testfile_something.txt')) == out.getAbsolutePath()
+
+
+def test_dry_run(tmpdir):
+    for s in ['testfile.txt', 'foo.bar', 'hello']:
+        p = tmpdir.join(s)
+        p.write('helloworld')
+
+    res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
+    node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
+    node.set_property('dry', True)
+
+    st =  Stream.create().add_resource(res).append_node(node)
+    # make dry run output visible
+    st.get_logger().setLevel(logging.INFO)
+
+    assert st.flow()
+    assert not os.path.exists(str(tmpdir.join('testfile_something.txt')))
 
 
 def test_rename_by_name_prop_multi(tmpdir):
