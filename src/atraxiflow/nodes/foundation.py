@@ -45,11 +45,17 @@ class Node(PropertyObject):
             raise InputException('Node does not have input "{0}"'.format(input_name))
 
         if input_name in self._inputs:
+            limit =  self._known_inputs[input_name]['limit'] if 'limit' in self._known_inputs[input_name] else 1
+
+            # if limit is reached, remove item
+            if len(self._inputs[input_name]) == limit and limit > 0:
+                self._inputs[input_name].pop()
+
             self._inputs[input_name].append(entity)
         else:
             self._inputs[input_name] = [entity]
 
-    def disconnect(self, input_name, entity):
+    def disconnect(self, input_name, entity = None):
 
         if not hasattr(self, '_inputs'):
             # Node has no inputs
@@ -58,10 +64,13 @@ class Node(PropertyObject):
         if input_name not in self._inputs:
             raise InputException('Node does not have input "{0}"'.format(input_name))
 
-        if entity not in self._inputs[input_name]:
-            raise InputException('Disconnect failed: No connection found.')
+        if entity is None:
+            self._inputs[input_name] = []
         else:
-            self._inputs[input_name].remove(entity)
+            if entity not in self._inputs[input_name]:
+                raise InputException('Disconnect failed: No connection found.')
+            else:
+                self._inputs[input_name].remove(entity)
 
     def get_input(self, input_name, resolve = True):
         if resolve is True:
@@ -79,7 +88,7 @@ class Node(PropertyObject):
             return self._inputs[input_name]
 
     def has_input(self, input_name):
-        return input_name in self._inputs
+        return input_name in self._inputs and len(self._inputs[input_name]) > 0
 
     def check_inputs(self):
         '''
