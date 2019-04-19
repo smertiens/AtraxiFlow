@@ -108,10 +108,10 @@ class Node(PropertyObject):
                     self.fire_event(self.EVENT_INPUTS_CHECKED, False)
                     raise InputException('Nodes must define the "accepts" property for every input.')
 
-                if Node not in opts['accepts']:
-                    opts['accepts'].append(Node)
-
                 for item in self._inputs[name]:
+                    if isinstance(item, Node):
+                        item = item.get_output()
+
                     if type(item) not in opts['accepts']:
                         raise InputException('Object "{0}" not accepted by this input.'.format(item))
 

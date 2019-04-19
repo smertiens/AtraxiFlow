@@ -33,11 +33,12 @@ def file_fixture(tmpdir_factory):
 
 
 def test_filter_size_single(file_fixture):
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn = FileFilterNode({"filter": [
         ['file_size', '>', '120K']
     ]})
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -50,13 +51,14 @@ def test_filter_size_single(file_fixture):
 
 
 def test_filter_size_multiple(file_fixture):
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn = FileFilterNode('fil')
     fn.set_property("filter", [
         ['file_size', '>', '120K'],
         ['file_size', '<', '4M']
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -68,12 +70,13 @@ def test_filter_size_multiple(file_fixture):
 
 
 def test_filter_filename_single_contains(file_fixture):
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn = FileFilterNode()
     fn.set_property("filter", [
         ['filename', 'contains', '1']
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -85,12 +88,13 @@ def test_filter_filename_single_contains(file_fixture):
 
 
 def test_filter_filename_single_matches(file_fixture):
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn = FileFilterNode()
     fn.set_property("filter", [
         ['filename', 'matches', re.compile(r'file_\w+_\d+_end')]
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -102,12 +106,13 @@ def test_filter_filename_single_matches(file_fixture):
 
 
 def test_filter_filename_single_contains_fail(file_fixture):
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn = FileFilterNode()
     fn.set_property("filter", [
         ['filename', 'contains', 'hellowordl']
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -119,12 +124,13 @@ def test_filter_filename_single_contains_fail(file_fixture):
 
 
 def test_filter_filename_single_starts(file_fixture):
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn = FileFilterNode()
     fn.set_property("filter", [
         ['filename', 'startswith', 'file_these']
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -137,11 +143,12 @@ def test_filter_filename_single_starts(file_fixture):
 
 def test_filter_filename_single_ends(file_fixture):
     fn = FileFilterNode()
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn.set_property("filter", [
         ['filename', 'endswith', '_end']
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -154,12 +161,13 @@ def test_filter_filename_single_ends(file_fixture):
 
 def test_filter_filename_multiple(file_fixture):
     fn = FileFilterNode()
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn.set_property("filter", [
         ['filename', 'endswith', '_end'],
         ['filename', 'contains', '21']
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 4
 
     st = Stream()
@@ -172,13 +180,13 @@ def test_filter_filename_multiple(file_fixture):
 
 def test_filter_filetype(file_fixture):
     file_fixture.mkdir('demo')
-
+    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     fn = FileFilterNode()
     fn.set_property("filter", [
         ['type', '=', 'file']
     ])
+    fn.connect('sources', fs)
 
-    fs = FilesystemResource({'src': str(file_fixture.join('*'))})
     assert len(fs.get_data()) == 5
 
     st = Stream()

@@ -33,13 +33,15 @@ def make_fixtures(tmpdir_factory):
 
 
 def test_copy_file_correct(make_fixtures):
-    st = get_test_stream()
-    cp = FSCopyNode("cp", {'dest': str(make_fixtures.join('folder'))})
-
     assert not os.path.exists(str(make_fixtures.join('folder', 'testfile.txt')))
+
+    st = get_test_stream()
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures.join('testfile.txt')))
+    cp = FSCopyNode("cp", {'dest': str(make_fixtures.join('folder'))})
+    cp.connect('sources', src)
+
     st.add_resource(src)
     st.append_node(cp)
     assert st.flow()
@@ -60,13 +62,14 @@ def test_dry_run(make_fixtures):
     # make dry run output visible
     st.get_logger().setLevel(logging.INFO)
 
-    cp = FSCopyNode("cp", {'dest': str(make_fixtures.join('folder'))})
-    cp.set_property('dry', True)
-
     assert not os.path.exists(str(make_fixtures.join('folder', 'testfile.txt')))
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures.join('testfile.txt')))
+    cp = FSCopyNode("cp", {'dest': str(make_fixtures.join('folder'))})
+    cp.set_property('dry', True)
+    cp.connect('sources', src)
+
     st.add_resource(src)
     st.append_node(cp)
     assert st.flow()
@@ -76,15 +79,17 @@ def test_dry_run(make_fixtures):
 
 def test_copy_file_dir_not_exists_create(make_fixtures):
     st = get_test_stream()
-    cp = FSCopyNode("cp", {
-        'dest': str(make_fixtures.join('folder', 'folder2')),
-        'create_if_missing': True
-    })
 
     assert not os.path.exists(str(make_fixtures.join('folder', 'folder2')))
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures.join('testfile.txt')))
+    cp = FSCopyNode("cp", {
+        'dest': str(make_fixtures.join('folder', 'folder2')),
+        'create_if_missing': True
+    })
+    cp.connect('sources', src)
+
     st.add_resource(src)
     st.append_node(cp)
     assert st.flow()
@@ -95,15 +100,17 @@ def test_copy_file_dir_not_exists_create(make_fixtures):
 
 def test_copy_file_dir_not_exists_dont_create(make_fixtures):
     st = get_test_stream()
-    cp = FSCopyNode("cp", {
-        'dest': str(make_fixtures.join('folder', 'folder2')),
-        'create_if_missing': False
-    })
 
     assert not os.path.exists(str(make_fixtures.join('folder', 'folder2')))
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures.join('testfile.txt')))
+    cp = FSCopyNode("cp", {
+        'dest': str(make_fixtures.join('folder', 'folder2')),
+        'create_if_missing': False
+    })
+    cp.connect('sources', src)
+
     st.add_resource(src)
     st.append_node(cp)
 
@@ -117,9 +124,6 @@ def test_copy_dir_correct(make_fixtures):
     dest = str(make_fixtures.join('_temp2'))
 
     st = get_test_stream()
-    cp = FSCopyNode("cp", {
-        'dest': dest
-    })
 
     assert not os.path.exists(str(make_fixtures.join("folder", "folder2")))
     assert not os.path.exists(str(os.path.join(dest, "folder")))
@@ -127,6 +131,10 @@ def test_copy_dir_correct(make_fixtures):
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures))
+    cp = FSCopyNode("cp", {
+        'dest': dest
+    })
+    cp.connect('sources', src)
     st.add_resource(src)
     st.append_node(cp)
     assert st.flow()
@@ -146,14 +154,15 @@ def test_copy_dir_dest_exists(make_fixtures):
     dest = make_fixtures.mkdir("_temp2")
 
     st = get_test_stream()
-    cp = FSCopyNode("cp", {
-        'dest': str(dest)
-    })
 
     assert os.path.exists(str(dest))
 
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures))
+    cp = FSCopyNode("cp", {
+        'dest': str(dest)
+    })
+    cp.connect('sources', src)
     st.add_resource(src)
     st.append_node(cp)
     assert not st.flow()

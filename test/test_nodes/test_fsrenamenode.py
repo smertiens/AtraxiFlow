@@ -19,6 +19,7 @@ def test_rename_by_name_prop_single(tmpdir):
 
     res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
     node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
+    node.connect('sources', res)
 
     assert Stream.create().add_resource(res).append_node(node).flow()
     assert os.path.exists(str(tmpdir.join('testfile_something.txt')))
@@ -37,6 +38,7 @@ def test_dry_run(tmpdir):
     res = FilesystemResource({'src': str(tmpdir.join('testfile.txt'))})
     node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
     node.set_property('dry', True)
+    node.connect('sources', res)
 
     st =  Stream.create().add_resource(res).append_node(node)
     # make dry run output visible
@@ -54,6 +56,7 @@ def test_rename_by_name_prop_multi(tmpdir):
     res = FilesystemResource({'src': str(tmpdir.join('*'))})
 
     node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
+    node.connect('sources', res)
 
     assert Stream.create().add_resource(res).append_node(node).flow()
     assert os.path.exists(str(tmpdir.join('testfile_something.txt')))
@@ -77,6 +80,7 @@ def test_rename_by_repl_prop(tmpdir):
         'testfile': 'foobar',
         re.compile(r'[\.txt]+$'): '.ext'
     }})
+    node.connect('sources', res)
 
     assert Stream.create().add_resource(res).append_node(node).flow()
     assert os.path.exists(str(tmpdir.join('foobar.ext')))
@@ -96,6 +100,7 @@ def test_rename_by_repl_and_name_prop(tmpdir):
     },
         'name': '{file.path}/helloworld.txt'
     })
+    node.connect('sources', res)
 
     assert Stream.create().add_resource(res).append_node(node).flow()
     assert os.path.exists(str(tmpdir.join('foobar.ext')))

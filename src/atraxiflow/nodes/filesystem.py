@@ -63,18 +63,19 @@ class FileFilterNode(ProcessorNode):
                 'creator:list_item_formatter': self.format_list_item,
                 'required': True,
                 'hint': 'Filters all or given filesystem resources'
-            },
-            'sources': {
-                'label': "Sources",
-                'type': "resource_query",
-                'required': False,
-                'hint': 'A resource query',
-                'default': 'FS:*'
-            },
+            }
+        }
 
+        self._known_inputs = {
+            'sources': {
+                'label': 'Sources',
+                'required': True,
+                'accepts': [FilesystemResource]
+            }
         }
 
         self._listeners = {}
+        self._inputs = {}
         self._stream = None
 
         self.name, self.properties = self.get_properties_from_args(name, props)
@@ -237,7 +238,7 @@ class FileFilterNode(ProcessorNode):
 
         # filter FSObjects from every resource and filter them down
 
-        for resource in stream.get_resources(self.get_property('sources')):
+        for resource in self.get_input('sources'):
             objects_to_remove = set()  # set values are unique
 
             # collect objects that do not match the criteria
@@ -354,17 +355,19 @@ class FSCopyNode(ProcessorNode):
                 'required': False,
                 'hint': 'If true no files/folders will be renamed, only a message in the log will be created',
                 'default': False
-            },
+            }
+        }
+
+        self._known_inputs = {
             'sources': {
                 'label': 'Sources',
-                'type': "resource_query",
-                'required': False,
-                'hint': 'Resource query for FilesystemResources',
-                'default': 'FS:*'
+                'required': True,
+                'accepts': [FilesystemResource]
             }
         }
 
         self._listeners = {}
+        self._inputs = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
         self._out = []
 
@@ -411,11 +414,10 @@ class FSCopyNode(ProcessorNode):
         self._stream = stream
         self._out = []
 
-        if not self.check_properties():
-            self._stream.get_logger().error("Cannot proceed because of previous errors")
-            return False
+        self.check_properties()
+        self.check_inputs()
 
-        resources = stream.get_resources(self.get_property('sources'))
+        resources = self.get_input('sources')
 
         if len(resources) == 0:
             stream.get_logger().warning('No resources found for copying.')
@@ -467,13 +469,6 @@ class FSRenameNode(ProcessorNode):
                 'hint': 'A list of strings to replace. The key can be a compiled regular expression.',
                 'default': None
             },
-            'sources': {
-                'label': 'Sources',
-                'type': "resource_query",
-                'required': False,
-                'hint': 'Resource query for FilesystemResources',
-                'default': 'FS:*'
-            },
             'dry': {
                 'label': 'Dry run',
                 'type': "bool",
@@ -483,7 +478,16 @@ class FSRenameNode(ProcessorNode):
             }
         }
 
+        self._known_inputs = {
+            'sources': {
+                'label': 'Sources',
+                'required': True,
+                'accepts': [FilesystemResource]
+            }
+        }
+
         self._listeners = {}
+        self._inputs = {}
         self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
         self._out = []
@@ -512,7 +516,7 @@ class FSRenameNode(ProcessorNode):
             self._stream.get_logger().error("Cannot proceed because of previous errors")
             return False
 
-        resources = stream.get_resources(self.get_property('sources'))
+        resources = self.get_input('sources')
 
         for res in resources:
             if not isinstance(res, FilesystemResource):
@@ -535,7 +539,8 @@ class FSRenameNode(ProcessorNode):
                     for key, val in self.get_property('replace').items():
 
                         # since py > 3.7 returns 're.Pattern' as result of re.compile and
-                        # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual object
+                        # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual
+                        # object
                         if isinstance(key, type(re.compile(''))):
                             new_name = key.sub(svp.parse(val), new_name)
                         else:
