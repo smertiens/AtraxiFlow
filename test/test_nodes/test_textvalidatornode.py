@@ -14,11 +14,11 @@ def test_rule_not_empty():
     text2 = TextResource('txt_empty', {'text': ''})
 
     node = TextValidatorNode({
-        'sources': 'Text:txt',
         'rules': {
             'not_empty': {}
         }
     })
+    node.connect('sources', text)
 
     st = Stream()
     st.add_resource(text)
@@ -27,7 +27,7 @@ def test_rule_not_empty():
     assert 2 == len(st.get_resources('Text:*'))
     assert st.flow()
 
-    node.set_property('sources', 'Text:txt_empty')
+    node.connect('sources', text2)
 
     assert not st.flow()
 
@@ -37,11 +37,11 @@ def test_rule_max_len():
     text2 = TextResource('short', {'text': 'Hello'})
 
     node = TextValidatorNode({
-        'sources': 'Text:short',
         'rules': {
             'max_len': {'length': 5}
         }
     })
+    node.connect('sources', text2)
 
     st = Stream()
     st.add_resource(text)
@@ -50,7 +50,8 @@ def test_rule_max_len():
     assert 2 == len(st.get_resources('Text:*'))
     assert st.flow()
 
-    node.set_property('sources', 'Text:long')
+    node.disconnect('sources')
+    node.connect('sources', text)
 
     assert not st.flow()
 
@@ -60,11 +61,11 @@ def test_rule_min_len():
     text2 = TextResource('short', {'text': 'Hello'})
 
     node = TextValidatorNode({
-        'sources': 'Text:long',
         'rules': {
             'min_len': {'length': 10}
         }
     })
+    node.connect('sources', text)
 
     st = Stream()
     st.add_resource(text)
@@ -73,7 +74,8 @@ def test_rule_min_len():
     assert 2 == len(st.get_resources('Text:*'))
     assert st.flow()
 
-    node.set_property('sources', 'Text:short')
+    node.disconnect('sources')
+    node.connect('sources', text2)
 
     assert not (st.flow())
 
@@ -83,7 +85,6 @@ def test_rule_regex_must_not_match():
     text2 = TextResource('neg', {'text': 'HelloWorld'})
 
     node = TextValidatorNode({
-        'sources': 'Text:neg',
         'rules': {
             'regex': {
                 'pattern': r'\w+\s+\w+!',
@@ -91,6 +92,7 @@ def test_rule_regex_must_not_match():
             }
         }
     })
+    node.connect('sources', text2)
 
     st = Stream()
     st.add_resource(text)
@@ -99,7 +101,8 @@ def test_rule_regex_must_not_match():
     assert 2 == len(st.get_resources('Text:*'))
     assert st.flow()
 
-    node.set_property('sources', 'Text:pos')
+    node.disconnect('sources')
+    node.connect('sources', text)
 
     assert not st.flow()
 
@@ -109,7 +112,6 @@ def test_rule_regex_must_match():
     text2 = TextResource('pos', {'text': 'HelloWorld'})
 
     node = TextValidatorNode({
-        'sources': 'Text:neg',
         'rules': {
             'regex': {
                 'pattern': r'\w+\s+\w+!',
@@ -117,6 +119,7 @@ def test_rule_regex_must_match():
             }
         }
     })
+    node.connect('sources', text)
 
     st = Stream()
     st.add_resource(text)
@@ -125,6 +128,7 @@ def test_rule_regex_must_match():
     assert 2 == len(st.get_resources('Text:*'))
     assert st.flow()
 
-    node.set_property('sources', 'Text:pos')
+    node.disconnect('sources')
+    node.connect('sources', text2)
 
     assert not st.flow()

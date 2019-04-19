@@ -68,6 +68,7 @@ class FileFilterNode(ProcessorNode):
 
         self._known_inputs = {
             'sources': {
+                'limit': 0,
                 'label': 'Sources',
                 'required': True,
                 'accepts': [FilesystemResource]
@@ -233,6 +234,7 @@ class FileFilterNode(ProcessorNode):
 
     def run(self, stream):
         self.check_properties()
+        self.check_inputs()
         self._out = []
         self._stream = stream
 
@@ -360,6 +362,7 @@ class FSCopyNode(ProcessorNode):
 
         self._known_inputs = {
             'sources': {
+                'limit': 0,
                 'label': 'Sources',
                 'required': True,
                 'accepts': [FilesystemResource]
@@ -480,6 +483,7 @@ class FSRenameNode(ProcessorNode):
 
         self._known_inputs = {
             'sources': {
+                'limit': 0,
                 'label': 'Sources',
                 'required': True,
                 'accepts': [FilesystemResource]
@@ -512,9 +516,8 @@ class FSRenameNode(ProcessorNode):
         self._stream = stream
         self._out = []
 
-        if not self.check_properties():
-            self._stream.get_logger().error("Cannot proceed because of previous errors")
-            return False
+        self.check_properties()
+        self.check_inputs()
 
         resources = self.get_input('sources')
 

@@ -24,9 +24,9 @@ def test_write_textfile(tmpdir):
 
     node = TextFileOutputNode({
         'filename': file,
-        'sources': 'Text:demo',
         'newline_per_res': False
     })
+    node.connect('sources', res)
     st >> res >> node
 
     assert st.get_resource_by_name('demo').get_data() == get_file_contents()
@@ -46,9 +46,10 @@ def test_write_multiple_res(tmpdir):
 
     node = TextFileOutputNode({
         'filename': file,
-        'sources': 'Text:*',
         'newline_per_res': True
     })
+    node.connect('sources', res1)
+    node.connect('sources', res2)
     st >> res1 >> res2 >> node
 
     assert st.flow()
@@ -66,9 +67,10 @@ def test_write_multiple_res_no_newline(tmpdir):
 
     node = TextFileOutputNode({
         'filename': file,
-        'sources': 'Text:*',
         'newline_per_res': False
     })
+    node.connect('sources', res1)
+    node.connect('sources', res2)
     st >> res1 >> res2 >> node
 
     assert st.flow()

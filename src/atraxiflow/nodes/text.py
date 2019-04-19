@@ -90,13 +90,6 @@ class TextFileOutputNode(OutputNode):
 
     def __init__(self, name="", props=None):
         self._known_properties = {
-            'sources': {
-                'label': 'Sources',
-                'type': "resource_query",
-                'required': False,
-                'hint': 'The resource query to obtain TextResources that should be written to file',
-                'default': 'Text:*'
-            },
             'filename': {
                 'label': 'Filename',
                 'type': 'file',
@@ -111,17 +104,29 @@ class TextFileOutputNode(OutputNode):
                 'default': True
             }
         }
+
+        self._known_inputs = {
+            'sources': {
+                'label': 'Sources',
+                'required': True,
+                'limit': 0,
+                'accepts': [TextResource]
+            }
+        }
+
         self._listeners = {}
+        self._inputs = {}
 
         self.name, self.properties = self.get_properties_from_args(name, props)
         self._out = None
 
     def run(self, stream):
         self.check_properties()
+        self.check_inputs()
 
         try:
             with open(self.get_property('filename'), 'w') as f:
-                resources = stream.get_resources(self.get_property('sources'))
+                resources = self.get_input('sources')
 
                 for res in resources:
                     f.write(res.get_data())
@@ -145,13 +150,6 @@ class TextValidatorNode(ProcessorNode):
 
     def __init__(self, name="", props=None):
         self._known_properties = {
-            'sources': {
-                'label': 'Sources',
-                'type': "resource_query",
-                'required': False,
-                'hint': 'The resource query to obtain TextResources to check',
-                'default': 'Text:*'
-            },
             'rules': {
                 'label': 'Rules',
                 'type': "list",
@@ -175,7 +173,18 @@ class TextValidatorNode(ProcessorNode):
                 'default': {}
             }
         }
+
+        self._known_inputs = {
+            'sources': {
+                'label': 'Sources',
+                'required': True,
+                'limit': 0,
+                'accepts': [TextResource]
+            }
+        }
+
         self._listeners = {}
+        self._inputs = {}
         self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
         self._out = []
@@ -281,8 +290,9 @@ class TextValidatorNode(ProcessorNode):
     def run(self, stream):
         self._stream = stream
         self.check_properties()
+        self.check_inputs()
 
-        resources = stream.get_resources(self.get_property('sources'))
+        resources = self.get_input('sources')
 
         for res in resources:
             if not self._validate(res.get_data(), self.get_property('rules')):
