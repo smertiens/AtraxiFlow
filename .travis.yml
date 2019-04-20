@@ -1,16 +1,15 @@
-language: python
-
 matrix:
   include:
     - name: "Python > 3.4 on Xenial Linux"
-    - python:
-        - "3.4"
-        #- "3.5"
-        - "3.5-dev"
-        - "3.6"
-        - "3.6-dev"
-        - "3.7-dev"
-        - "3.7"
+      - language: python
+      - python:
+          - "3.4"
+          #- "3.5"
+          - "3.5-dev"
+          - "3.6"
+          - "3.6-dev"
+          - "3.7-dev"
+          - "3.7"
       dist: xenial
     - name: "Python 3.7.2 on macOS"
       os: osx
