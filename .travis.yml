@@ -26,8 +26,8 @@ matrix:
 install:
     - pip3 install Pillow
     - pip3 install coverage
-    - pip install pytest
-    - pip install pytest-cov
+    - pip3 install pytest
+    - pip3 install pytest-cov
 
 script:
   - pytest --cov=atraxiflow
