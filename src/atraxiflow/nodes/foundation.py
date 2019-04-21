@@ -54,11 +54,15 @@ class Node(PropertyObject):
         else:
             self._inputs[input_name] = [entity]
 
-    def disconnect(self, input_name, entity=None):
+    def disconnect(self, input_name=None, entity=None):
 
         if not hasattr(self, '_inputs'):
             # Node has no inputs
             raise InputException('Node does not support inputs')
+
+        if input_name is None:
+            self._inputs = {}
+            return
 
         if input_name not in self._inputs:
             raise InputException('Node does not have input "{0}"'.format(input_name))

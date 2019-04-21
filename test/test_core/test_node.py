@@ -176,7 +176,7 @@ def test_disconnect_input():
     assert len(node.get_input('input2')) == 0
 
 
-def test_disconnect_all():
+def test_disconnect_all_on_input():
     stream = Stream()
     node = InputTestingNode()
     res1 = TextResource({'msg': 'Hi'})
@@ -189,3 +189,19 @@ def test_disconnect_all():
     node.disconnect('input2')
     assert not node.has_input('input2')
     assert len(node.get_input('input2')) == 0
+
+
+def test_disconnect_all():
+    stream = Stream()
+    node = InputTestingNode()
+    res1 = TextResource({'msg': 'Hi'})
+    res2 = TextResource({'msg': 'Hi'})
+    node.connect(res1, 'input1')
+    node.connect(res2, 'input2')
+
+    assert node.has_input('input1')
+    assert node.has_input('input2')
+
+    node.disconnect()
+
+    assert node._inputs == {}
