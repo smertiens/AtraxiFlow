@@ -1,5 +1,5 @@
 # AtraxiFlow
-The flexible python workflow tool
+The python workflow framework
 
 [![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
 [![Documentation Status](https://readthedocs.org/projects/atraxiflow/badge/?version=latest)](https://atraxiflow.readthedocs.io/en/latest/?badge=latest)
@@ -11,47 +11,30 @@ The flexible python workflow tool
 * Use a console for in- and output or add one of the UI nodes to show graphical messages and input forms 
 built with Qt5
 
-**Learn**
+## Learn
 
 * See what you can do and check out the [examples](https://github.com/smertiens/AtraxiExamples)
 * Get started with the [user manual](https://atraxiflow.readthedocs.io/en/latest/manual)
 * Learn how to write your own nodes in minutes with the [developer manual](https://atraxiflow.readthedocs.io/en/latest/dev)
 
-**Install**
+## Install
 ```
 pip install atraxi-flow
 ```
 
-**Requirements**
+## Requirements
 
 * Python 3.4 or higher
 * If you want to use the UI nodes and functions, you will need to install [Pyside2](https://pypi.org/project/PySide2/) (optional)
 
-**Latest Changes**
 
-_1.0.3:_ New nodes: TextFileInputNode, TextFileOutputNode. Fixes for ShellExecNode on Windows. New convenience node-function: "echo()".
+## Project goal
+The goal is to create a framework that abstracts data (as resources) and business logic (as nodes) so they can be put 
+together easily. This level of abstraction also allows for a visual approach on designing workflows, since nodes explain 
+their structure and function to the user (using the  hint property) and to an editor application 
+(using property definitions).
 
-_1.0.2:_ Fixes in DateTimeProcessor and improved file date/time comparison in FileFilterNode
+The source code of a resulting script should be as short as possible, easily readable and self explanatory.
+Non-core nodes should be self contained (as a python module or package). 
 
-_1.0.1:_ ShellExecNode: new options "echo_command" and "echo_output"
-
-_1.0.0:_ First production release  
-
-
-**Example script**
-
-```python
-from atraxiflow.nodes.common import CLIInputNode, EchoOutputNode
-from atraxiflow.nodes.text import TextValidatorNode
-from atraxiflow.core.stream import *
-
-get_name = CLIInputNode('node', {'prompt': "What's your name? ", 'save_to': 'username' })
-get_greeting = CLIInputNode('node', {'prompt': "And your favourite greeting? ", 'save_to': 'usergreeting' })
-
-# let's make sure we have a name and a greeting
-check_input = TextValidatorNode({'sources': 'Text:user*', 'rules': {'not_empty': {}}})
-out = EchoOutputNode({'msg': '{Text:usergreeting} {Text:username}, nice to meet you!'})
-
-# let's go!
-Stream.create() >> get_name >> get_greeting >> check_input >> out >> flow()
-```
+**Using AtraxiFlow and AtraxiCreator should be fun** and focus on creativity and intuitiveness instead of technical aspects.
