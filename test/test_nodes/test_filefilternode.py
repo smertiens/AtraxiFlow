@@ -37,7 +37,7 @@ def test_filter_size_single(file_fixture):
     fn = FileFilterNode({"filter": [
         ['file_size', '>', '120K']
     ]})
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -57,7 +57,7 @@ def test_filter_size_multiple(file_fixture):
         ['file_size', '>', '120K'],
         ['file_size', '<', '4M']
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -75,7 +75,7 @@ def test_filter_filename_single_contains(file_fixture):
     fn.set_property("filter", [
         ['filename', 'contains', '1']
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -93,7 +93,7 @@ def test_filter_filename_single_matches(file_fixture):
     fn.set_property("filter", [
         ['filename', 'matches', re.compile(r'file_\w+_\d+_end')]
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -111,7 +111,7 @@ def test_filter_filename_single_contains_fail(file_fixture):
     fn.set_property("filter", [
         ['filename', 'contains', 'hellowordl']
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -129,7 +129,7 @@ def test_filter_filename_single_starts(file_fixture):
     fn.set_property("filter", [
         ['filename', 'startswith', 'file_these']
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -147,7 +147,7 @@ def test_filter_filename_single_ends(file_fixture):
     fn.set_property("filter", [
         ['filename', 'endswith', '_end']
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -166,7 +166,7 @@ def test_filter_filename_multiple(file_fixture):
         ['filename', 'endswith', '_end'],
         ['filename', 'contains', '21']
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 4
 
@@ -185,7 +185,7 @@ def test_filter_filetype(file_fixture):
     fn.set_property("filter", [
         ['type', '=', 'file']
     ])
-    fn.connect('sources', fs)
+    fn.connect(fs, 'sources')
 
     assert len(fs.get_data()) == 5
 

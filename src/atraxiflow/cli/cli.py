@@ -5,11 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 
-import json
 import os
 
 from atraxiflow.core.nodemanager import NodeManager
-from atraxiflow.nodes.foundation import InputNode, ProcessorNode, OutputNode, Resource
+from atraxiflow.nodes.foundation import *
 
 
 def create_from_template(tpl, name, tp):
@@ -49,3 +48,7 @@ def create_from_template(tpl, name, tp):
     fp.close()
 
     print("Created file {0} in nodes".format(name + '.py'))
+
+
+def list_entities(filter=None):
+    pass

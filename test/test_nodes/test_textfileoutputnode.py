@@ -26,7 +26,7 @@ def test_write_textfile(tmpdir):
         'filename': file,
         'newline_per_res': False
     })
-    node.connect('sources', res)
+    node.connect(res, 'sources')
     st >> res >> node
 
     assert st.get_resource_by_name('demo').get_data() == get_file_contents()
@@ -48,8 +48,8 @@ def test_write_multiple_res(tmpdir):
         'filename': file,
         'newline_per_res': True
     })
-    node.connect('sources', res1)
-    node.connect('sources', res2)
+    node.connect(res1, 'sources')
+    node.connect(res2, 'sources')
     st >> res1 >> res2 >> node
 
     assert st.flow()
@@ -69,8 +69,8 @@ def test_write_multiple_res_no_newline(tmpdir):
         'filename': file,
         'newline_per_res': False
     })
-    node.connect('sources', res1)
-    node.connect('sources', res2)
+    node.connect(res1, 'sources')
+    node.connect(res2, 'sources')
     st >> res1 >> res2 >> node
 
     assert st.flow()

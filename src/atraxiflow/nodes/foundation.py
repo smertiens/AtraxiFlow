@@ -10,7 +10,6 @@ __all__ = ['Node', 'ProcessorNode', 'OutputNode', 'InputNode', 'Resource']
 from atraxiflow.core.data import StringValueProcessor
 from atraxiflow.core.properties import PropertyObject
 from atraxiflow.core.exceptions import *
-from atraxiflow.core.events import EventObject
 
 
 class Node(PropertyObject):
@@ -36,7 +35,7 @@ class Node(PropertyObject):
     def get_output(self):
         raise Exception("Node class must implement get_output-method")
 
-    def connect(self, input_name, entity):
+    def connect(self, entity, input_name=None):
         if not hasattr(self, '_inputs'):
             # Node has no inputs
             raise InputException('Node does not support inputs')
@@ -45,7 +44,7 @@ class Node(PropertyObject):
             raise InputException('Node does not have input "{0}"'.format(input_name))
 
         if input_name in self._inputs:
-            limit =  self._known_inputs[input_name]['limit'] if 'limit' in self._known_inputs[input_name] else 1
+            limit = self._known_inputs[input_name]['limit'] if 'limit' in self._known_inputs[input_name] else 1
 
             # if limit is reached, remove item
             if len(self._inputs[input_name]) == limit and limit > 0:
@@ -55,7 +54,7 @@ class Node(PropertyObject):
         else:
             self._inputs[input_name] = [entity]
 
-    def disconnect(self, input_name, entity = None):
+    def disconnect(self, input_name, entity=None):
 
         if not hasattr(self, '_inputs'):
             # Node has no inputs
@@ -72,7 +71,7 @@ class Node(PropertyObject):
             else:
                 self._inputs[input_name].remove(entity)
 
-    def get_input(self, input_name, resolve = True):
+    def get_input(self, input_name, resolve=True):
         if resolve is True:
             resources = self._inputs[input_name]
             new_list = []

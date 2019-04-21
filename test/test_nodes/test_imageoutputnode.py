@@ -32,15 +32,15 @@ def test_resize_and_output(tmpdir):
     assert 3 == len(st.get_resources('Img:*'))
 
     node = ImageResizeNode({'target_w': '300'})
-    node.connect('sources', img3)
-    node.connect('sources', img2)
-    node.connect('sources', img1)
+    node.connect(img3, 'sources')
+    node.connect(img2, 'sources')
+    node.connect(img1, 'sources')
     st.append_node(node)
 
     out_node = ImageOutputNode({'output_file': str(tmpdir.join('{img.src.basename}_test.{img.src.extension}'))})
-    out_node.connect('sources', img3)
-    out_node.connect('sources', img2)
-    out_node.connect('sources', img1)
+    out_node.connect(img3, 'sources')
+    out_node.connect(img2, 'sources')
+    out_node.connect(img1, 'sources')
 
     st.append_node(out_node)
 

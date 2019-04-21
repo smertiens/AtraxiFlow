@@ -30,3 +30,9 @@ if __name__ == '__main__':
         cli.create_from_template('node', args.name, args.node_type)
     elif args.command == "create:resource":
         cli.create_from_template('resource', args.name, args.node_type)
+    elif args.command == 'list':
+        cli.list_entities()
+    elif args.command == 'list:nodes':
+        cli.list_entities('nodes')
+    elif args.command == 'list:resources':
+        cli.list_entities('resources')

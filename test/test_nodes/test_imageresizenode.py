@@ -16,7 +16,7 @@ def test_create_and_env_check():
     st = Stream()
     res = ImageResource()
     node = ImageResizeNode()
-    node.connect('sources', res)
+    node.connect(res, 'sources')
     st.append_node(node)
     assert st.flow()
 
@@ -39,9 +39,9 @@ def test_load_resources(tmpdir):
     assert 1 == len(st.get_resources('Img:*'))
 
     node = ImageResizeNode(props={'target_w': '300'})
-    node.connect('sources', fs1)
-    node.connect('sources', fs2)
-    node.connect('sources', img1)
+    node.connect(fs1, 'sources')
+    node.connect(fs2, 'sources')
+    node.connect(img1, 'sources')
     st.append_node(node)
     assert st.flow()
 

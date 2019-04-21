@@ -45,7 +45,7 @@ def test_input_res(capsys):
     st = Stream()
     n = EchoOutputNode()
     in_node = TextResource({'text': 'Hello World'})
-    n.connect('resource', in_node)
+    n.connect(in_node, 'resource')
     st >> n
 
     assert st.flow()

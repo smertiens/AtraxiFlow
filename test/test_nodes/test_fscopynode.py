@@ -40,7 +40,7 @@ def test_copy_file_correct(make_fixtures):
     src = FilesystemResource("srcres")
     src.set_property('src', str(make_fixtures.join('testfile.txt')))
     cp = FSCopyNode("cp", {'dest': str(make_fixtures.join('folder'))})
-    cp.connect('sources', src)
+    cp.connect(src, 'sources')
 
     st.add_resource(src)
     st.append_node(cp)
@@ -68,7 +68,7 @@ def test_dry_run(make_fixtures):
     src.set_property('src', str(make_fixtures.join('testfile.txt')))
     cp = FSCopyNode("cp", {'dest': str(make_fixtures.join('folder'))})
     cp.set_property('dry', True)
-    cp.connect('sources', src)
+    cp.connect(src, 'sources')
 
     st.add_resource(src)
     st.append_node(cp)
@@ -88,7 +88,7 @@ def test_copy_file_dir_not_exists_create(make_fixtures):
         'dest': str(make_fixtures.join('folder', 'folder2')),
         'create_if_missing': True
     })
-    cp.connect('sources', src)
+    cp.connect(src, 'sources')
 
     st.add_resource(src)
     st.append_node(cp)
@@ -109,7 +109,7 @@ def test_copy_file_dir_not_exists_dont_create(make_fixtures):
         'dest': str(make_fixtures.join('folder', 'folder2')),
         'create_if_missing': False
     })
-    cp.connect('sources', src)
+    cp.connect(src, 'sources')
 
     st.add_resource(src)
     st.append_node(cp)
@@ -134,7 +134,7 @@ def test_copy_dir_correct(make_fixtures):
     cp = FSCopyNode("cp", {
         'dest': dest
     })
-    cp.connect('sources', src)
+    cp.connect(src, 'sources')
     st.add_resource(src)
     st.append_node(cp)
     assert st.flow()
@@ -162,7 +162,7 @@ def test_copy_dir_dest_exists(make_fixtures):
     cp = FSCopyNode("cp", {
         'dest': str(dest)
     })
-    cp.connect('sources', src)
+    cp.connect(src, 'sources')
     st.add_resource(src)
     st.append_node(cp)
     assert not st.flow()

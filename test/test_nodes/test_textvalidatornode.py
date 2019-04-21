@@ -18,7 +18,7 @@ def test_rule_not_empty():
             'not_empty': {}
         }
     })
-    node.connect('sources', text)
+    node.connect(text, 'sources')
 
     st = Stream()
     st.add_resource(text)
@@ -27,7 +27,7 @@ def test_rule_not_empty():
     assert 2 == len(st.get_resources('Text:*'))
     assert st.flow()
 
-    node.connect('sources', text2)
+    node.connect(text2, 'sources')
 
     assert not st.flow()
 
@@ -41,7 +41,7 @@ def test_rule_max_len():
             'max_len': {'length': 5}
         }
     })
-    node.connect('sources', text2)
+    node.connect(text2, 'sources')
 
     st = Stream()
     st.add_resource(text)
@@ -51,7 +51,7 @@ def test_rule_max_len():
     assert st.flow()
 
     node.disconnect('sources')
-    node.connect('sources', text)
+    node.connect(text, 'sources')
 
     assert not st.flow()
 
@@ -65,7 +65,7 @@ def test_rule_min_len():
             'min_len': {'length': 10}
         }
     })
-    node.connect('sources', text)
+    node.connect(text, 'sources')
 
     st = Stream()
     st.add_resource(text)
@@ -75,7 +75,7 @@ def test_rule_min_len():
     assert st.flow()
 
     node.disconnect('sources')
-    node.connect('sources', text2)
+    node.connect(text2, 'sources')
 
     assert not (st.flow())
 
@@ -92,7 +92,7 @@ def test_rule_regex_must_not_match():
             }
         }
     })
-    node.connect('sources', text2)
+    node.connect(text2, 'sources')
 
     st = Stream()
     st.add_resource(text)
@@ -102,7 +102,7 @@ def test_rule_regex_must_not_match():
     assert st.flow()
 
     node.disconnect('sources')
-    node.connect('sources', text)
+    node.connect(text, 'sources')
 
     assert not st.flow()
 
@@ -119,7 +119,7 @@ def test_rule_regex_must_match():
             }
         }
     })
-    node.connect('sources', text)
+    node.connect(text, 'sources')
 
     st = Stream()
     st.add_resource(text)
@@ -129,6 +129,6 @@ def test_rule_regex_must_match():
     assert st.flow()
 
     node.disconnect('sources')
-    node.connect('sources', text2)
+    node.connect(text2, 'sources')
 
     assert not st.flow()

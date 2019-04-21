@@ -82,7 +82,7 @@ def test_set_input_has_input():
 
     assert not node.has_input('input1')
 
-    node.connect('input1', res)
+    node.connect(res, 'input1')
 
     assert node.has_input('input1')
 
@@ -95,14 +95,14 @@ def test_set_input_wrong():
     res = TextResource({'msg': 'Hi'})
 
     with pytest.raises(InputException):
-        node.connect('not_existing_input', res)
+        node.connect(res, 'not_existing_input')
 
 
 def test_get_input():
     stream = Stream()
     node = InputTestingNode()
     res = TextResource({'msg': 'Hi'})
-    node.connect('input1', res)
+    node.connect(res, 'input1')
 
     assert node.has_input('input1')
     result = node.get_input('input1')
@@ -123,14 +123,14 @@ def test_replace_input_when_limit_reached():
     stream = Stream()
     node = InputTestingNode()
     res1 = TextResource({'msg': 'Hi'})
-    node.connect('input1', res1)
+    node.connect(res1, 'input1')
 
     assert node.has_input('input1')
     assert len(node.get_input('input1')) == 1
     assert node.get_input('input1')[0] == res1
 
     res2 = TextResource({'msg': 'Hi'})
-    node.connect('input1', res2)
+    node.connect(res2, 'input1')
 
     assert node.has_input('input1')
     assert len(node.get_input('input1')) == 1
@@ -143,9 +143,9 @@ def test_add_multiple_inputs():
     res1 = TextResource({'msg': 'Hi'})
     res2 = TextResource({'msg': 'Hi'})
     res3 = TextResource({'msg': 'Hi'})
-    node.connect('input2', res1)
-    node.connect('input2', res2)
-    node.connect('input2', res3)
+    node.connect(res1, 'input2')
+    node.connect(res2, 'input2')
+    node.connect(res3, 'input2')
 
     assert node.has_input('input2')
     assert len(node.get_input('input2')) == 3
@@ -161,8 +161,8 @@ def test_disconnect_input():
     node = InputTestingNode()
     res1 = TextResource({'msg': 'Hi'})
     res2 = TextResource({'msg': 'Hi'})
-    node.connect('input2', res1)
-    node.connect('input2', res2)
+    node.connect(res1, 'input2')
+    node.connect(res2, 'input2')
 
     assert node.has_input('input2')
     assert len(node.get_input('input2')) == 2
@@ -181,8 +181,8 @@ def test_disconnect_all():
     node = InputTestingNode()
     res1 = TextResource({'msg': 'Hi'})
     res2 = TextResource({'msg': 'Hi'})
-    node.connect('input2', res1)
-    node.connect('input2', res2)
+    node.connect(res1, 'input2')
+    node.connect(res2, 'input2')
 
     assert node.has_input('input2')
     assert len(node.get_input('input2')) == 2
