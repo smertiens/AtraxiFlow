@@ -72,7 +72,8 @@ class ImageObject:
                 except IOError:
                     self._valid = False
             else:
-                self.img_object = Image()
+                # Create empty image
+                self.img_object = Image.new('RGB', (100, 100))
                 self._valid = True
 
     def save(self, path, format = ''):

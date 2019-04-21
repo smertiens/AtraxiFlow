@@ -14,7 +14,9 @@ from atraxiflow.nodes.graphics import ImageResizeNode, ImageResource
 
 def test_create_and_env_check():
     st = Stream()
+    res = ImageResource()
     node = ImageResizeNode()
+    node.connect('sources', res)
     st.append_node(node)
     assert st.flow()
 
@@ -25,14 +27,22 @@ def test_load_resources(tmpdir):
     for i in range(1, 4):
         Image.new('RGB', (800, 600)).save(str(tmpdir.join('img{0}.jpg'.format(i))))
 
-    st.add_resource(FilesystemResource(props={'src': str(tmpdir.join('img1.jpg'.format(i)))}))
-    st.add_resource(FilesystemResource(props={'src': str(tmpdir.join('img2.jpg'.format(i)))}))
-    st.add_resource(ImageResource(props={'src': str(tmpdir.join('img3.jpg'.format(i)))}))
+    fs1 = FilesystemResource(props={'src': str(tmpdir.join('img1.jpg'.format(i)))})
+    fs2 = FilesystemResource(props={'src': str(tmpdir.join('img2.jpg'.format(i)))})
+    img1 = ImageResource(props={'src': str(tmpdir.join('img3.jpg'.format(i)))})
+
+    st.add_resource(fs1)
+    st.add_resource(fs2)
+    st.add_resource(img1)
 
     assert 2 == len(st.get_resources('FS:*'))
     assert 1 == len(st.get_resources('Img:*'))
 
-    st.append_node(ImageResizeNode(props={'target_w': '300'}))
+    node = ImageResizeNode(props={'target_w': '300'})
+    node.connect('sources', fs1)
+    node.connect('sources', fs2)
+    node.connect('sources', img1)
+    st.append_node(node)
     assert st.flow()
 
     assert 2 == len(st.get_resources('FS:*'))

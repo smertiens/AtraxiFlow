@@ -21,15 +21,28 @@ def test_resize_and_output(tmpdir):
         Image.new('RGB', (800, 600)).save(str(tmpdir.join('img{0}.jpg'.format(i))))
 
     st = Stream()
-    st.add_resource(ImageResource(props={'src': str(tmpdir.join('img1.jpg'))}))
-    st.add_resource(ImageResource(props={'src': str(tmpdir.join('img2.jpg'))}))
-    st.add_resource(FilesystemResource(props={'src': str(tmpdir.join('img3.jpg'))}))
-    assert 2 == len(st.get_resources('Img:*'))
-    assert 1 == len(st.get_resources('FS:*'))
+    img1 = ImageResource({'src': str(tmpdir.join('img1.jpg'.format(i)))})
+    img2 = ImageResource({'src': str(tmpdir.join('img2.jpg'.format(i)))})
+    img3 = ImageResource({'src': str(tmpdir.join('img3.jpg'.format(i)))})
 
-    st.append_node(ImageResizeNode(props={'target_w': '300'}))
-    st.append_node(
-        ImageOutputNode(props={'output_file': str(tmpdir.join('{img.src.basename}_test.{img.src.extension}'))}))
+    st.add_resource(img3)
+    st.add_resource(img2)
+    st.add_resource(img1)
+
+    assert 3 == len(st.get_resources('Img:*'))
+
+    node = ImageResizeNode({'target_w': '300'})
+    node.connect('sources', img3)
+    node.connect('sources', img2)
+    node.connect('sources', img1)
+    st.append_node(node)
+
+    out_node = ImageOutputNode({'output_file': str(tmpdir.join('{img.src.basename}_test.{img.src.extension}'))})
+    out_node.connect('sources', img3)
+    out_node.connect('sources', img2)
+    out_node.connect('sources', img1)
+
+    st.append_node(out_node)
 
     assert st.flow()
 

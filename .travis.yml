@@ -1,5 +1,5 @@
 language: python
-python:
+python:     # will be tested on default linux system
   - "3.4"
   #- "3.5"
   - "3.5-dev"

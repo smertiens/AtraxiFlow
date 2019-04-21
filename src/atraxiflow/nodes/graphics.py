@@ -23,7 +23,7 @@ class ImageResource(Resource):
             'src': {
                 'label': "Source",
                 'type': "file",
-                'required': True,
+                'required': False,
                 'hint': 'An image file or object',
                 'default': '',
             }
@@ -48,9 +48,12 @@ class ImageResource(Resource):
 
         if isinstance(src, ImageObject):
             self._imgobject = src
-        else:
+        elif isinstance(src, str) and src != '':
             src = self.parse_string(self._stream, self.get_property('src'))
             self._imgobject = ImageObject(src)
+        else:
+            # create emtpy ImageObject
+            self._imgobject = ImageObject()
 
     def _ev_property_changed(self, data):
         if data == 'src':
@@ -96,17 +99,20 @@ class ImageResizeNode(ProcessorNode):
                 'required': False,
                 'hint': '',
                 'default': 'auto'
-            },
-            'source': {
-                'label': "Resources to use",
-                'type': "resource_query",
-                'required': False,
-                'hint': '',
-                'default': ''
+            }
+        }
+
+        self._known_inputs = {
+            'sources': {
+                'limit': 0,
+                'required': True,
+                'hint': 'Resources to resize',
+                'accepts': [ImageResource, FilesystemResource]
             }
         }
 
         self._listeners = {}
+        self._inputs = {}
         self._stream = None
         self.name, self.properties = self.get_properties_from_args(name, props)
         self._out = []
@@ -120,7 +126,8 @@ class ImageResizeNode(ProcessorNode):
         h = self.get_property('target_h')
 
         if w == 'auto' and h == 'auto':
-            self._stream.get_logger().error('Only one dimension (width or height) can be set to "auto" at the same time.')
+            self._stream.get_logger().error(
+                'Only one dimension (width or height) can be set to "auto" at the same time.')
             return img
         elif w == 'auto':
             w = int(h) * (img.width() / img.height())
@@ -136,19 +143,11 @@ class ImageResizeNode(ProcessorNode):
         if not graphics.check_environment():
             return False
 
-        if not self.check_properties():
-            return False
+        self.check_properties()
+        self.check_inputs()
 
         # Get resources for transform
-
-        # Get file resources
-        res = []
-
-        if self.get_property('source') != '':
-            res += stream.get_resources(self.get_property('source'))
-        else:
-            res += stream.get_resources('FS:*')
-            res += stream.get_resources('Img:*')
+        res = self.get_input('sources')
 
         for r in res:
             if isinstance(r, ImageResource):
@@ -169,13 +168,6 @@ class ImageOutputNode(OutputNode):
 
     def __init__(self, name="", props=None):
         self._known_properties = {
-            'source': {
-                'label': "Source",
-                'type': "resource_query",
-                'required': False,
-                'hint': 'A pattern to load resources with',
-                'default': ''
-            },
             'output_file': {
                 'label': "Output file",
                 'type': "file",
@@ -184,8 +176,17 @@ class ImageOutputNode(OutputNode):
                 'default': ''
             }
         }
+        self._known_inputs = {
+            'sources': {
+                'limit': 0,
+                'required': True,
+                'hint': 'Resources to resize',
+                'accepts': [ImageResource]
+            }
+        }
 
         self._listeners = {}
+        self._inputs = {}
         self.name, self.properties = self.get_properties_from_args(name, props)
         self._out = []
 
@@ -209,17 +210,13 @@ class ImageOutputNode(OutputNode):
         return parsed_str
 
     def run(self, stream):
-        if not self.check_properties():
-            return False
-
         if not graphics.check_environment():
             return False
 
-        resources = []
-        if self.get_property('source') == '':
-            resources = stream.get_resources('Img:*')
-        else:
-            resources = stream.get_resources(self.get_property('source'))
+        self.check_properties()
+        self.check_inputs()
+
+        resources = self.get_input('sources')
 
         for resource in resources:
             imgobj = resource.get_data()
