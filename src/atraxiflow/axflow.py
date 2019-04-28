@@ -7,11 +7,12 @@
 
 
 import argparse
+import os
 
-from atraxiflow.cli import cli
+import atraxiflow.core.util as util
+from atraxiflow.cli.generator import TemplateParser
 
 if __name__ == '__main__':
-
     # Parse CLI args
     parser = argparse.ArgumentParser(description="Flow based workflow tool")
 
@@ -26,13 +27,5 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    if args.command == "create:node":
-        cli.create_from_template('node', args.name, args.node_type)
-    elif args.command == "create:resource":
-        cli.create_from_template('resource', args.name, args.node_type)
-    elif args.command == 'list':
-        cli.list_entities()
-    elif args.command == 'list:nodes':
-        cli.list_entities('nodes')
-    elif args.command == 'list:resources':
-        cli.list_entities('resources')
+    tpg = TemplateParser(os.path.join(util.get_ax_root(), 'templates'))
+    tpg.parse_template('Node.tpl')

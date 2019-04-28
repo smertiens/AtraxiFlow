@@ -6,12 +6,18 @@
 #
 
 import os
-
+from atraxiflow.cli.generator import TemplateParser
+import atraxiflow.core.util as util
 from atraxiflow.core.nodemanager import NodeManager
 from atraxiflow.nodes.foundation import *
 
 
 def create_from_template(tpl, name, tp):
+
+    tpg = TemplateParser(os.path.join(util.get_ax_root(), 'templates'))
+    tpg._parse_template('Node.tpl')
+
+    return
     parentNode = ""
     if tp == 'input':
         parentNode = 'InputNode'

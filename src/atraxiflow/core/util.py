@@ -5,10 +5,17 @@
 # For more information on licensing see LICENSE file
 #
 
+import os
+import atraxiflow
 from atraxiflow.core.exceptions import *
+
 
 def is_iterable(obj):
     return isinstance(obj, dict) or isinstance(obj, list)
+
+
+def get_ax_root():
+    return os.path.dirname(atraxiflow.__file__)
 
 
 def dict_read_from_path(d, path):

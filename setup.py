@@ -27,5 +27,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
 
+    install_requires=["PyInquirer>=1.0.3"],
+
     python_requires='>=3.4'
 )
