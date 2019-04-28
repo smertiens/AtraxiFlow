@@ -8,10 +8,6 @@ python:     # will be tested on default linux system
   - "3.7-dev"
   #- "3.7"
 
-env:
-  global:
-    - DISPLAY=":99.0"
-
 matrix:
   include:
     - name: "Python 3.7 on Xenial Linux"
@@ -28,23 +24,11 @@ matrix:
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
 
 install:
-    - sudo apt-get update
-    - sudo apt-get install -y xvfb herbstluftwm
-
-    # courtesy of https://github.com/astropy/ci-helpers/blob/master/travis/setup_conda_linux.sh
-    - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_99.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :99 -screen 0 1920x1200x24 -ac +extension GLX +render -noreset
-
     - pip3 install Pillow
     - pip3 install coverage
     - pip3 install pytest
     - pip3 install pytest-cov
     - pip3 install PyInquirer
-    - pip3 install Pyside2
-    - pip3 install pytest-qt
-
-before_script:
-  - "herbstluftwm &"
-  - sleep 1
 
 script:
-  - pytest --cov=atraxiflow
+  - pytest --cov=atraxiflow -v
