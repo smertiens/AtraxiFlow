@@ -8,6 +8,10 @@ python:     # will be tested on default linux system
   - "3.7-dev"
   #- "3.7"
 
+env:
+  global:
+    - DISPLAY=":99.0"
+
 matrix:
   include:
     - name: "Python 3.7 on Xenial Linux"
