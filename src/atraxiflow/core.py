@@ -29,7 +29,7 @@ class Resource:
 class Container:
 
     def __init__(self, *kwargs):
-        self._items: List[Resource] = []
+        self._items = []
 
         for item in kwargs:
             self._items.append(item)
