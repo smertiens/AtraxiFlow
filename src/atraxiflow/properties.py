@@ -7,7 +7,7 @@
 
 class Property:
 
-    def __init__(self, value=None, expected_type=str, default='', required=False, label='', hint=''):
+    def __init__(self, value=None, expected_type=str, default=None, required=False, label='', hint=''):
         self._value = value
         self._type = expected_type
         self._hint = hint
@@ -18,17 +18,21 @@ class Property:
     def get_default(self):
         return self._default
 
-    def get(self):
+    def value(self):
         return self._value
 
-    def set(self, value):
-        if not isinstance(value, self._type):
+    def set_value(self, value):
+        if value is not None and not self.validate(value):
             raise ValueError('Invalid value for this kind of property.')
         self._value = value
 
-    def is_required(self):
+    def is_required(self) -> bool:
         return self._required
 
-    def validate(self, value):
-        return isinstance(value, self._type)
+    def validate(self, value) -> bool:
+        tp = self._type
+        if not isinstance(tp, tuple):
+            tp = (self._type,)
+
+        return type(value) in tp
 

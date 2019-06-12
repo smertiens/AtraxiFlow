@@ -7,12 +7,16 @@
 
 from atraxiflow.core import *
 from atraxiflow.nodes.filesystem import *
+from atraxiflow.nodes.common import *
 
 def test_add_nodes():
-    pass
+    wf = Workflow()
+    assert wf._nodes == []
+    test = NullNode()
+    wf.add_node(test)
+    assert wf._nodes == [test]
 
 def test_run_workflow():
     node = LoadFilesNode({'path': './*'})
-    Workflow.create([node]).run()
+    Workflow.create([node, EchoOutputNode()]).run()
 
-    print(node.get_output().items()[0])

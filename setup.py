@@ -5,11 +5,11 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='atraxi-flow',
-    version='1.0.3',
+    version='2.0.0',
     packages=setuptools.find_packages('src'),
     package_dir={'':'src'},
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
+        'Development Status :: 4 - Beta',
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Operating System :: OS Independent",
@@ -27,7 +27,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
 
-    install_requires=["PyInquirer>=1.0.3"],
+    install_requires=['contemply', 'click'],
 
-    python_requires='>=3.4'
+    python_requires='>=3.5'
 )
