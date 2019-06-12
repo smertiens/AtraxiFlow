@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 import builtins
-from atraxiflow.nodes.common import *
+from atraxiflow.base.common import *
 from atraxiflow.core import *
 
 
@@ -21,7 +21,7 @@ def test_cli_input_check_output(monkeypatch):
     assert Workflow.create([node]).run()
 
     assert isinstance(node.output, Container)
-    out = node.output.find('atraxiflow.resources.TextResource')[0]
+    out = node.output.find('atraxiflow.TextResource')[0]
     assert out.get_value() == 'Hello World'
 
 

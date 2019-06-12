@@ -9,7 +9,7 @@ import time
 
 from atraxiflow.core import *
 from atraxiflow.properties import Property
-from atraxiflow.resources import TextResource
+from atraxiflow.base.resources import TextResource
 
 __all__ = ['NullNode', 'EchoOutputNode', 'DelayNode', 'CLIInputNode']
 

@@ -9,7 +9,7 @@ import logging
 
 from atraxiflow.exceptions import *
 from atraxiflow.properties import Property
-
+import importlib
 from typing import List
 
 __all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext']
@@ -39,6 +39,12 @@ class Container:
 
     def items(self):
         return self._items
+
+    def first(self) -> Resource:
+        if len(self._items) == 0:
+            raise IndexError()
+
+        return self._items[0]
 
     def find(self, query: str) -> List[Resource]:
         """
@@ -88,7 +94,7 @@ class Node:
 
     """
 
-    def apply_properties(self, properties: List):
+    def apply_properties(self, properties: dict):
         '''
         Check and merge properties
 
@@ -146,11 +152,32 @@ class Node:
 class WorkflowContext:
 
     def __init__(self):
-        pass
+        self.load_extensions()
 
     def process_str(self, string: str) -> str:
         return string
 
+    def get_registered_extensions(self):
+        return ['atraxiflow.base']
+
+    def get_logger(self) -> logging.Logger:
+        '''
+        Returns the streams logger
+        :return: Logger
+        '''
+        return logging.getLogger('workflow')
+
+    def load_extensions(self):
+        for ext in self.get_registered_extensions():
+            try:
+                mod = importlib.import_module(ext + '.flow_extension')
+            except ImportError:
+                raise Exception('Error loading extension %s' % ext)
+
+            if not hasattr(mod, 'boot'):
+                raise Exception('Invalid extension: Missing boot method')
+
+            mod.boot(self)
 
 class Workflow:
 
@@ -160,13 +187,6 @@ class Workflow:
 
     def add_node(self, node: Node):
         self._nodes.append(node)
-
-    def get_logger(self) -> logging.Logger:
-        '''
-        Returns the streams logger
-        :return: Logger
-        '''
-        return logging.getLogger('stream')
 
     @staticmethod
     def create(nodes=None):
@@ -193,7 +213,7 @@ class Workflow:
 
         :return: bool - If false, errors have occured while processing the stream
         '''
-        self.get_logger().info("Starting processing")
+        self._ctx.get_logger().info("Starting processing")
         # self.fire_event(self.EVENT_STREAM_STARTED)
         self._pos = -1
         nodes_processed = 0
@@ -202,7 +222,7 @@ class Workflow:
         for node in self._nodes:
             self._pos += 1
 
-            self.get_logger().debug("Running node {0}".format(node.__class__.__name__))
+            self._ctx.get_logger().debug("Running node {0}".format(node.__class__.__name__))
             # self.fire_event(self.EVENT_NODE_STARTED)
             if prev_node is not None:
                 node.set_input(prev_node)
@@ -213,14 +233,14 @@ class Workflow:
             # self.fire_event(self.EVENT_NODE_FINISHED)
 
             if res is False:
-                self.get_logger().warning("Node failed.")
-                self.get_logger().info(
+                self._ctx.get_logger().warning("Node failed.")
+                self._ctx.get_logger().info(
                     "Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
                 # self.fire_event(self.EVENT_STREAM_FINISHED)
 
                 return False
 
-        self.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
+        self._ctx.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
         # self.fire_event(self.EVENT_STREAM_FINISHED)
         return True
 

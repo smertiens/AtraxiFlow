@@ -13,7 +13,7 @@ import platform
 
 from atraxiflow.nodes.foundation import *
 from atraxiflow.nodes.text import TextResource
-from atraxiflow.nodes.filesystem import FilesystemResource
+from atraxiflow.base.filesystem import FilesystemResource
 
 
 class ShellExecNode(ProcessorNode):

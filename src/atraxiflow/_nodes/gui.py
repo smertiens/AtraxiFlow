@@ -7,7 +7,7 @@
 
 from atraxiflow.core.util import *
 from atraxiflow.gui.common import *
-from atraxiflow.nodes.common import TextResource
+from atraxiflow.base.common import TextResource
 from atraxiflow.nodes.foundation import *
 
 

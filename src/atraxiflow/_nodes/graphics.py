@@ -5,12 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
-
 from atraxiflow.core import graphics
 from atraxiflow.core.graphics import ImageObject
 from atraxiflow.core.properties import PropertyObject
-from atraxiflow.nodes.filesystem import FilesystemResource
+from atraxiflow.base.filesystem import FilesystemResource
 from atraxiflow.nodes.foundation import OutputNode
 from atraxiflow.nodes.foundation import ProcessorNode
 from atraxiflow.nodes.foundation import Resource

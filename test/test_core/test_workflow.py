@@ -6,8 +6,8 @@
 #
 
 from atraxiflow.core import *
-from atraxiflow.nodes.filesystem import *
-from atraxiflow.nodes.common import *
+from atraxiflow.base.common import *
+from atraxiflow.base.filesystem import LoadFilesNode
 
 def test_add_nodes():
     wf = Workflow()

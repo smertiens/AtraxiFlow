@@ -23,7 +23,7 @@ class Property:
 
     def set_value(self, value):
         if value is not None and not self.validate(value):
-            raise ValueError('Invalid value for this kind of property.')
+            raise ValueError('Invalid value "{}", expected {} for this kind of property.'.format(value, self._type))
         self._value = value
 
     def is_required(self) -> bool:

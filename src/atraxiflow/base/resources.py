@@ -17,7 +17,7 @@ class TextResource(Resource):
 
     def __init__(self, value: str):
         self._value = value
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
+        self.id = '%s.%s' % ('atraxiflow', self.__class__.__name__)
 
 
 class FilesystemResource(Resource):
@@ -26,7 +26,7 @@ class FilesystemResource(Resource):
     """
 
     def __init__(self, path: str):
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
+        self.id = '%s.%s' % ('atraxiflow', self.__class__.__name__)
         self._fsobjects = []
         items = glob.glob(path)
 
