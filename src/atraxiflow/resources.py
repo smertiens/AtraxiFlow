@@ -27,7 +27,7 @@ class FilesystemResource(Resource):
 
     def __init__(self, path: str):
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._fsobjects: List[FSObject] = []
+        self._fsobjects = []
         items = glob.glob(path)
 
         for item in items:
