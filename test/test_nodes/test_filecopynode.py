@@ -51,23 +51,19 @@ def test_copy_file_dir_not_exists_create(make_fixtures):
     assert os.path.exists(str(make_fixtures.join('folder', 'folder2')))
     assert os.path.exists(str(make_fixtures.join('folder', 'folder2', 'testfile.txt')))
 
-"""
+
 def test_copy_file_dir_not_exists_dont_create(make_fixtures):
-    st = get_test_stream()
-    cp = FSCopyNode("cp", {
+    cp = FSCopyNode({
         'dest': str(make_fixtures.join('folder', 'folder2')),
         'create_if_missing': False
     })
 
     assert not os.path.exists(str(make_fixtures.join('folder', 'folder2')))
 
-    src = FilesystemResource("srcres")
-    src.set_property('src', str(make_fixtures.join('testfile.txt')))
-    st.add_resource(src)
-    st.append_node(cp)
+    src = LoadFilesNode({'path': str(make_fixtures.join('testfile.txt'))})
 
     with pytest.raises(FilesystemException):
-        assert not st.flow()
+        assert Workflow.create([src, cp]).run()
 
     assert not os.path.exists(str(make_fixtures.join('folder', 'folder2')))
 
@@ -75,8 +71,7 @@ def test_copy_file_dir_not_exists_dont_create(make_fixtures):
 def test_copy_dir_correct(make_fixtures):
     dest = str(make_fixtures.join('_temp2'))
 
-    st = get_test_stream()
-    cp = FSCopyNode("cp", {
+    cp = FSCopyNode({
         'dest': dest
     })
 
@@ -84,19 +79,16 @@ def test_copy_dir_correct(make_fixtures):
     assert not os.path.exists(str(os.path.join(dest, "folder")))
     assert not os.path.exists(str(os.path.join(dest, "testfile.txt")))
 
-    src = FilesystemResource("srcres")
-    src.set_property('src', str(make_fixtures))
-    st.add_resource(src)
-    st.append_node(cp)
-    assert st.flow()
+    src = LoadFilesNode({'path': str(make_fixtures)})
+    assert Workflow.create([src, cp]).run()
 
     assert os.path.exists(str(os.path.join(dest, "folder")))
     assert os.path.exists(str(os.path.join(dest, "testfile.txt")))
 
     # check output
-    out = cp.get_output()[0]
+    out = cp.get_output().first()
     assert isinstance(out, FilesystemResource)
-    fso = out.get_data()[0]
+    fso = out.get_value()[0]
     assert isinstance(fso, FSObject)
     assert fso.getAbsolutePath() == dest
 
@@ -104,16 +96,11 @@ def test_copy_dir_correct(make_fixtures):
 def test_copy_dir_dest_exists(make_fixtures):
     dest = make_fixtures.mkdir("_temp2")
 
-    st = get_test_stream()
-    cp = FSCopyNode("cp", {
+    cp = FSCopyNode({
         'dest': str(dest)
     })
 
     assert os.path.exists(str(dest))
 
-    src = FilesystemResource("srcres")
-    src.set_property('src', str(make_fixtures))
-    st.add_resource(src)
-    st.append_node(cp)
-    assert not st.flow()
-"""
+    src = LoadFilesNode({'path': str(make_fixtures)})
+    assert not Workflow.create([src, cp]).run()

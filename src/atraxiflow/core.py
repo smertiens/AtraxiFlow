@@ -10,7 +10,7 @@ import logging
 from atraxiflow.exceptions import *
 from atraxiflow.properties import Property
 import importlib
-from typing import List
+from typing import List, Any, Dict
 
 __all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext']
 
@@ -37,7 +37,7 @@ class Container:
     def add(self, item: Resource):
         self._items.append(item)
 
-    def items(self):
+    def items(self) -> List[Resource]:
         return self._items
 
     def first(self) -> Resource:
@@ -93,6 +93,9 @@ class Node:
         self.apply_properties(properties)
 
     """
+
+    def get_properties(self) -> Dict[str, Property]:
+        return self.properties
 
     def apply_properties(self, properties: dict):
         '''
@@ -153,6 +156,22 @@ class WorkflowContext:
 
     def __init__(self):
         self.load_extensions()
+        self._symbol_table = {}
+
+    def has_symbol(self, name: str)->bool:
+        return name in self._symbol_table
+
+    def set_symbol(self, name:str, value: Any):
+        if self.has_symbol(name):
+            self.get_logger().warning('Overriding existing symbol "{}"'.format(name))
+
+        self._symbol_table[name] = value
+
+    def get_symbol(self, name: str)->Any:
+        return self._symbol_table[name]
+
+    def get_symbols(self) -> dict:
+        return self._symbol_table
 
     def process_str(self, string: str) -> str:
         return string

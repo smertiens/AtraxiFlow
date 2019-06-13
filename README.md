@@ -24,7 +24,7 @@ pip install atraxi-flow
 
 ## Requirements
 
-* Python 3.4 or higher
+* Python 3.5 or higher
 * If you want to use the UI nodes and functions, you will need to install [Pyside2](https://pypi.org/project/PySide2/) (optional)
 
 

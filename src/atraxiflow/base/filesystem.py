@@ -11,7 +11,7 @@ from pathlib import Path
 
 from atraxiflow.base.resources import FilesystemResource
 from atraxiflow.core import *
-from atraxiflow.data import DatetimeProcessor
+from atraxiflow.data import DatetimeProcessor, StringValueProcessor
 from atraxiflow.exceptions import FilesystemException
 from atraxiflow.properties import *
 
@@ -20,15 +20,15 @@ class LoadFilesNode(Node):
 
     def __init__(self, properties: dict = None):
         self.output = Container()
+        self.set_properties = properties
         self.properties = {
             'path': Property(expected_type=str, required=True)
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
 
-        self.apply_properties(properties)
-
     def run(self, ctx: WorkflowContext):
+        self.apply_properties(self.set_properties)
         self.output = Container(FilesystemResource(self.property('path').value()))
 
 
@@ -48,13 +48,12 @@ class FileFilterNode(Node):
 
     def __init__(self, properties: dict = None):
         self.output = Container()
+        self.set_properties = properties
         self.properties = {
             'filter': Property(expected_type=list, required=True, hint='Filters filesystem resources')
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
-
-        self.apply_properties(properties)
 
     def _filesize_value_to_number(self, str_size):
         matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
@@ -188,6 +187,7 @@ class FileFilterNode(Node):
             return False
 
     def run(self, ctx: WorkflowContext):
+        self.apply_properties(self.set_properties)
         self.output = Container()
         self.ctx = ctx
         # filter FSObjects from every resource and filter them down
@@ -221,11 +221,10 @@ class FSCopyNode(Node):
             'create_if_missing': Property(expected_type=bool, required=False, label='Create missing folders',
                                           hint='Creates the destination path if it is missing', default=True),
             'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
-                            hint='If true no files/folders will be renamed, only a message in the log will be created')
+                            hint='If true no files/folders will be copied, only a message in the log will be created')
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
-
         self.apply_properties(properties)
 
     def _do_copy(self, src, dest):
@@ -278,5 +277,60 @@ class FSCopyNode(Node):
                 else:
                     if self._do_copy(src.getAbsolutePath(), dest) is not True:
                         return False
+
+        return True
+
+class FSRenameNode(Node):
+
+    def __init__(self, properties: dict = None):
+        self.output = Container()
+        self.properties = {
+            'name': Property(expected_type=str, required=False, label='Target name',
+                                          hint='A string to rename the given files to', default=''),
+            'replace': Property(expected_type=dict, required=False, default=None, label='Replace',
+                            hint='A list of strings to replace. The key can be a compiled regular expression.'),
+            'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
+                            hint='If true no files/folders will be renamed, only a message in the log will be created')
+        }
+        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
+        self._input = None
+        self.apply_properties(properties)
+
+    def run(self, ctx: WorkflowContext):
+        self._ctx = ctx
+        self.output = Container()
+
+        resources = self.get_input().find('atraxiflow.FilesystemResource')
+
+        for res in resources:
+            for fso in res.get_value():
+
+                new_name = fso.getAbsolutePath()
+                svp = StringValueProcessor(ctx)
+
+                if self.property('name').value() != '':
+                    svp.add_variable('file.basename', fso.getBasename())
+                    svp.add_variable('file.extension', fso.getExtension())
+                    svp.add_variable('file.path', fso.getDirectory())
+
+                    new_name = svp.parse(self.property('name').value())
+
+                if self.property('replace').value() is not None:
+                    for key, val in self.property('replace').value().items():
+
+                        # since py > 3.7 returns 're.Pattern' as result of re.compile and
+                        # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual
+                        # object
+                        if isinstance(key, type(re.compile(''))):
+                            new_name = key.sub(svp.parse(val), new_name)
+                        else:
+                            new_name = new_name.replace(key, svp.parse(val))
+
+                if self.property('dry').value() is True:
+                    ctx.get_logger().info("DRY RUN: Rename {0} -> {1}".format(fso.getAbsolutePath(), new_name))
+                else:
+                    os.rename(fso.getAbsolutePath(), new_name)
+                    self.output.add(FilesystemResource(new_name))
+                    ctx.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
 
         return True

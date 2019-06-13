@@ -37,3 +37,17 @@ def test_msg_out(capsys):
 
     captured = capsys.readouterr()
     assert captured[0] == 'Hello World\n'
+
+"""
+def test_execnode_basic(capsys):
+    def callback():
+        print('Hello callback!')
+        return 'done'
+
+    ex = ExecNode({'callable': 'callback'})
+    assert Workflow.create([ex]).run()
+    assert ex.get_output() == 'done'
+
+    captured = capsys.readouterr()
+    assert captured[0] == 'Hello callback!\n'
+"""
