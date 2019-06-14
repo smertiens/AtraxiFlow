@@ -27,7 +27,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
 
-    install_requires=['contemply', 'click'],
+    install_requires=['contemply', 'click', 'Pyside2'],
 
     python_requires='>=3.5'
 )
