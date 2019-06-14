@@ -6,7 +6,7 @@
 #
 
 from PySide2 import QtCore, QtWidgets, QtGui
-from atraxiflow.creator.axnode_widget import AxNodeWidget
+from atraxiflow.creator.widgets import AxNodeWidget
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
 

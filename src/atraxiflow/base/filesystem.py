@@ -15,6 +15,7 @@ from atraxiflow.data import DatetimeProcessor, StringValueProcessor
 from atraxiflow.exceptions import FilesystemException
 from atraxiflow.properties import *
 
+from PySide2 import QtWidgets, QtCore
 
 class LoadFilesNode(Node):
 
@@ -22,7 +23,7 @@ class LoadFilesNode(Node):
         self.output = Container()
         self.set_properties = properties
         self.properties = {
-            'path': Property(expected_type=str, required=True)
+            'path': Property(expected_type=str, required=True, display_options={'role': 'files_folders'})
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
@@ -31,6 +32,53 @@ class LoadFilesNode(Node):
         self.apply_properties(self.set_properties)
         self.output = Container(FilesystemResource(self.property('path').value()))
 
+    def ui(self):
+
+        def add_path(lst: QtWidgets.QListWidget, mode = 'files'):
+            dlg = QtWidgets.QFileDialog()
+
+            if mode == 'files':
+                dlg.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
+            elif mode == 'folder':
+                dlg.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+
+            dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
+            if not dlg.exec_():
+                return
+
+            path = dlg.selectedFiles()
+            lst.addItems(path)
+
+        def remove_selected(lst: QtWidgets.QListWidget):
+            print(lst.selectedItems())
+            for item in lst.selectedItems():
+                lst.takeItem(lst.row(item))
+
+        widget = QtWidgets.QWidget()
+        widget.setLayout(QtWidgets.QHBoxLayout())
+        widget.layout().setSpacing(0)
+
+        list_widget = QtWidgets.QListWidget()
+        list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
+        toolbar = QtWidgets.QToolBar()
+        toolbar.setOrientation(QtCore.Qt.Vertical)
+        action_add_files = QtWidgets.QAction('+', toolbar)
+        action_add_files.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'files'))
+
+        action_add_folder = QtWidgets.QAction('+P', toolbar)
+        action_add_folder.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'folder'))
+
+        action_remove = QtWidgets.QAction('-', toolbar)
+        action_remove.connect(QtCore.SIGNAL('triggered()'), lambda: remove_selected(list_widget))
+
+        toolbar.addAction(action_add_files)
+        toolbar.addAction(action_add_folder)
+        toolbar.addAction(action_remove)
+
+        widget.layout().addWidget(list_widget)
+        widget.layout().addWidget(toolbar)
+
+        return widget
 
 class FileFilterNode(Node):
     '''
@@ -190,8 +238,8 @@ class FileFilterNode(Node):
         self.apply_properties(self.set_properties)
         self.output = Container()
         self.ctx = ctx
-        # filter FSObjects from every resource and filter them down
 
+        # filter FSObjects from every resource and filter them down
         for resource in self.get_input().find('atraxiflow.FilesystemResource'):
             objects_to_remove = set()  # set values are unique
 

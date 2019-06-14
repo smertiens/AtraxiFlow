@@ -162,9 +162,16 @@ def test_filter_filetype(file_fixture):
     # reset
     fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
 
+    # TODO: does not work -> reset state?
     fn.property("filter").set_value([
         ['type', '=', 'folder']
     ])
+
+    fn = FileFilterNode({
+        'filter': [
+            ['type', '=', 'folder']
+        ]
+    })
 
     assert Workflow.create([fin, fn]).run()
     assert len(fn.get_output().items()) == 1

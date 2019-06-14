@@ -4,11 +4,11 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-from typing import Any
+from typing import Any, Dict
 
 class Property:
 
-    def __init__(self, value=None, expected_type=str, default=None, required=False, label='', hint=''):
+    def __init__(self, value=None, expected_type=str, default=None, required=False, label='', hint='', display_options={}):
         if not isinstance(expected_type, tuple):
             expected_type = (expected_type,)
 
@@ -18,6 +18,10 @@ class Property:
         self._label = label
         self._required = required
         self._default = default
+        self._display_options = display_options
+
+    def get_display_options(self) -> Dict[str, Any]:
+        return self._display_options
 
     def get_default(self) -> Any:
         return self._default
