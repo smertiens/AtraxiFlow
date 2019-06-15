@@ -9,7 +9,7 @@ import logging
 
 from atraxiflow.exceptions import *
 from atraxiflow.properties import Property
-import importlib
+import importlib, pkgutil, inspect
 from typing import List, Any, Dict
 
 __all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext']
@@ -155,8 +155,43 @@ class Node:
 class WorkflowContext:
 
     def __init__(self):
-        self.load_extensions()
+        self._nodes = {}
         self._symbol_table = {}
+        self.load_extensions()
+
+    def autodiscover_nodes(self, root_package: str)-> list:
+
+        def collect_module_data(mod):
+            result = []
+
+            for attr in dir(mod):
+                o = getattr(mod, attr)
+                if not hasattr(o, '__bases__'):
+                    continue
+
+                if Node in o.__bases__:
+                    result.append(o)
+
+            return result
+
+        result = []
+        pkg = importlib.import_module(root_package)
+
+        if inspect.ismodule(pkg):
+            result += collect_module_data(pkg)
+        else:
+            for importer, modname, ispkg in pkgutil.iter_modules(pkg.__path__):
+                if not ispkg:
+                    mod = importlib.import_module(root_package + '.' + modname)
+                    result += collect_module_data(mod)
+
+        return result
+
+    def publish_nodes(self, group_name: str, nodes: dict):
+        self._nodes[group_name] = nodes
+
+    def get_nodes(self)->Dict[str, list]:
+        return self._nodes
 
     def has_symbol(self, name: str)->bool:
         return name in self._symbol_table
@@ -200,7 +235,7 @@ class WorkflowContext:
 
 class Workflow:
 
-    def __init__(self, nodes=None):
+    def __init__(self, nodes: List[Node]=None):
         self._nodes = nodes if isinstance(nodes, list) else []
         self._ctx = WorkflowContext()
 
@@ -208,7 +243,7 @@ class Workflow:
         self._nodes.append(node)
 
     @staticmethod
-    def create(nodes=None):
+    def create(nodes: List[Node]=None):
         ''' Convenience function to create a new stream '''
         return Workflow(nodes)
 

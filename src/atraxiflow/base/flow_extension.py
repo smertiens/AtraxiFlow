@@ -9,5 +9,9 @@ This is AtraxiFlow's base extension.
 """
 from atraxiflow.core import *
 
+
 def boot(ctx: WorkflowContext):
-    pass
+    ctx.publish_nodes('AtraxiFlow', {
+        'Common': ctx.autodiscover_nodes('atraxiflow.base.common'),
+        'Filesystem': ctx.autodiscover_nodes('atraxiflow.base.filesystem')
+    })

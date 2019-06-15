@@ -19,11 +19,15 @@ class AxFileSelectionWidget(QtWidgets.QWidget):
 
 class AxNodeWidget(QtWidgets.QFrame):
 
-    def __init__(self, node: Node, parent=None):
+    def __init__(self, node: Node, parent: QtWidgets.QWidget=None):
         super().__init__(parent)
 
         self.node = node
+
+        self.dock_parent_widget = None
+        self.dock_child_widget = None
         self.click_pos = QtCore.QPoint(0, 0)
+        self.dock_parent_at_click = None
 
         self.setLayout(QtWidgets.QVBoxLayout())
         self.setFrameStyle(QtWidgets.QFrame.StyledPanel)
@@ -85,12 +89,64 @@ class AxNodeWidget(QtWidgets.QFrame):
 
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         self.click_pos = event.pos()
+        self.dock_parent_at_click = self.dock_parent_widget
         self.raise_()
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent):
         self.move(self.mapToParent(event.pos() - self.click_pos))
 
+        parent = self
+        subnode = self.dock_child_widget
+        while subnode is not None:
+            self.parent().dock(parent, subnode)
+            parent = subnode
+            subnode = subnode.dock_child_widget
+
         br = self.rect().bottomRight() + self.pos()
-        parent_w = br.x() if br.x() > self.parent().width() else self.parent().width()
-        parent_h = br.x() if br.y() > self.parent().height() else self.parent().height()
+        parent_w = br.x() + 10 if br.x() > self.parent().width() + 10 else self.parent().width()
+        parent_h = br.x() + 10 if br.y() > self.parent().height() + 10 else self.parent().height()
         self.parent().resize(parent_w, parent_h)
+
+        self.parent().dock_neighbours(self)
+
+
+class AxNodeWidgetContainer(QtWidgets.QWidget):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.nodes = []
+
+    def discover_nodes(self):
+        for child in self.children():
+            if isinstance(child, AxNodeWidget):
+                self.nodes.append(child)
+
+    def dock(self, upper: AxNodeWidget, lower: AxNodeWidget):
+        lower.move(
+            upper.pos().x(),
+            upper.pos().y() + upper.rect().height()
+        )
+        upper.dock_child_widget = lower
+        lower.dock_parent_widget = upper
+
+    def undock(self, upper: AxNodeWidget, lower: AxNodeWidget):
+        upper.dock_child_widget = None
+        lower.dock_parent_widget = None
+
+    def dock_neighbours(self, widget: AxNodeWidget):
+        radius = 10
+
+        for node in self.nodes:
+            if node == widget:
+                continue
+
+            hot_area = QtCore.QRect(
+                node.pos() + node.rect().bottomLeft() - QtCore.QPoint(radius, radius),
+                QtCore.QSize(node.rect().width() + 2 * radius, 4 * radius)
+            )
+
+            if hot_area.contains(widget.pos()) or hot_area.contains(widget.rect().topRight()):
+                self.dock(node, widget)
+            else:
+                if node == widget.dock_parent_widget:
+                    self.undock(node, widget)
