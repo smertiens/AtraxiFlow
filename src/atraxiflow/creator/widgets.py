@@ -18,6 +18,7 @@ class AxFileSelectionWidget(QtWidgets.QWidget):
         self.btn = QtWidgets.QPushButton('...')
 """
 
+
 class AxListWidget(QtWidgets.QWidget):
 
     def remove_selected(self):
@@ -40,7 +41,7 @@ class AxListWidget(QtWidgets.QWidget):
         self.list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
         self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setOrientation(QtCore.Qt.Vertical)
-        self.toolbar.setIconSize(QtCore.QSize(20,20))
+        self.toolbar.setIconSize(QtCore.QSize(20, 20))
 
         self.action_remove = QtWidgets.QAction('-', self.toolbar)
         self.action_remove.connect(QtCore.SIGNAL('triggered()'), self.remove_selected)
@@ -57,10 +58,11 @@ class AxListWidget(QtWidgets.QWidget):
 
 class AxNodeWidget(QtWidgets.QFrame):
 
-    def __init__(self, node: Node, parent: QtWidgets.QWidget=None):
+    def __init__(self, node: Node, parent: QtWidgets.QWidget = None):
         super().__init__(parent)
 
         self.node = node
+        self.selected = False
 
         self.dock_parent_widget = None
         self.dock_child_widget = None
@@ -76,9 +78,10 @@ class AxNodeWidget(QtWidgets.QFrame):
         node_name = self.node.node_name if hasattr(self.node, 'node_name') else self.node.__class__.__name__
         self.title_label = QtWidgets.QLabel(node_name)
         self.title_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.title_label.setStyleSheet('border-bottom: 1px solid black; padding: 5px; font-size:12px; font-weight:bold;')
+        self.title_label.setStyleSheet(
+            'border-bottom: 1px solid black; padding: 5px; font-size:12px; font-weight:bold;')
         self.title_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
-        #self.title_label.setCursor(QtCore.Qt.SizeAllCursor)
+        # self.title_label.setCursor(QtCore.Qt.SizeAllCursor)
 
         # Content wrapper
         self.content_wrapper = QtWidgets.QWidget(self)
@@ -88,7 +91,7 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
         self.layout().addWidget(self.title_label)
-        #self.layout().addWidget(self.content_wrapper)
+        # self.layout().addWidget(self.content_wrapper)
 
         self.build_node_ui()
 
@@ -98,7 +101,6 @@ class AxNodeWidget(QtWidgets.QFrame):
     def get_default_controls(self):
         widget = QtWidgets.QWidget()
         widget.setLayout(QtWidgets.QFormLayout())
-
 
         # build default widget
         for name, prop in self.node.get_properties().items():
@@ -130,6 +132,16 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.click_pos = event.pos()
         self.dock_parent_at_click = self.dock_parent_widget
         self.raise_()
+        self.select()
+
+    def select(self):
+        self.parent().clear_selection()
+        self.selected = True
+        self.setStyleSheet('background:white')
+
+    def deselect(self):
+        self.selected = False
+        self.setStyleSheet('')
 
     def mouseMoveEvent(self, event: QtGui.QMouseEvent):
         self.move(self.mapToParent(event.pos() - self.click_pos))
@@ -155,7 +167,33 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
         super().__init__(parent)
         self.nodes = []
 
+    def get_root_node(self, node_widget: AxNodeWidget) -> AxNodeWidget:
+        while node_widget.dock_parent_widget is not None:
+            node_widget = node_widget.dock_parent_widget
+
+        return node_widget
+
+    def extract_node_hierarchy_from_widgets(self, root_node: AxNodeWidget) -> list:
+        nodes = [root_node.node]
+        while root_node.dock_child_widget is not None:
+            nodes.append(root_node.dock_child_widget.node)
+            root_node = root_node.dock_child_widget
+
+        return nodes
+
+    def get_selected_node(self) -> AxNodeWidget:
+        for node in self.nodes:
+            if node.selected:
+                return node
+
+        return None
+
+    def clear_selection(self):
+        for node in self.nodes:
+            node.deselect()
+
     def discover_nodes(self):
+        self.nodes.clear()
         for child in self.children():
             if isinstance(child, AxNodeWidget):
                 self.nodes.append(child)

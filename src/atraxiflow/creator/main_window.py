@@ -9,7 +9,7 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
-from atraxiflow.creator import assets
+from atraxiflow.creator import assets, tasks
 
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
@@ -42,16 +42,16 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         # Main toolbar
         main_toolbar = QtWidgets.QToolBar()
-        main_toolbar.setOrientation(QtCore.Qt.Vertical)
 
-        action_new = QtWidgets.QAction('N', main_toolbar)
-        action_open = QtWidgets.QAction('O', main_toolbar)
-        action_save = QtWidgets.QAction('S', main_toolbar)
+        action_play = QtWidgets.QAction('Play', main_toolbar)
+        action_play.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
+        action_stop = QtWidgets.QAction('Stop', main_toolbar)
 
-        main_toolbar.addAction(action_new)
-        main_toolbar.addAction(action_open)
-        main_toolbar.addAction(action_save)
-        main_toolbar.addSeparator()
+        main_toolbar.addAction(action_play)
+        main_toolbar.addAction(action_stop)
+        dock_main_toolbar = QtWidgets.QDockWidget()
+        dock_main_toolbar.setWindowTitle('Main toolbar')
+        dock_main_toolbar.setWidget(main_toolbar)
 
         # Statusbar
         self.status_bar = QtWidgets.QStatusBar()
@@ -76,6 +76,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         # Add widgets to window
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_node_tree)
+        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_main_toolbar)
         central_widget.layout().addWidget(self.tab_bar)
         #self.addToolBar(QtCore.Qt.LeftToolBarArea, main_toolbar)
         self.setMenuBar(menu_bar)
@@ -88,6 +89,20 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.load_node_tree()
 
         self.resize(1024, 800)
+
+    def run_active_workflow(self):
+        node_container = self.tab_bar.currentWidget().widget()
+        assert isinstance(node_container, AxNodeWidgetContainer)
+
+        selected_node = node_container.get_selected_node()
+        if selected_node is not None:
+            root_node = node_container.get_root_node(selected_node)
+            ax_nodes = node_container.extract_node_hierarchy_from_widgets(root_node)
+            print (ax_nodes)
+
+            run_task = tasks.RunWorkflowTask(ax_nodes)
+            run_task.start()
+
 
     def add_node_to_current_workspace(self, node):
         wrapper = self.tab_bar.currentWidget().widget()
