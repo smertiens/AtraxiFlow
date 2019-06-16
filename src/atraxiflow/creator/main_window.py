@@ -23,6 +23,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # Central widget
         central_widget = QtWidgets.QWidget()
         central_widget.setLayout(QtWidgets.QHBoxLayout())
+        central_widget.layout().setSpacing(0)
 
         # Tab bar
         self.tab_bar = QtWidgets.QTabWidget()

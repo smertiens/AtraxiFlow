@@ -97,15 +97,13 @@ class EchoOutputNode(Node):
 class DelayNode(Node):
 
     def __init__(self, properties=None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        node_properties = {
             'time': Property(expected_type=(int, float), required=False, hint='Time to sleep', label='Time')
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+        super().__init__(node_properties, properties)
 
     def run(self, ctx: WorkflowContext):
+        super().run(ctx)
         self.apply_properties(self.user_properties)
         time.sleep(int(self.property('time').value()))
 
@@ -120,12 +118,7 @@ class DelayNode(Node):
 class NullNode(Node):
 
     def __init__(self, properties=None):
-        self.output = Container()
-        self.properties = {}
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
-
-        self.apply_properties(properties)
+        super().__init__({}, properties)
 
     def run(self, ctx: WorkflowContext):
         return True

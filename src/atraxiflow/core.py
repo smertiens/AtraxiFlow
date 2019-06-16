@@ -34,6 +34,9 @@ class Container:
         for item in kwargs:
             self._items.append(item)
 
+    def clear(self):
+        self._items.clear()
+
     def add(self, item: Resource):
         self._items.append(item)
 

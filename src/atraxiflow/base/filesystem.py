@@ -82,13 +82,10 @@ class FileFilterNode(Node):
     '''
 
     def __init__(self, properties: dict = None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        node_properties = {
             'filter': Property(expected_type=list, required=True, hint='Filters filesystem resources')
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+        super().__init__(node_properties, properties)
 
     def _filesize_value_to_number(self, str_size):
         matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
@@ -222,8 +219,8 @@ class FileFilterNode(Node):
             return False
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.user_properties)
-        self.output = Container()
+        super().run(ctx)
+        self.output.clear()
         self.ctx = ctx
 
         # filter FSObjects from every resource and filter them down
@@ -249,9 +246,7 @@ class FileFilterNode(Node):
 class FSCopyNode(Node):
 
     def __init__(self, properties: dict = None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        node_properties = {
             'dest': Property(expected_type=str, required=True,
                              hint='The destination on the filesystem to copy the source to'),
             'create_if_missing': Property(expected_type=bool, required=False, label='Create missing folders',
@@ -259,8 +254,7 @@ class FSCopyNode(Node):
             'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
                             hint='If true no files/folders will be copied, only a message in the log will be created')
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+        super().__init__(node_properties, properties)
 
     def _do_copy(self, src, dest):
         # check if src and dest exist
@@ -295,9 +289,9 @@ class FSCopyNode(Node):
         return True
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.user_properties)
+        super().run(ctx)
         self._ctx = ctx
-        self.output = Container()
+        self.output.clear()
 
         resources = self.get_input().find('atraxiflow.FilesystemResource')
 
@@ -320,9 +314,7 @@ class FSCopyNode(Node):
 class FSRenameNode(Node):
 
     def __init__(self, properties: dict = None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        node_properties = {
             'name': Property(expected_type=str, required=False, label='Target name',
                              hint='A string to rename the given files to', default=''),
             'replace': Property(expected_type=dict, required=False, default=None, label='Replace',
@@ -330,11 +322,11 @@ class FSRenameNode(Node):
             'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
                             hint='If true no files/folders will be renamed, only a message in the log will be created')
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+        super().__init__(node_properties, properties)
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.user_properties)
+        super().run(ctx)
+
         self._ctx = ctx
         self.output = Container()
 
