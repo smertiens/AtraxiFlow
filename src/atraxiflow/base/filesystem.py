@@ -14,14 +14,17 @@ from atraxiflow.core import *
 from atraxiflow.data import DatetimeProcessor, StringValueProcessor
 from atraxiflow.exceptions import FilesystemException
 from atraxiflow.properties import *
+from atraxiflow.base import assets
+from atraxiflow.creator.widgets import AxListWidget
 
-from PySide2 import QtWidgets, QtCore
+from PySide2 import QtWidgets, QtCore, QtGui
+
 
 class LoadFilesNode(Node):
 
     def __init__(self, properties: dict = None):
         self.output = Container()
-        self.set_properties = properties
+        self.user_properties = properties
         self.properties = {
             'path': Property(expected_type=str, required=True, display_options={'role': 'files_folders'})
         }
@@ -29,12 +32,12 @@ class LoadFilesNode(Node):
         self._input = None
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.set_properties)
+        self.apply_properties(self.user_properties)
         self.output = Container(FilesystemResource(self.property('path').value()))
 
-    def ui(self):
+    def get_ui(self):
 
-        def add_path(lst: QtWidgets.QListWidget, mode = 'files'):
+        def add_path(lst: AxListWidget, mode='files'):
             dlg = QtWidgets.QFileDialog()
 
             if mode == 'files':
@@ -47,38 +50,22 @@ class LoadFilesNode(Node):
                 return
 
             path = dlg.selectedFiles()
-            lst.addItems(path)
+            lst.add_items(path)
 
-        def remove_selected(lst: QtWidgets.QListWidget):
-            print(lst.selectedItems())
-            for item in lst.selectedItems():
-                lst.takeItem(lst.row(item))
-
-        widget = QtWidgets.QWidget()
-        widget.setLayout(QtWidgets.QHBoxLayout())
-        widget.layout().setSpacing(0)
-
-        list_widget = QtWidgets.QListWidget()
-        list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
-        toolbar = QtWidgets.QToolBar()
-        toolbar.setOrientation(QtCore.Qt.Vertical)
-        action_add_files = QtWidgets.QAction('+', toolbar)
+        list_widget = AxListWidget()
+        action_add_files = QtWidgets.QAction('+', list_widget.get_toolbar())
         action_add_files.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'files'))
+        action_add_files.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-file-50.png')))
 
-        action_add_folder = QtWidgets.QAction('+P', toolbar)
+        action_add_folder = QtWidgets.QAction('+P', list_widget.get_toolbar())
         action_add_folder.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'folder'))
+        action_add_folder.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-folder-50.png')))
 
-        action_remove = QtWidgets.QAction('-', toolbar)
-        action_remove.connect(QtCore.SIGNAL('triggered()'), lambda: remove_selected(list_widget))
+        list_widget.add_toolbar_action(action_add_files)
+        list_widget.add_toolbar_action(action_add_folder)
 
-        toolbar.addAction(action_add_files)
-        toolbar.addAction(action_add_folder)
-        toolbar.addAction(action_remove)
+        return list_widget
 
-        widget.layout().addWidget(list_widget)
-        widget.layout().addWidget(toolbar)
-
-        return widget
 
 class FileFilterNode(Node):
     '''
@@ -96,7 +83,7 @@ class FileFilterNode(Node):
 
     def __init__(self, properties: dict = None):
         self.output = Container()
-        self.set_properties = properties
+        self.user_properties = properties
         self.properties = {
             'filter': Property(expected_type=list, required=True, hint='Filters filesystem resources')
         }
@@ -235,7 +222,7 @@ class FileFilterNode(Node):
             return False
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.set_properties)
+        self.apply_properties(self.user_properties)
         self.output = Container()
         self.ctx = ctx
 
@@ -263,6 +250,7 @@ class FSCopyNode(Node):
 
     def __init__(self, properties: dict = None):
         self.output = Container()
+        self.user_properties = properties
         self.properties = {
             'dest': Property(expected_type=str, required=True,
                              hint='The destination on the filesystem to copy the source to'),
@@ -273,7 +261,6 @@ class FSCopyNode(Node):
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
-        self.apply_properties(properties)
 
     def _do_copy(self, src, dest):
         # check if src and dest exist
@@ -308,6 +295,7 @@ class FSCopyNode(Node):
         return True
 
     def run(self, ctx: WorkflowContext):
+        self.apply_properties(self.user_properties)
         self._ctx = ctx
         self.output = Container()
 
@@ -328,23 +316,25 @@ class FSCopyNode(Node):
 
         return True
 
+
 class FSRenameNode(Node):
 
     def __init__(self, properties: dict = None):
         self.output = Container()
+        self.user_properties = properties
         self.properties = {
             'name': Property(expected_type=str, required=False, label='Target name',
-                                          hint='A string to rename the given files to', default=''),
+                             hint='A string to rename the given files to', default=''),
             'replace': Property(expected_type=dict, required=False, default=None, label='Replace',
-                            hint='A list of strings to replace. The key can be a compiled regular expression.'),
+                                hint='A list of strings to replace. The key can be a compiled regular expression.'),
             'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
                             hint='If true no files/folders will be renamed, only a message in the log will be created')
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
-        self.apply_properties(properties)
 
     def run(self, ctx: WorkflowContext):
+        self.apply_properties(self.user_properties)
         self._ctx = ctx
         self.output = Container()
 

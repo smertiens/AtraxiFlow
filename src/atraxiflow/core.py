@@ -7,6 +7,7 @@
 
 import logging
 
+from PySide2 import QtWidgets
 from atraxiflow.exceptions import *
 from atraxiflow.properties import Property
 import importlib, pkgutil, inspect
@@ -87,12 +88,24 @@ class Node:
 
     def __init__(self, properties = None):
         self.output = Container()
+        self.user_properties = properties
         self.properties = {}
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
-        self.apply_properties(properties)
+
+        # Optional:
+        self.node_name = '' | Classname
+
+        # in run()
+        self.apply_properties(self.user_properties)
 
     """
+
+    def get_ui(self)->QtWidgets.QWidget:
+        return None
+
+    def get_field_ui(self, field_name:str) -> QtWidgets.QWidget:
+        return None
 
     def get_properties(self) -> Dict[str, Property]:
         return self.properties

@@ -11,28 +11,30 @@ import os
 import time
 import platform
 
+from PySide2 import QtWidgets, QtCore
 from atraxiflow.core import *
 from atraxiflow.properties import Property
 from atraxiflow.base.resources import TextResource
 
 __all__ = ['NullNode', 'EchoOutputNode', 'DelayNode', 'CLIInputNode', 'ShellExecNode']
 
+
 class ShellExecNode(Node):
 
     def __init__(self, properties: dict = None):
         self.output = Container()
+        self.user_properties = properties
         self.properties = {
             'cmd': Property(expected_type=str, required=True, label='Command',
-                                          hint='Command to execute', default=''),
+                            hint='Command to execute', default=''),
             'echo_cmd': Property(expected_type=bool, required=False, default=False, label='Echo command'),
             'echo_output': Property(expected_type=bool, required=False, default=False, label='Echo output')
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
-        self.apply_properties(properties)
-
 
     def run(self, ctx: WorkflowContext):
+        self.apply_properties(self.user_properties)
         cmd = ctx.process_str(self.property('cmd').value())
         args = shlex.split(cmd)
 
@@ -74,15 +76,15 @@ class EchoOutputNode(Node):
 
     def __init__(self, properties=None):
         self.output = Container()
+        self.user_properties = properties
         self.properties = {
             'msg': Property(expected_type=str, required=False, hint='Text to output', label='Message')
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
 
-        self.apply_properties(properties)
-
     def run(self, ctx: WorkflowContext):
+        self.apply_properties(self.user_properties)
         if self.property('msg') is not None:
             print(self.property('msg').value())
 
@@ -97,19 +99,24 @@ class DelayNode(Node):
 
     def __init__(self, properties=None):
         self.output = Container()
+        self.user_properties = properties
         self.properties = {
             'time': Property(expected_type=(int, float), required=False, hint='Time to sleep', label='Time')
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
 
-        self.apply_properties(properties)
-
     def run(self, ctx: WorkflowContext):
+        self.apply_properties(self.user_properties)
         time.sleep(int(self.property('time').value()))
 
         return True
 
+    def get_field_ui(self, field_name:str) -> QtWidgets.QWidget:
+        if field_name == 'time':
+            time_input = QtWidgets.QLineEdit()
+            time_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.property('time').set_value(float(s)))
+            return time_input
 
 class NullNode(Node):
 
@@ -129,15 +136,16 @@ class CLIInputNode(Node):
 
     def __init__(self, properties=None):
         self.output = Container()
+        self.user_properties = properties
         self.properties = {
             'prompt': Property(expected_type=str, required=False,
                                hint='The text to display when prompting the user for input.', default='')
         }
         self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
         self._input = None
-        self.apply_properties(properties)
 
     def run(self, ctx: WorkflowContext) -> bool:
+        self.apply_properties(self.user_properties)
         prompt = ctx.process_str(self.property('prompt').value())
         user_input = input(prompt)
 
@@ -148,6 +156,7 @@ class CLIInputNode(Node):
 
         self.output.add(TextResource(user_input))
         return True
+
 
 """
 class ExecNode(Node):

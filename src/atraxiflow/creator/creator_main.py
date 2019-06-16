@@ -11,6 +11,7 @@ import sys
 
 def launch_app():
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
     window = main_window.CreatorMainWindow()
     window.show()
     sys.exit(app.exec_())

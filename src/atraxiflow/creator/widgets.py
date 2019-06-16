@@ -6,6 +6,7 @@
 #
 from PySide2 import QtCore, QtWidgets, QtGui
 from atraxiflow.core import Node
+from atraxiflow.base import assets
 
 """
 class AxFileSelectionWidget(QtWidgets.QWidget):
@@ -16,6 +17,43 @@ class AxFileSelectionWidget(QtWidgets.QWidget):
         self.line_edit = QtWidgets.QLineEdit()
         self.btn = QtWidgets.QPushButton('...')
 """
+
+class AxListWidget(QtWidgets.QWidget):
+
+    def remove_selected(self):
+        for item in self.list_widget.selectedItems():
+            self.list_widget.takeItem(self.list_widget.row(item))
+
+    def get_toolbar(self):
+        return self.toolbar
+
+    def add_items(self, items):
+        self.list_widget.addItems(items)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setSpacing(0)
+
+        self.list_widget = QtWidgets.QListWidget()
+        self.list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
+        self.toolbar = QtWidgets.QToolBar()
+        self.toolbar.setOrientation(QtCore.Qt.Vertical)
+        self.toolbar.setIconSize(QtCore.QSize(20,20))
+
+        self.action_remove = QtWidgets.QAction('-', self.toolbar)
+        self.action_remove.connect(QtCore.SIGNAL('triggered()'), self.remove_selected)
+        self.action_remove.setIcon(QtGui.QIcon(assets.get_asset('icons8-remove-50.png')))
+
+        self.toolbar.addAction(self.action_remove)
+
+        self.layout().addWidget(self.list_widget)
+        self.layout().addWidget(self.toolbar)
+
+    def add_toolbar_action(self, action):
+        self.toolbar.insertAction(self.action_remove, action)
+
 
 class AxNodeWidget(QtWidgets.QFrame):
 
@@ -35,10 +73,12 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.setAutoFillBackground(True)
 
         # Title
-        self.title_label = QtWidgets.QLabel('Demo')
-        # self.title_label.setStyleSheet('border-bottom: 1px solid black')
+        node_name = self.node.node_name if hasattr(self.node, 'node_name') else self.node.__class__.__name__
+        self.title_label = QtWidgets.QLabel(node_name)
+        self.title_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.title_label.setStyleSheet('border-bottom: 1px solid black; padding: 5px; font-size:12px; font-weight:bold;')
         self.title_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
-        self.title_label.setCursor(QtCore.Qt.SizeAllCursor)
+        #self.title_label.setCursor(QtCore.Qt.SizeAllCursor)
 
         # Content wrapper
         self.content_wrapper = QtWidgets.QWidget(self)
@@ -52,7 +92,8 @@ class AxNodeWidget(QtWidgets.QFrame):
 
         self.build_node_ui()
 
-        self.resize(300, 150)
+        self.setMinimumWidth(300)
+        self.setMaximumWidth(300)
 
     def get_default_controls(self):
         widget = QtWidgets.QWidget()
@@ -63,9 +104,8 @@ class AxNodeWidget(QtWidgets.QFrame):
         for name, prop in self.node.get_properties().items():
             label = prop.get_label() if prop.get_label() != '' else name
 
-            if hasattr(self.node, 'ui_field'):
-                control = self.node.ui_field(name)
-            else:
+            control = self.node.get_field_ui(name)
+            if control is None:
                 if prop.get_expected_type()[0] == str:
                     control = QtWidgets.QLineEdit()
                 elif prop.get_expected_type()[0] == bool:
@@ -79,9 +119,8 @@ class AxNodeWidget(QtWidgets.QFrame):
             return widget
 
     def build_node_ui(self):
-        if hasattr(self.node, 'ui'):
-            widget = self.node.ui()
-        else:
+        widget = self.node.get_ui()
+        if self.node.get_ui() is None:
             widget = self.get_default_controls()
 
         widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
