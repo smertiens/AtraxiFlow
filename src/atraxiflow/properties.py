@@ -39,7 +39,7 @@ class Property:
         return self._value
 
     def set_value(self, value):
-        if value is not None and not self.validate(value):
+        if value is not None and not self.validate(value) and not isinstance(value, MissingRequiredValue):
             raise ValueError('Invalid value "{}", expected {} for this kind of property.'.format(value, self._type))
         self._value = value
 

@@ -104,7 +104,6 @@ class DelayNode(Node):
 
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
-        self.apply_properties(self.user_properties)
         time.sleep(int(self.property('time').value()))
 
         return True

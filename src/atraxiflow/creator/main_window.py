@@ -44,13 +44,15 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         main_toolbar = QtWidgets.QToolBar()
 
         action_play = QtWidgets.QAction('Play', main_toolbar)
+        action_play.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
         action_play.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
         action_stop = QtWidgets.QAction('Stop', main_toolbar)
+        action_stop.setIcon(QtGui.QIcon(assets.get_asset('icons8-stop-50.png')))
 
         main_toolbar.addAction(action_play)
         main_toolbar.addAction(action_stop)
         dock_main_toolbar = QtWidgets.QDockWidget()
-        dock_main_toolbar.setWindowTitle('Main toolbar')
+        dock_main_toolbar.setWindowTitle('Controls')
         dock_main_toolbar.setWidget(main_toolbar)
 
         # Statusbar
@@ -121,7 +123,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
                         continue
 
                 node_item = QtWidgets.QTreeWidgetItem()
-                node_item.setText(0, node.__name__)
+                node_item.setText(0, node.get_name() if node.get_name() != '' else str(node.__name__))
                 node_item.setData(0, QtCore.Qt.UserRole, node)
                 node_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-box-50.png')))
                 parent_item.addChild(node_item)

@@ -110,6 +110,9 @@ class Node:
         self.properties = node_properties
         self.apply_properties(user_properties)
 
+    @staticmethod
+    def get_name() -> str:
+        return ''
 
     def get_ui(self)->QtWidgets.QWidget:
         return None

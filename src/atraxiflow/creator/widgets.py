@@ -75,7 +75,7 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.setAutoFillBackground(True)
 
         # Title
-        node_name = self.node.node_name if hasattr(self.node, 'node_name') else self.node.__class__.__name__
+        node_name = self.node.get_name() if self.node.get_name() != '' else self.node.__class__.__name__
         self.title_label = QtWidgets.QLabel(node_name)
         self.title_label.setAlignment(QtCore.Qt.AlignCenter)
         self.title_label.setStyleSheet(
@@ -114,6 +114,8 @@ class AxNodeWidget(QtWidgets.QFrame):
                     control = QtWidgets.QCheckBox()
                 elif prop.get_expected_type()[0] == list:
                     control = QtWidgets.QListWidget()
+                elif prop.get_expected_type()[0] == dict:
+                    control = AxListWidget()
                 else:
                     raise Exception('Unrecognized type: %s' % prop.get_expected_type()[0])
 

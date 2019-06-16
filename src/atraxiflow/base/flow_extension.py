@@ -13,5 +13,6 @@ from atraxiflow.core import *
 def boot(ctx: WorkflowContext):
     ctx.publish_nodes('AtraxiFlow', {
         'Common': ctx.autodiscover_nodes('atraxiflow.base.common'),
-        'Filesystem': ctx.autodiscover_nodes('atraxiflow.base.filesystem')
+        'Filesystem': ctx.autodiscover_nodes('atraxiflow.base.filesystem'),
+        'Text': ctx.autodiscover_nodes('atraxiflow.base.text')
     })

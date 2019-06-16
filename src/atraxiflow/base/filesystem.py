@@ -87,6 +87,10 @@ class FileFilterNode(Node):
         }
         super().__init__(node_properties, properties)
 
+    @staticmethod
+    def get_name() -> str:
+        return 'Filter files and folders'
+
     def _filesize_value_to_number(self, str_size):
         matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
 
