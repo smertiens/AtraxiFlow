@@ -5,85 +5,68 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.core.stream import Stream
-from atraxiflow.nodes.text import TextResource, TextValidatorNode
+from atraxiflow.core import *
+from atraxiflow.base.text import TextValidatorNode
+from atraxiflow.base.common import NullNode
+from atraxiflow.base.resources import TextResource
 
 
 def test_rule_not_empty():
-    text = TextResource('txt', {'text': 'Hello World!'})
-    text2 = TextResource('txt_empty', {'text': ''})
-
     node = TextValidatorNode({
-        'sources': 'Text:txt',
         'rules': {
             'not_empty': {}
         }
     })
 
-    st = Stream()
-    st.add_resource(text)
-    st.add_resource(text2)
-    st.append_node(node)
-    assert 2 == len(st.get_resources('Text:*'))
-    assert st.flow()
+    out_node = NullNode()
+    out_node.output.add(TextResource('Hello World'))
 
-    node.set_property('sources', 'Text:txt_empty')
+    assert Workflow.create([out_node, node]).run()
 
-    assert not st.flow()
+    out_node.output.clear()
+    out_node.output.add(TextResource(''))
+
+    assert not Workflow.create([out_node, node]).run()
 
 
 def test_rule_max_len():
-    text = TextResource('long', {'text': 'Hello World!'})
-    text2 = TextResource('short', {'text': 'Hello'})
-
     node = TextValidatorNode({
-        'sources': 'Text:short',
         'rules': {
             'max_len': {'length': 5}
         }
     })
 
-    st = Stream()
-    st.add_resource(text)
-    st.add_resource(text2)
-    st.append_node(node)
-    assert 2 == len(st.get_resources('Text:*'))
-    assert st.flow()
+    out_node = NullNode()
+    out_node.output.add(TextResource('Hello World'))
 
-    node.set_property('sources', 'Text:long')
+    assert not Workflow.create([out_node, node]).run()
 
-    assert not st.flow()
+    out_node.output.clear()
+    out_node.output.add(TextResource('Hello'))
+
+    assert Workflow.create([out_node, node]).run()
 
 
 def test_rule_min_len():
-    text = TextResource('long', {'text': 'Hello World!'})
-    text2 = TextResource('short', {'text': 'Hello'})
-
     node = TextValidatorNode({
-        'sources': 'Text:long',
         'rules': {
             'min_len': {'length': 10}
         }
     })
 
-    st = Stream()
-    st.add_resource(text)
-    st.add_resource(text2)
-    st.append_node(node)
-    assert 2 == len(st.get_resources('Text:*'))
-    assert st.flow()
+    out_node = NullNode()
+    out_node.output.add(TextResource('Hello World'))
 
-    node.set_property('sources', 'Text:short')
+    assert Workflow.create([out_node, node]).run()
 
-    assert not (st.flow())
+    out_node.output.clear()
+    out_node.output.add(TextResource('Hello'))
+
+    assert not Workflow.create([out_node, node]).run()
 
 
 def test_rule_regex_must_not_match():
-    text = TextResource('pos', {'text': 'Hello World!'})
-    text2 = TextResource('neg', {'text': 'HelloWorld'})
-
     node = TextValidatorNode({
-        'sources': 'Text:neg',
         'rules': {
             'regex': {
                 'pattern': r'\w+\s+\w+!',
@@ -92,22 +75,18 @@ def test_rule_regex_must_not_match():
         }
     })
 
-    st = Stream()
-    st.add_resource(text)
-    st.add_resource(text2)
-    st.append_node(node)
-    assert 2 == len(st.get_resources('Text:*'))
-    assert st.flow()
+    out_node = NullNode()
+    out_node.output.add(TextResource('Hello World!'))
 
-    node.set_property('sources', 'Text:pos')
+    assert not Workflow.create([out_node, node]).run()
 
-    assert not st.flow()
+    out_node.output.clear()
+    out_node.output.add(TextResource('HelloWorld'))
+
+    assert Workflow.create([out_node, node]).run()
 
 
 def test_rule_regex_must_match():
-    text = TextResource('neg', {'text': 'Hello World!'})
-    text2 = TextResource('pos', {'text': 'HelloWorld'})
-
     node = TextValidatorNode({
         'sources': 'Text:neg',
         'rules': {
@@ -118,13 +97,12 @@ def test_rule_regex_must_match():
         }
     })
 
-    st = Stream()
-    st.add_resource(text)
-    st.add_resource(text2)
-    st.append_node(node)
-    assert 2 == len(st.get_resources('Text:*'))
-    assert st.flow()
+    out_node = NullNode()
+    out_node.output.add(TextResource('Hello World!'))
 
-    node.set_property('sources', 'Text:pos')
+    assert Workflow.create([out_node, node]).run()
 
-    assert not st.flow()
+    out_node.output.clear()
+    out_node.output.add(TextResource('HelloWorld'))
+
+    assert not Workflow.create([out_node, node]).run()

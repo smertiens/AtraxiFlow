@@ -71,7 +71,7 @@ class TextValidatorNode(Node):
     def __init__(self, properties: dict = None):
 
         node_properties = {
-            'rules': Property(expected_type=list, label='Rules', required=False, hint='A list of validation rules',
+            'rules': Property(expected_type=dict, label='Rules', required=False, hint='A list of validation rules',
                               default={})
         }
 
