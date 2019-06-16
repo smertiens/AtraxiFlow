@@ -49,3 +49,6 @@ class Property:
     def validate(self, value) -> bool:
         return type(value) in self._type
 
+
+class MissingRequiredValue:
+    pass

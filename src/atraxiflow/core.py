@@ -9,12 +9,11 @@ import logging
 
 from PySide2 import QtWidgets
 from atraxiflow.exceptions import *
-from atraxiflow.properties import Property
+from atraxiflow.properties import Property, MissingRequiredValue
 import importlib, pkgutil, inspect
 from typing import List, Any, Dict
 
 __all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext']
-
 
 class Resource:
     """
@@ -101,6 +100,14 @@ class Node:
 
     """
 
+    def __init__(self, node_properties: Dict, user_properties: Dict, id:str = ''):
+        self._input = None
+        self.id = id if id != '' else '%s.%s' % (self.__module__, self.__class__.__name__)
+        self.output = Container()
+        self.properties = node_properties
+        self.apply_properties(user_properties)
+
+
     def get_ui(self)->QtWidgets.QWidget:
         return None
 
@@ -125,7 +132,7 @@ class Node:
                 raise ValueError()
 
             if name not in properties and property.is_required():
-                raise PropertyException('Property %s is required' % name)
+                self.property(name).set_value(MissingRequiredValue())
             elif name not in properties:
                 self.property(name).set_value(property.get_default())
 
@@ -135,14 +142,17 @@ class Node:
 
                 self.property(name).set_value(properties[name])
 
+
     def property(self, name) -> Property:
         if not name in self.properties:
             raise PropertyNotFoundException('Property %s not found' % name)
 
         return self.properties[name]
 
-    def run(self, ctx) -> bool:
-        raise Exception("Node class must implement run-method")
+    def run(self, ctx):
+        for name, property in self.properties.items():
+            if isinstance(property.value(), MissingRequiredValue):
+                raise Exception('Property "{}" is required'.format(name))
 
     def set_input(self, node):
         self._input = node

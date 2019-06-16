@@ -22,19 +22,19 @@ __all__ = ['NullNode', 'EchoOutputNode', 'DelayNode', 'CLIInputNode', 'ShellExec
 class ShellExecNode(Node):
 
     def __init__(self, properties: dict = None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        node_properties = {
             'cmd': Property(expected_type=str, required=True, label='Command',
                             hint='Command to execute', default=''),
             'echo_cmd': Property(expected_type=bool, required=False, default=False, label='Echo command'),
             'echo_output': Property(expected_type=bool, required=False, default=False, label='Echo output')
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+
+        super().__init__(node_properties, properties)
+
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.user_properties)
+        super().run(ctx)
+
         cmd = ctx.process_str(self.property('cmd').value())
         args = shlex.split(cmd)
 
@@ -75,16 +75,15 @@ class ShellExecNode(Node):
 class EchoOutputNode(Node):
 
     def __init__(self, properties=None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        node_properties = {
             'msg': Property(expected_type=str, required=False, hint='Text to output', label='Message')
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+        super().__init__(node_properties, properties)
+
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.user_properties)
+        super().run(ctx)
+
         if self.property('msg') is not None:
             print(self.property('msg').value())
 
@@ -135,17 +134,14 @@ class NullNode(Node):
 class CLIInputNode(Node):
 
     def __init__(self, properties=None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        user_properties = {
             'prompt': Property(expected_type=str, required=False,
                                hint='The text to display when prompting the user for input.', default='')
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+        super().__init__(user_properties, properties)
 
     def run(self, ctx: WorkflowContext) -> bool:
-        self.apply_properties(self.user_properties)
+        super().run(ctx)
         prompt = ctx.process_str(self.property('prompt').value())
         user_input = input(prompt)
 
