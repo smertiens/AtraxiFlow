@@ -110,8 +110,10 @@ class AxNodeWidget(QtWidgets.QFrame):
             if control is None:
                 if prop.get_expected_type()[0] == str:
                     control = QtWidgets.QLineEdit()
+                    control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: prop.set_value(s))
                 elif prop.get_expected_type()[0] == bool:
                     control = QtWidgets.QCheckBox()
+                    control.connect(QtCore.SIGNAL(''))
                 elif prop.get_expected_type()[0] == list:
                     control = QtWidgets.QListWidget()
                 elif prop.get_expected_type()[0] == dict:
