@@ -127,7 +127,7 @@ class CLIInputNode(Node):
 
     def __init__(self, properties=None):
         user_properties = {
-            'prompt': Property(expected_type=str, required=False,
+            'prompt': Property(expected_type=str, required=False, label='Prompt',
                                hint='The text to display when prompting the user for input.', default='')
         }
         super().__init__(user_properties, properties)

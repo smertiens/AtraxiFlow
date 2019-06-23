@@ -46,12 +46,15 @@ class RunWorkflowTask(Task):
     def __init__(self, nodes: List[Node]):
         super().__init__()
         self.nodes = nodes
+        self.workflow = Workflow(nodes)
+
+    def get_workflow(self):
+        return self.workflow
 
     def run(self) -> None:
         self.emit_on_start()
         self.emit_on_status_msg_changed('Starting workflow...')
 
-        wf = Workflow(self.nodes)
-        wf.run()
+        self.workflow.run()
 
         self.emit_on_finish()

@@ -28,17 +28,28 @@ class AxListWidget(QtWidgets.QWidget):
     def get_toolbar(self):
         return self.toolbar
 
+    def get_list(self):
+        return self.list_widget
+
     def add_items(self, items):
         self.list_widget.addItems(items)
+        self.list_changed.emit()
+
+    def add_item(self, item):
+        self.list_widget.addItem(item)
+        self.list_changed.emit()
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self.list_changed = QtCore.Signal()
 
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setSpacing(0)
 
         self.list_widget = QtWidgets.QListWidget()
         self.list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
+
         self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setOrientation(QtCore.Qt.Vertical)
         self.toolbar.setIconSize(QtCore.QSize(20, 20))
@@ -51,6 +62,8 @@ class AxListWidget(QtWidgets.QWidget):
 
         self.layout().addWidget(self.list_widget)
         self.layout().addWidget(self.toolbar)
+
+
 
     def add_toolbar_action(self, action):
         self.toolbar.insertAction(self.action_remove, action)
@@ -79,8 +92,16 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.title_label = QtWidgets.QLabel(node_name)
         self.title_label.setAlignment(QtCore.Qt.AlignCenter)
         self.title_label.setStyleSheet(
-            'border-bottom: 1px solid black; padding: 5px; font-size:12px; font-weight:bold;')
+            'padding: 5px; font-size:12px; font-weight:bold;')
         self.title_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.btn_close = QtWidgets.QPushButton('x')
+        self.btn_close.connect(QtCore.SIGNAL('pressed()'), self.remove)
+        self.btn_close.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.btn_close.setFlat(True)
+
+        title_layout = QtWidgets.QHBoxLayout()
+        title_layout.addWidget(self.title_label)
+        title_layout.addWidget(self.btn_close)
         # self.title_label.setCursor(QtCore.Qt.SizeAllCursor)
 
         # Content wrapper
@@ -90,13 +111,17 @@ class AxNodeWidget(QtWidgets.QFrame):
         # Add to window
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
-        self.layout().addWidget(self.title_label)
+        self.layout().addLayout(title_layout)
         # self.layout().addWidget(self.content_wrapper)
 
         self.build_node_ui()
 
         self.setMinimumWidth(300)
         self.setMaximumWidth(300)
+
+    def remove(self):
+        print('removing')
+        self.parent().remove_node(self)
 
     def get_default_controls(self):
         widget = QtWidgets.QWidget()
@@ -110,19 +135,20 @@ class AxNodeWidget(QtWidgets.QFrame):
             if control is None:
                 if prop.get_expected_type()[0] == str:
                     control = QtWidgets.QLineEdit()
-                    control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: prop.set_value(s))
+                    control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
                 elif prop.get_expected_type()[0] == bool:
                     control = QtWidgets.QCheckBox()
-                    control.connect(QtCore.SIGNAL(''))
+                    control.connect(QtCore.SIGNAL('stateChanged(int)'), lambda i, prop=prop: prop.set_value(i == 2))
                 elif prop.get_expected_type()[0] == list:
-                    control = QtWidgets.QListWidget()
+                    raise Exception('Properties of type dict need to define a custom ui (for example using AxListWidget).')
                 elif prop.get_expected_type()[0] == dict:
-                    control = AxListWidget()
+                    raise Exception('Properties of type dict need to define a custom ui.')
                 else:
                     raise Exception('Unrecognized type: %s' % prop.get_expected_type()[0])
 
             widget.layout().addRow(label, control)
-            return widget
+
+        return widget
 
     def build_node_ui(self):
         widget = self.node.get_ui()
@@ -152,14 +178,15 @@ class AxNodeWidget(QtWidgets.QFrame):
 
         parent = self
         subnode = self.dock_child_widget
+        offset_y = self.y() + self.height()
         while subnode is not None:
-            self.parent().dock(parent, subnode)
-            parent = subnode
+            subnode.move(self.x(), offset_y)
+            offset_y += subnode.height()
             subnode = subnode.dock_child_widget
 
-        br = self.rect().bottomRight() + self.pos()
+        br = QtCore.QPoint(self.x() + self.width(), offset_y)
         parent_w = br.x() + 10 if br.x() > self.parent().width() + 10 else self.parent().width()
-        parent_h = br.x() + 10 if br.y() > self.parent().height() + 10 else self.parent().height()
+        parent_h = br.y() + 10 if br.y() > self.parent().height() + 10 else self.parent().height()
         self.parent().resize(parent_w, parent_h)
 
         self.parent().dock_neighbours(self)
@@ -176,6 +203,18 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
             node_widget = node_widget.dock_parent_widget
 
         return node_widget
+
+    def remove_node(self, node: AxNodeWidget):
+
+        if node.dock_parent_widget is not None:
+            node.dock_parent_widget.dock_child_widget = None
+
+        if node.dock_child_widget is not None:
+            node.dock_child_widget.dock_parent_widget = None
+
+        self.nodes.remove(node)
+        node.deleteLater()
+
 
     def extract_node_hierarchy_from_widgets(self, root_node: AxNodeWidget) -> list:
         nodes = [root_node.node]
@@ -198,17 +237,25 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
 
     def discover_nodes(self):
         self.nodes.clear()
+        print(self.children())
         for child in self.children():
             if isinstance(child, AxNodeWidget):
                 self.nodes.append(child)
 
-    def dock(self, upper: AxNodeWidget, lower: AxNodeWidget):
+
+    def dock(self, upper: AxNodeWidget, lower: AxNodeWidget, recursive = True):
         lower.move(
             upper.pos().x(),
             upper.pos().y() + upper.rect().height()
         )
         upper.dock_child_widget = lower
         lower.dock_parent_widget = upper
+
+        subnode = lower.dock_child_widget
+        if recursive:
+            while subnode is not None:
+                self.dock(subnode.dock_parent_widget, subnode, False)
+                subnode = subnode.dock_child_widget
 
     def undock(self, upper: AxNodeWidget, lower: AxNodeWidget):
         upper.dock_child_widget = None
@@ -226,7 +273,7 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
                 QtCore.QSize(node.rect().width() + 2 * radius, 4 * radius)
             )
 
-            if hot_area.contains(widget.pos()) or hot_area.contains(widget.rect().topRight()):
+            if hot_area.contains(widget.pos()) or hot_area.contains(widget.rect().topRight()) and (node.dock_child_widget is None):
                 self.dock(node, widget)
             else:
                 if node == widget.dock_parent_widget:

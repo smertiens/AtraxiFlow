@@ -103,6 +103,9 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             print (ax_nodes)
 
             run_task = tasks.RunWorkflowTask(ax_nodes)
+
+            #run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_STARTED, )
+
             run_task.start()
 
 

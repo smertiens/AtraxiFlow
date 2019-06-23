@@ -23,33 +23,45 @@ from PySide2 import QtWidgets, QtCore, QtGui
 class LoadFilesNode(Node):
 
     def __init__(self, properties: dict = None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {
+        node_properties = {
             'path': Property(expected_type=str, required=True, display_options={'role': 'files_folders'})
         }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+        super().__init__(node_properties, properties)
+
+    @staticmethod
+    def get_name() -> str:
+        return 'Get files and folders'
 
     def run(self, ctx: WorkflowContext):
-        self.apply_properties(self.user_properties)
+        super().run(ctx)
         self.output = Container(FilesystemResource(self.property('path').value()))
 
     def get_ui(self):
 
         def add_path(lst: AxListWidget, mode='files'):
-            dlg = QtWidgets.QFileDialog()
+            path = ''
 
-            if mode == 'files':
-                dlg.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
-            elif mode == 'folder':
-                dlg.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+            if mode == 'text':
+                text = QtWidgets.QInputDialog.getText(lst, 'Add path', 'Enter a path, you may use wildcards (*)',
+                                                     QtWidgets.QLineEdit.Normal)
 
-            dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
-            if not dlg.exec_():
-                return
+                if text[1]:
+                    path = [text[0]]
 
-            path = dlg.selectedFiles()
+            else:
+                dlg = QtWidgets.QFileDialog()
+
+                if mode == 'files':
+                    dlg.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
+                elif mode == 'folder':
+                    dlg.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+
+                dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
+                if not dlg.exec_():
+                    return
+
+                path = dlg.selectedFiles()
+
             lst.add_items(path)
 
         list_widget = AxListWidget()
@@ -57,12 +69,17 @@ class LoadFilesNode(Node):
         action_add_files.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'files'))
         action_add_files.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-file-50.png')))
 
-        action_add_folder = QtWidgets.QAction('+P', list_widget.get_toolbar())
+        action_add_folder = QtWidgets.QAction('+F', list_widget.get_toolbar())
         action_add_folder.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'folder'))
         action_add_folder.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-folder-50.png')))
 
+        action_add_string = QtWidgets.QAction('+T', list_widget.get_toolbar())
+        action_add_string.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'text'))
+        action_add_string.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-text-50.png')))
+
         list_widget.add_toolbar_action(action_add_files)
         list_widget.add_toolbar_action(action_add_folder)
+        list_widget.add_toolbar_action(action_add_string)
 
         return list_widget
 

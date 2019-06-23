@@ -8,6 +8,7 @@
 import logging
 
 from PySide2 import QtWidgets
+from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
 from atraxiflow.properties import Property, MissingRequiredValue
 import importlib, pkgutil, inspect
@@ -262,11 +263,17 @@ class WorkflowContext:
 
             mod.boot(self)
 
-class Workflow:
+class Workflow(EventObject):
+
+    EVENT_RUN_STARTED = "EVENT_RUN_STARTED"
+    EVENT_RUN_FINISHED = "EVENT_RUN_FINISHED"
+    EVENT_NODE_RUN_STARTED = "EVENT_NODE_RUN_STARTED"
+    EVENT_NODE_RUN_FINISHED = "EVENT_NODE_RUN_FINISHED"
 
     def __init__(self, nodes: List[Node]=None):
         self._nodes = nodes if isinstance(nodes, list) else []
         self._ctx = WorkflowContext()
+        self._listeners = {}
 
     def add_node(self, node: Node):
         self._nodes.append(node)
@@ -297,7 +304,7 @@ class Workflow:
         :return: bool - If false, errors have occured while processing the stream
         '''
         self._ctx.get_logger().info("Starting processing")
-        # self.fire_event(self.EVENT_STREAM_STARTED)
+        self.fire_event(self.EVENT_RUN_STARTED)
         self._pos = -1
         nodes_processed = 0
         prev_node = None
@@ -306,25 +313,28 @@ class Workflow:
             self._pos += 1
 
             self._ctx.get_logger().debug("Running node {0}".format(node.__class__.__name__))
-            # self.fire_event(self.EVENT_NODE_STARTED)
+
             if prev_node is not None:
                 node.set_input(prev_node)
 
+            self.fire_event(self.EVENT_NODE_RUN_STARTED, {'node': node})
             res = node.run(self._ctx)
+            self.fire_event(self.EVENT_NODE_RUN_FINISHED, {'node': node})
+
             prev_node = node
             nodes_processed += 1
-            # self.fire_event(self.EVENT_NODE_FINISHED)
+
 
             if res is False:
                 self._ctx.get_logger().warning("Node failed.")
                 self._ctx.get_logger().info(
                     "Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
-                # self.fire_event(self.EVENT_STREAM_FINISHED)
+                self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
 
                 return False
 
         self._ctx.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
-        # self.fire_event(self.EVENT_STREAM_FINISHED)
+        self.fire_event(self.EVENT_RUN_FINISHED, {'errors': False, 'nodes_processed': nodes_processed})
         return True
 
 
