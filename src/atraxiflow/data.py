@@ -20,17 +20,17 @@ class DatetimeProcessor:
     def __init__(self):
         self._range = None
 
-    def get_logger(self):
+    def get_logger(self) -> logging.Logger:
         '''
         Returns the classes logger
         :return: Logger
         '''
         return logging.getLogger(DatetimeProcessor.__module__)
 
-    def get_range(self):
+    def get_range(self) -> datetime:
         return self._range
 
-    def process_string(self, date_str):
+    def process_string(self, date_str: str):
         if 'today' == date_str:
             self._range = self.RANGE_DATE
             return datetime.now()
@@ -96,7 +96,7 @@ class StringValueProcessor:
         self._value_map[key] = value
         return self
 
-    def parse(self, string):
+    def parse(self, string: str) -> str:
         """
 
         :type string: str

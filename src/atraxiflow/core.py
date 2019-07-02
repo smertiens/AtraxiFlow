@@ -6,6 +6,7 @@
 #
 
 import logging
+import inspect
 
 from PySide2 import QtWidgets
 from atraxiflow.events import EventObject
@@ -14,7 +15,8 @@ from atraxiflow.properties import Property, MissingRequiredValue
 import importlib, pkgutil, inspect
 from typing import List, Any, Dict
 
-__all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext']
+__all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext', 'get_node_info']
+
 
 class Resource:
     """
@@ -104,7 +106,7 @@ class Node:
 
     """
 
-    def __init__(self, node_properties: Dict, user_properties: Dict, id:str = ''):
+    def __init__(self, node_properties: Dict, user_properties: Dict, id: str = ''):
         self._input = None
         self.id = id if id != '' else '%s.%s' % (self.__module__, self.__class__.__name__)
         self.output = Container()
@@ -115,10 +117,10 @@ class Node:
     def get_name() -> str:
         return ''
 
-    def get_ui(self)->QtWidgets.QWidget:
+    def get_ui(self) -> QtWidgets.QWidget:
         return None
 
-    def get_field_ui(self, field_name:str) -> QtWidgets.QWidget:
+    def get_field_ui(self, field_name: str) -> QtWidgets.QWidget:
         return None
 
     def get_properties(self) -> Dict[str, Property]:
@@ -148,7 +150,6 @@ class Node:
                     raise PropertyException('Invalid value for %s' % name)
 
                 self.property(name).set_value(properties[name])
-
 
     def property(self, name) -> Property:
         if not name in self.properties:
@@ -189,7 +190,7 @@ class WorkflowContext:
         self._symbol_table = {}
         self.load_extensions()
 
-    def autodiscover_nodes(self, root_package: str)-> list:
+    def autodiscover_nodes(self, root_package: str) -> list:
 
         def collect_module_data(mod):
             result = []
@@ -220,19 +221,19 @@ class WorkflowContext:
     def publish_nodes(self, group_name: str, nodes: dict):
         self._nodes[group_name] = nodes
 
-    def get_nodes(self)->Dict[str, list]:
+    def get_nodes(self) -> Dict[str, list]:
         return self._nodes
 
-    def has_symbol(self, name: str)->bool:
+    def has_symbol(self, name: str) -> bool:
         return name in self._symbol_table
 
-    def set_symbol(self, name:str, value: Any):
+    def set_symbol(self, name: str, value: Any):
         if self.has_symbol(name):
             self.get_logger().warning('Overriding existing symbol "{}"'.format(name))
 
         self._symbol_table[name] = value
 
-    def get_symbol(self, name: str)->Any:
+    def get_symbol(self, name: str) -> Any:
         return self._symbol_table[name]
 
     def get_symbols(self) -> dict:
@@ -263,14 +264,14 @@ class WorkflowContext:
 
             mod.boot(self)
 
-class Workflow(EventObject):
 
+class Workflow(EventObject):
     EVENT_RUN_STARTED = "EVENT_RUN_STARTED"
     EVENT_RUN_FINISHED = "EVENT_RUN_FINISHED"
     EVENT_NODE_RUN_STARTED = "EVENT_NODE_RUN_STARTED"
     EVENT_NODE_RUN_FINISHED = "EVENT_NODE_RUN_FINISHED"
 
-    def __init__(self, nodes: List[Node]=None):
+    def __init__(self, nodes: List[Node] = None):
         self._nodes = nodes if isinstance(nodes, list) else []
         self._ctx = WorkflowContext()
         self._listeners = {}
@@ -279,7 +280,7 @@ class Workflow(EventObject):
         self._nodes.append(node)
 
     @staticmethod
-    def create(nodes: List[Node]=None):
+    def create(nodes: List[Node] = None):
         ''' Convenience function to create a new stream '''
         return Workflow(nodes)
 
@@ -324,7 +325,6 @@ class Workflow(EventObject):
             prev_node = node
             nodes_processed += 1
 
-
             if res is False:
                 self._ctx.get_logger().warning("Node failed.")
                 self._ctx.get_logger().info(
@@ -340,3 +340,28 @@ class Workflow(EventObject):
 
 def run():
     return 'run'
+
+
+def get_node_info(node_object: object) -> dict:
+    docstr = inspect.getdoc(node_object)
+    result = {
+        'name': '',
+        'accepts': [],
+        'returns': []
+    }
+
+    for line in docstr.split('\n'):
+        if not ':' in line:
+            continue
+
+        line = line.lstrip()
+        k = line[0:line.find(':')].lower()
+        val = line[line.find(':') + 1:].lstrip()
+
+        if not k in result:
+            raise KeyError('Unknown key: "%s"' % k)
+
+        # TODO: reformat accepts/return
+        result[k] = val
+
+    return result

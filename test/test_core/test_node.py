@@ -10,6 +10,12 @@ from atraxiflow.properties import Property
 
 
 class DemoNode(Node):
+    """
+
+    Name: Demo Node
+    Accepts: foo, bar
+
+    """
 
     def __init__(self, properties=None):
         self.output = Container()
@@ -27,6 +33,10 @@ class DemoNode(Node):
     def run(self, ctx: WorkflowContext) -> bool:
         return True
 
+def test_get_properties_from_docstring():
+
+    info = get_node_info(DemoNode)
+    assert info['name'] == 'Demo Node'
 
 def test_empty_properties():
     test = DemoNode()
