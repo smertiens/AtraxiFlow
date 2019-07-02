@@ -27,6 +27,7 @@ class LoadFilesNode(Node):
             'paths': Property(expected_type=list, required=True, display_options={'role': 'files_folders'})
         }
         super().__init__(node_properties, properties)
+        self.list_widget = None
 
     @staticmethod
     def get_name() -> str:
@@ -47,53 +48,58 @@ class LoadFilesNode(Node):
         for path in expanded_paths:
             self.output.add(FilesystemResource(path))
 
+    def apply_ui_data(self):
+        if not self.ui_env:
+            return
+
+        self.property('paths').set_value(self.list_widget.get_item_list())
+
+    def add_path(self, lst: AxListWidget, mode='files'):
+        path = ''
+
+        if mode == 'text':
+            text = QtWidgets.QInputDialog.getText(lst, 'Add path', 'Enter a path, you may use wildcards (*)',
+                                                  QtWidgets.QLineEdit.Normal)
+
+            if text[1]:
+                path = [text[0]]
+
+        else:
+            dlg = QtWidgets.QFileDialog()
+
+            if mode == 'files':
+                dlg.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
+            elif mode == 'folder':
+                dlg.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+
+            dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
+            if not dlg.exec_():
+                return
+
+            path = dlg.selectedFiles()
+
+        self.list_widget.add_items(path)
 
     def get_ui(self):
-
-        def add_path(lst: AxListWidget, mode='files'):
-            path = ''
-
-            if mode == 'text':
-                text = QtWidgets.QInputDialog.getText(lst, 'Add path', 'Enter a path, you may use wildcards (*)',
-                                                     QtWidgets.QLineEdit.Normal)
-
-                if text[1]:
-                    path = [text[0]]
-
-            else:
-                dlg = QtWidgets.QFileDialog()
-
-                if mode == 'files':
-                    dlg.setFileMode(QtWidgets.QFileDialog.ExistingFiles)
-                elif mode == 'folder':
-                    dlg.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
-
-                dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptOpen)
-                if not dlg.exec_():
-                    return
-
-                path = dlg.selectedFiles()
-
-            lst.add_items(path)
-
-        list_widget = AxListWidget()
-        action_add_files = QtWidgets.QAction('+', list_widget.get_toolbar())
-        action_add_files.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'files'))
+        self.list_widget = AxListWidget()
+        action_add_files = QtWidgets.QAction('+', self.list_widget.get_toolbar())
+        action_add_files.connect(QtCore.SIGNAL('triggered()'), lambda lst=self.list_widget: self.add_path(lst, 'file'))
         action_add_files.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-file-50.png')))
 
-        action_add_folder = QtWidgets.QAction('+F', list_widget.get_toolbar())
-        action_add_folder.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'folder'))
+        action_add_folder = QtWidgets.QAction('+F', self.list_widget.get_toolbar())
+        action_add_folder.connect(QtCore.SIGNAL('triggered()'),
+                                  lambda lst=self.list_widget: self.add_path(lst, 'folder'))
         action_add_folder.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-folder-50.png')))
 
-        action_add_string = QtWidgets.QAction('+T', list_widget.get_toolbar())
-        action_add_string.connect(QtCore.SIGNAL('triggered()'), lambda: add_path(list_widget, 'text'))
+        action_add_string = QtWidgets.QAction('+T', self.list_widget.get_toolbar())
+        action_add_string.connect(QtCore.SIGNAL('triggered()'), lambda lst=self.list_widget: self.add_path(lst, 'text'))
         action_add_string.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-text-50.png')))
 
-        list_widget.add_toolbar_action(action_add_files)
-        list_widget.add_toolbar_action(action_add_folder)
-        list_widget.add_toolbar_action(action_add_string)
+        self.list_widget.add_toolbar_action(action_add_files)
+        self.list_widget.add_toolbar_action(action_add_folder)
+        self.list_widget.add_toolbar_action(action_add_string)
 
-        return list_widget
+        return self.list_widget
 
 
 class FileFilterNode(Node):
@@ -352,7 +358,7 @@ class FSRenameNode(Node):
         resources = self.get_input().find('atraxiflow.FilesystemResource')
 
         for res in resources:
-            assert isinstance(res, FilesystemResource) # helps with autocompletion
+            assert isinstance(res, FilesystemResource)  # helps with autocompletion
 
             new_name = res.get_absolute_path()
             svp = StringValueProcessor(ctx)

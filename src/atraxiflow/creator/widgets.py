@@ -20,6 +20,7 @@ class AxFileSelectionWidget(QtWidgets.QWidget):
 
 
 class AxListWidget(QtWidgets.QWidget):
+    list_changed = QtCore.Signal()
 
     def remove_selected(self):
         for item in self.list_widget.selectedItems():
@@ -28,8 +29,14 @@ class AxListWidget(QtWidgets.QWidget):
     def get_toolbar(self):
         return self.toolbar
 
-    def get_list(self):
+    def get_list(self) -> QtWidgets.QListWidget:
         return self.list_widget
+
+    def get_item_list(self) -> list:
+        result = []
+        for n in range(0, self.list_widget.count()):
+            result.append(self.list_widget.item(n).text())
+        return result
 
     def add_items(self, items):
         self.list_widget.addItems(items)
@@ -41,8 +48,6 @@ class AxListWidget(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-
-        self.list_changed = QtCore.Signal()
 
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setSpacing(0)
@@ -152,7 +157,8 @@ class AxNodeWidget(QtWidgets.QFrame):
 
     def build_node_ui(self):
         widget = self.node.get_ui()
-        if self.node.get_ui() is None:
+
+        if widget is None:
             widget = self.get_default_controls()
 
         widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
@@ -237,7 +243,7 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
 
     def discover_nodes(self):
         self.nodes.clear()
-        print(self.children())
+
         for child in self.children():
             if isinstance(child, AxNodeWidget):
                 self.nodes.append(child)

@@ -82,7 +82,7 @@ class Container:
         return result
 
     def __str__(self):
-        lines = ['\t' + str(x) for x in self._items]
+        lines = ['\t' +  x.__class__.__name__ + ': ' + str(x) for x in self._items]
         lines.insert(0, 'Container:')
         return '\n'.join(lines)
 
@@ -115,10 +115,17 @@ class Node:
         self.output = Container()
         self.properties = node_properties
         self.apply_properties(user_properties)
+        self.ui_env = False
 
     @staticmethod
     def get_name() -> str:
         return ''
+
+    def apply_ui_data(self):
+        """
+        This function is executed before the "run()" method in Creator
+        """
+        pass
 
     def get_ui(self) -> QtWidgets.QWidget:
         return None
@@ -161,9 +168,12 @@ class Node:
         return self.properties[name]
 
     def run(self, ctx):
+        self.apply_ui_data()
+
         for name, property in self.properties.items():
             if isinstance(property.value(), MissingRequiredValue):
                 raise Exception('Property "{}" is required'.format(name))
+
 
     def set_input(self, node):
         self._input = node
@@ -192,6 +202,8 @@ class WorkflowContext:
         self._nodes = {}
         self._symbol_table = {}
         self.load_extensions()
+
+        self.get_logger().setLevel(logging.DEBUG)
 
     def autodiscover_nodes(self, root_package: str) -> list:
 
@@ -278,6 +290,12 @@ class Workflow(EventObject):
         self._nodes = nodes if isinstance(nodes, list) else []
         self._ctx = WorkflowContext()
         self._listeners = {}
+
+    def get_nodes(self):
+        return self._nodes
+
+    def get_context(self):
+        return self._ctx
 
     def add_node(self, node: Node):
         self._nodes.append(node)

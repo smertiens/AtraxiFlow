@@ -80,7 +80,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_node_tree)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_main_toolbar)
         central_widget.layout().addWidget(self.tab_bar)
-        #self.addToolBar(QtCore.Qt.LeftToolBarArea, main_toolbar)
+        # self.addToolBar(QtCore.Qt.LeftToolBarArea, main_toolbar)
         self.setMenuBar(menu_bar)
         self.setCentralWidget(central_widget)
         self.setStatusBar(self.status_bar)
@@ -100,14 +100,20 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         if selected_node is not None:
             root_node = node_container.get_root_node(selected_node)
             ax_nodes = node_container.extract_node_hierarchy_from_widgets(root_node)
-            print (ax_nodes)
+
+            for node in ax_nodes:
+                node.ui_env = True
 
             run_task = tasks.RunWorkflowTask(ax_nodes)
+            run_task.set_on_finish(self.run_finished)
+            # run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_STARTED, )
 
-            #run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_STARTED, )
-
+            print('Running task')
             run_task.start()
 
+    def run_finished(self, task: tasks.RunWorkflowTask):
+        for node in task.get_workflow().get_nodes():
+            print(node.output)
 
     def add_node_to_current_workspace(self, node):
         wrapper = self.tab_bar.currentWidget().widget()

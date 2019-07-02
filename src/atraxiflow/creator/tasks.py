@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-import threading
+import threading, logging
 from typing import List, Callable
 
 from atraxiflow.core import *
@@ -30,11 +30,11 @@ class Task(threading.Thread):
 
     def emit_on_start(self):
         if self.on_start is not None:
-            self.on_start()
+            self.on_start(self)
 
     def emit_on_finish(self):
         if self.on_finish is not None:
-            self.on_finish()
+            self.on_finish(self)
 
     def emit_on_status_msg_changed(self, msg: str):
         if self.on_status_msg_changed is not None:
