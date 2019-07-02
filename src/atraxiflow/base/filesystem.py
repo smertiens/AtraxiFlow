@@ -4,7 +4,7 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-import os
+import os, glob
 import re
 import shutil
 from pathlib import Path
@@ -24,7 +24,7 @@ class LoadFilesNode(Node):
 
     def __init__(self, properties: dict = None):
         node_properties = {
-            'path': Property(expected_type=str, required=True, display_options={'role': 'files_folders'})
+            'paths': Property(expected_type=list, required=True, display_options={'role': 'files_folders'})
         }
         super().__init__(node_properties, properties)
 
@@ -34,7 +34,19 @@ class LoadFilesNode(Node):
 
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
-        self.output = Container(FilesystemResource(self.property('path').value()))
+        self.output.clear()
+
+        expanded_paths = []
+        for path in self.property('paths').value():
+            # resolve wildcards
+            path_exp = glob.glob(path)
+
+            for sub_path in path_exp:
+                expanded_paths.append(os.path.realpath(sub_path))
+
+        for path in expanded_paths:
+            self.output.add(FilesystemResource(path))
+
 
     def get_ui(self):
 
@@ -108,7 +120,7 @@ class FileFilterNode(Node):
     def get_name() -> str:
         return 'Filter files and folders'
 
-    def _filesize_value_to_number(self, str_size):
+    def _filesize_value_to_number(self, str_size: str) -> int:
         matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
 
         if matches is None:
@@ -134,21 +146,17 @@ class FileFilterNode(Node):
 
             return int(matches.group(1)) * f
 
-    def _matches_filter(self, fso, filter):
-        """
-
-        :type fso: FSObject
-        """
+    def _matches_filter(self, fsres: FilesystemResource, filter: dict) -> bool:
         left_val = None
         right_val = None
 
         dtp = DatetimeProcessor()
 
         if filter[0] == "file_size":
-            left_val = fso.getFilesize()
+            left_val = fsres.get_filesize()
             right_val = self._filesize_value_to_number(filter[2])
         elif filter[0] == "date_created":
-            left_val = fso.getCreated()
+            left_val = fsres.get_created()
             right_val = dtp.process_string(filter[2])
 
             if dtp.get_range() == DatetimeProcessor.RANGE_DATE:
@@ -162,7 +170,7 @@ class FileFilterNode(Node):
                 right_val.replace(microsecond=0)
 
         elif filter[0] == "date_modified":
-            left_val = fso.getLastModified()
+            left_val = fsres.get_last_modified()
             right_val = dtp.process_string(filter[2])
 
             if dtp.get_range() == DatetimeProcessor.RANGE_DATE:
@@ -176,7 +184,7 @@ class FileFilterNode(Node):
                 right_val = right_val.replace(microsecond=0)
 
         elif filter[0] == "type":
-            left_val = 'folder' if fso.isFolder() else 'file'
+            left_val = 'folder' if fsres.is_folder() else 'file'
             right_val = filter[2]
 
             if filter[1] != '=':
@@ -187,17 +195,17 @@ class FileFilterNode(Node):
 
             right_val = filter[2]
             if filter[1] == 'contains':
-                return fso.getFilename().find(right_val) > -1
+                return fsres.get_filename().find(right_val) > -1
             elif filter[1] == 'startswith':
-                return fso.getFilename().startswith(right_val)
+                return fsres.get_filename().startswith(right_val)
             elif filter[1] == 'endswith':
-                return fso.getFilename().endswith(right_val)
+                return fsres.get_filename().endswith(right_val)
             elif filter[1] == 'matches':
                 if type(right_val) != type(re.compile('')):
                     self.ctx.get_logger().error(
                         'Value to compare needs to be a compiled regex when using "matches" operator.')
                     raise Exception('Cannot continue due to previous errors. See log for details.')
-                return right_val.match(fso.getFilename())
+                return right_val.match(fsres.get_filename())
             else:
                 self.ctx.get_logger().error(
                     'Filter "file_name" only supports operators: contain, startswith, endswith, matches (regex).')
@@ -207,17 +215,17 @@ class FileFilterNode(Node):
 
             right_val = filter[2]
             if filter[1] == 'contains':
-                return fso.getDirectory().find(right_val) > -1
+                return fsres.get_directory().find(right_val) > -1
             elif filter[1] == 'startswith':
-                return fso.getDirectory().startswith(right_val)
+                return fsres.get_directory().startswith(right_val)
             elif filter[1] == 'endswith':
-                return fso.getDirectory().endswith(right_val)
+                return fsres.get_directory().endswith(right_val)
             elif filter[1] == 'matches':
                 if type(right_val) != type(re.compile('')):
                     self.ctx.get_logger().error(
                         'Value to compare needs to be a compiled regex when using "matches" operator.')
                     raise Exception('Cannot continue due to previous errors. See log for details.')
-                return right_val.match(fso.getDirectory())
+                return right_val.match(fsres.get_directory())
             else:
                 self.ctx.get_logger().error(
                     'Filter "file_name" only supports operators: contain, startswith, endswith, matches (regex).')
@@ -244,22 +252,14 @@ class FileFilterNode(Node):
         self.output.clear()
         self.ctx = ctx
 
-        # filter FSObjects from every resource and filter them down
         for resource in self.get_input().find('atraxiflow.FilesystemResource'):
-            objects_to_remove = set()  # set values are unique
+            passed = True
 
-            # collect objects that do not match the criteria
             for filter in self.property("filter").value():
-                for fso in resource.get_value():
+                passed = passed and self._matches_filter(resource, filter)
 
-                    if not self._matches_filter(fso, filter):
-                        objects_to_remove.add(fso)
-
-            current_objects = set(resource.get_value())
-
-            for obj in (current_objects - objects_to_remove):
-                new_res = FilesystemResource(obj.getAbsolutePath())
-                self.output.add(new_res)
+            if passed:
+                self.output.add(resource)
 
         return True
 
@@ -277,7 +277,7 @@ class FSCopyNode(Node):
         }
         super().__init__(node_properties, properties)
 
-    def _do_copy(self, src, dest):
+    def _do_copy(self, src: str, dest: str) -> bool:
         # check if src and dest exist
         src_p = Path(src)
         dest_p = Path(dest)
@@ -319,15 +319,13 @@ class FSCopyNode(Node):
         if len(resources) == 0:
             ctx.get_logger().warning('No resources found for copying.')
 
+        dest = ctx.process_str(self.property('dest').value())
         for res in resources:
-            dest = ctx.process_str(self.property('dest').value())
-
-            for src in res.get_value():
-                if self.property('dry').value() is True:
-                    ctx.get_logger().info("DRY RUN: Copy {0} -> {1}".format(src.getAbsolutePath(), dest))
-                else:
-                    if self._do_copy(src.getAbsolutePath(), dest) is not True:
-                        return False
+            if self.property('dry').value() is True:
+                ctx.get_logger().info("DRY RUN: Copy {0} -> {1}".format(res.get_absolute_path(), dest))
+            else:
+                if self._do_copy(res.get_absolute_path(), dest) is not True:
+                    return False
 
         return True
 
@@ -354,34 +352,34 @@ class FSRenameNode(Node):
         resources = self.get_input().find('atraxiflow.FilesystemResource')
 
         for res in resources:
-            for fso in res.get_value():
+            assert isinstance(res, FilesystemResource) # helps with autocompletion
 
-                new_name = fso.getAbsolutePath()
-                svp = StringValueProcessor(ctx)
+            new_name = res.get_absolute_path()
+            svp = StringValueProcessor(ctx)
 
-                if self.property('name').value() != '':
-                    svp.add_variable('file.basename', fso.getBasename())
-                    svp.add_variable('file.extension', fso.getExtension())
-                    svp.add_variable('file.path', fso.getDirectory())
+            if self.property('name').value() != '':
+                svp.add_variable('file.basename', res.get_basename())
+                svp.add_variable('file.extension', res.get_extension())
+                svp.add_variable('file.path', res.get_directory())
 
-                    new_name = svp.parse(self.property('name').value())
+                new_name = svp.parse(self.property('name').value())
 
-                if self.property('replace').value() is not None:
-                    for key, val in self.property('replace').value().items():
+            if self.property('replace').value() is not None:
+                for key, val in self.property('replace').value().items():
 
-                        # since py > 3.7 returns 're.Pattern' as result of re.compile and
-                        # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual
-                        # object
-                        if isinstance(key, type(re.compile(''))):
-                            new_name = key.sub(svp.parse(val), new_name)
-                        else:
-                            new_name = new_name.replace(key, svp.parse(val))
+                    # since py > 3.7 returns 're.Pattern' as result of re.compile and
+                    # other versions _sre.SRE_PATTERN, we use a little workaround here instead of using the actual
+                    # object
+                    if isinstance(key, type(re.compile(''))):
+                        new_name = key.sub(svp.parse(val), new_name)
+                    else:
+                        new_name = new_name.replace(key, svp.parse(val))
 
-                if self.property('dry').value() is True:
-                    ctx.get_logger().info("DRY RUN: Rename {0} -> {1}".format(fso.getAbsolutePath(), new_name))
-                else:
-                    os.rename(fso.getAbsolutePath(), new_name)
-                    self.output.add(FilesystemResource(new_name))
-                    ctx.get_logger().debug("Renamed {0} to {1}".format(fso.getAbsolutePath(), new_name))
+            if self.property('dry').value() is True:
+                ctx.get_logger().info("DRY RUN: Rename {0} -> {1}".format(res.get_absolute_path(), new_name))
+            else:
+                os.rename(res.get_absolute_path(), new_name)
+                self.output.add(FilesystemResource(new_name))
+                ctx.get_logger().debug("Renamed {0} to {1}".format(res.get_absolute_path(), new_name))
 
         return True

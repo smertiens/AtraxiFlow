@@ -35,11 +35,11 @@ def test_filter_size_single(file_fixture):
         ['file_size', '>', '120K']
     ]})
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 3
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 3
 
 
 def test_filter_size_multiple(file_fixture):
@@ -50,11 +50,11 @@ def test_filter_size_multiple(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 2
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 2
 
 
 def test_filter_filename_single_contains(file_fixture):
@@ -64,11 +64,11 @@ def test_filter_filename_single_contains(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 3
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 3
 
 
 def test_filter_filename_single_matches(file_fixture):
@@ -78,11 +78,11 @@ def test_filter_filename_single_matches(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 2
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 2
 
 
 
@@ -93,11 +93,11 @@ def test_filter_filename_single_contains_fail(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 0
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 0
 
 
 
@@ -108,11 +108,11 @@ def test_filter_filename_single_starts(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 1
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 1
 
 
 def test_filter_filename_single_ends(file_fixture):
@@ -122,11 +122,11 @@ def test_filter_filename_single_ends(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 2
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 2
 
 
 def test_filter_filename_multiple(file_fixture):
@@ -137,11 +137,11 @@ def test_filter_filename_multiple(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 4
-    assert len(fn.get_output().items()) == 1
+    assert fin.get_output().size() == 4
+    assert fn.get_output().size() == 1
 
 
 def test_filter_filetype(file_fixture):
@@ -153,25 +153,15 @@ def test_filter_filetype(file_fixture):
         ]
     })
 
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     assert Workflow.create([fin, fn]).run()
 
-    assert len(fin.get_output().first().get_value()) == 5
-    assert len(fn.get_output().items()) == 4
+    assert fin.get_output().size() == 5
+    assert fn.get_output().size() == 4
 
-    # reset
-    fin = LoadFilesNode({'path': str(file_fixture.join('*'))})
-
-    # TODO: does not work -> reset state?
+    fin = LoadFilesNode({'paths': [str(file_fixture.join('*'))]})
     fn.property("filter").set_value([
         ['type', '=', 'folder']
     ])
-
-    fn = FileFilterNode({
-        'filter': [
-            ['type', '=', 'folder']
-        ]
-    })
-
     assert Workflow.create([fin, fn]).run()
-    assert len(fn.get_output().items()) == 1
+    assert fn.get_output().size() == 1

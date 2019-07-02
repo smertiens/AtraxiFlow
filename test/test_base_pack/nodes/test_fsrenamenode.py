@@ -8,25 +8,24 @@
 import os, re
 
 from atraxiflow.core import *
-from atraxiflow.filesystem import FSObject
 from atraxiflow.base.filesystem import FSRenameNode, LoadFilesNode
-
+from atraxiflow.base.resources import FilesystemResource
 
 def test_rename_by_name_prop_single(tmpdir):
     for s in ['testfile.txt', 'foo.bar', 'hello']:
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = LoadFilesNode({'path': str(tmpdir.join('testfile.txt'))})
+    res = LoadFilesNode({'paths': [str(tmpdir.join('testfile.txt'))]})
     node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
 
     assert Workflow.create([res, node]).run()
     assert os.path.exists(str(tmpdir.join('testfile_something.txt')))
 
     # check output
-    out = node.get_output().first().get_value()[0]
-    assert isinstance(out, FSObject)
-    assert str(tmpdir.join('testfile_something.txt')) == out.getAbsolutePath()
+    out = node.get_output().first()
+    assert isinstance(out, FilesystemResource)
+    assert str(tmpdir.join('testfile_something.txt')) == out.get_absolute_path()
 
 
 def test_rename_by_name_prop_multi(tmpdir):
@@ -34,7 +33,7 @@ def test_rename_by_name_prop_multi(tmpdir):
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = LoadFilesNode({'path': str(tmpdir.join('*'))})
+    res = LoadFilesNode({'paths': [str(tmpdir.join('*'))]})
     node = FSRenameNode({'name': '{file.path}/{file.basename}_something.{file.extension}'})
 
     assert Workflow.create([res, node]).run()
@@ -43,10 +42,9 @@ def test_rename_by_name_prop_multi(tmpdir):
     assert os.path.exists(str(tmpdir.join('hello_something.')))
 
     # check output
-    assert len(node.get_output().items()) == 3
+    assert node.get_output().size()== 3
     for out_res in node.get_output().items():
-        fso = out_res.get_value()[0]
-        assert isinstance(fso, FSObject)
+        assert isinstance(out_res, FilesystemResource)
 
 
 def test_rename_by_repl_prop(tmpdir):
@@ -54,7 +52,7 @@ def test_rename_by_repl_prop(tmpdir):
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = LoadFilesNode({'path': str(tmpdir.join('testfile.txt'))})
+    res = LoadFilesNode({'paths': [str(tmpdir.join('testfile.txt'))]})
     node = FSRenameNode({'replace': {
         'testfile': 'foobar',
         re.compile(r'[\.txt]+$'): '.ext'
@@ -63,7 +61,7 @@ def test_rename_by_repl_prop(tmpdir):
     assert Workflow.create([res, node]).run()
     assert os.path.exists(str(tmpdir.join('foobar.ext')))
 
-    assert str(tmpdir.join('foobar.ext')) == node.get_output().first().get_value()[0].getAbsolutePath()
+    assert str(tmpdir.join('foobar.ext')) == node.get_output().first().get_absolute_path()
 
 
 def test_rename_by_repl_and_name_prop(tmpdir):
@@ -71,7 +69,7 @@ def test_rename_by_repl_and_name_prop(tmpdir):
         p = tmpdir.join(s)
         p.write('helloworld')
 
-    res = LoadFilesNode({'path': str(tmpdir.join('testfile.txt'))})
+    res = LoadFilesNode({'paths': [str(tmpdir.join('testfile.txt'))]})
     node = FSRenameNode({'replace': {
         'helloworld': 'foobar',
         re.compile(r'[\.txt]+$'): '.ext'
@@ -82,4 +80,4 @@ def test_rename_by_repl_and_name_prop(tmpdir):
     assert Workflow.create([res, node]).run()
     assert os.path.exists(str(tmpdir.join('foobar.ext')))
 
-    assert str(tmpdir.join('foobar.ext')) == node.get_output().first().get_value()[0].getAbsolutePath()
+    assert str(tmpdir.join('foobar.ext')) == node.get_output().first().get_absolute_path()

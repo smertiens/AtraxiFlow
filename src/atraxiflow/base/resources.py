@@ -4,11 +4,10 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-import glob
-
+import os
+from datetime import datetime
 from atraxiflow.core import Resource
-from atraxiflow.filesystem import FSObject
-from typing import List
+
 
 class TextResource(Resource):
     '''
@@ -21,25 +20,61 @@ class TextResource(Resource):
 
 
 class FilesystemResource(Resource):
-    """
-    Provides access to the filesystem.
-    """
 
-    def __init__(self, path: str):
+    def __init__(self, new_path: str = ''):
         self.id = '%s.%s' % ('atraxiflow', self.__class__.__name__)
-        self._fsobjects = []
-        items = glob.glob(path)
-
-        for item in items:
-            self._fsobjects.append(FSObject(item))
-
-    def get_value(self) -> List[FSObject]:
-        return self._fsobjects
+        self.path = new_path
 
     def __str__(self):
-        lines = ['\t' + str(x) for x in self._fsobjects]
-        lines.insert(0, 'FilesystemResource:')
-        return '\n'.join(lines)
+        return self.path
 
     def __repr__(self):
         return self.__str__()
+
+    def get_value(self) -> str:
+        return self.path
+
+    def exists(self) -> bool:
+        return os.path.exists(self.path)
+
+    def is_file(self) -> bool:
+        return os.path.isfile(self.path)
+
+    def is_folder(self) -> bool:
+        return os.path.isdir(self.path)
+
+    def is_symlink(self) -> bool:
+        return os.path.islink(self.path)
+
+    def get_filename(self) -> str:
+        return os.path.basename(self.path)
+
+    def get_extension(self) -> str:
+        ext = os.path.splitext(self.path)[1]
+
+        # remove leading .
+        if ext[0:1] == '.':
+            ext = ext[1:]
+
+        return ext
+
+    def get_directory(self) -> str:
+        return os.path.dirname(self.path)
+
+    def get_absolute_path(self) -> str:
+        return os.path.realpath(self.path)
+
+    def get_basename(self) -> str:
+        return os.path.splitext(self.get_filename())[0]
+
+    def get_filesize(self) -> int:
+        return os.path.getsize(self.path)
+
+    def get_last_modified(self) -> datetime:
+        return datetime.fromtimestamp(os.path.getmtime(self.path))
+
+    def get_last_accessed(self) -> datetime:
+        return datetime.fromtimestamp(os.path.getatime(self.path))
+
+    def get_created(self) -> datetime:
+        return datetime.fromtimestamp(os.path.getctime(self.path))

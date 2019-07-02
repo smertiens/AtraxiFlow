@@ -52,6 +52,9 @@ class Container:
 
         return self._items[0]
 
+    def size(self) -> int:
+        return len(self._items)
+
     def find(self, query: str) -> List[Resource]:
         """
 

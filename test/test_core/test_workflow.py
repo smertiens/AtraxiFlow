@@ -17,6 +17,5 @@ def test_add_nodes():
     assert wf._nodes == [test]
 
 def test_run_workflow():
-    node = LoadFilesNode({'path': './*'})
+    node = LoadFilesNode({'paths': ['./*']})
     Workflow.create([node, EchoOutputNode()]).run()
-
