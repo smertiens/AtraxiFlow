@@ -365,18 +365,23 @@ def run():
 
 def get_node_info(node_object: object) -> dict:
     docstr = inspect.getdoc(node_object)
+
     result = {
         'name': '',
         'accepts': [],
         'returns': []
     }
 
+    if docstr is None:
+        return result
+
     for line in docstr.split('\n'):
-        if not ':' in line:
+        line = line.lstrip()
+
+        if not line.startswith('@'):
             continue
 
-        line = line.lstrip()
-        k = line[0:line.find(':')].lower()
+        k = line[1:line.find(':')].lower()
         val = line[line.find(':') + 1:].lstrip()
 
         if not k in result:

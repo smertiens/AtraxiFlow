@@ -12,8 +12,8 @@ from atraxiflow.properties import Property
 class DemoNode(Node):
     """
 
-    Name: Demo Node
-    Accepts: foo, bar
+    @Name: Demo Node
+    @Accepts: foo, bar
 
     """
 

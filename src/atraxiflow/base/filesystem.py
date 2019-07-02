@@ -21,6 +21,9 @@ from PySide2 import QtWidgets, QtCore, QtGui
 
 
 class LoadFilesNode(Node):
+    """
+    @Name: Get files and folder
+    """
 
     def __init__(self, properties: dict = None):
         node_properties = {
@@ -104,6 +107,8 @@ class LoadFilesNode(Node):
 
 class FileFilterNode(Node):
     '''
+    @Name: Filter files and folders
+
     Filter format
 
     [file_property, comparator, value]
@@ -271,10 +276,13 @@ class FileFilterNode(Node):
 
 
 class FSCopyNode(Node):
+    """
+    @Name: Copy files and folders
+    """
 
     def __init__(self, properties: dict = None):
         node_properties = {
-            'dest': Property(expected_type=str, required=True,
+            'dest': Property(expected_type=str, required=True, label='Destination',
                              hint='The destination on the filesystem to copy the source to'),
             'create_if_missing': Property(expected_type=bool, required=False, label='Create missing folders',
                                           hint='Creates the destination path if it is missing', default=True),

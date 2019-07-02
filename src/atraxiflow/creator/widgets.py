@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 from PySide2 import QtCore, QtWidgets, QtGui
-from atraxiflow.core import Node
+from atraxiflow.core import Node, get_node_info
 from atraxiflow.base import assets
 
 """
@@ -92,8 +92,10 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.setFrameShadow(QtWidgets.QFrame.Raised)
         self.setAutoFillBackground(True)
 
+        node_info = get_node_info(node)
+
         # Title
-        node_name = self.node.get_name() if self.node.get_name() != '' else self.node.__class__.__name__
+        node_name = node_info['name'] if node_info['name'] != '' else self.node.__class__.__name__
         self.title_label = QtWidgets.QLabel(node_name)
         self.title_label.setAlignment(QtCore.Qt.AlignCenter)
         self.title_label.setStyleSheet(
@@ -125,7 +127,6 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.setMaximumWidth(300)
 
     def remove(self):
-        print('removing')
         self.parent().remove_node(self)
 
     def get_default_controls(self):

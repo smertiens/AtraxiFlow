@@ -43,14 +43,15 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # Main toolbar
         main_toolbar = QtWidgets.QToolBar()
 
-        action_play = QtWidgets.QAction('Play', main_toolbar)
-        action_play.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
-        action_play.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
-        action_stop = QtWidgets.QAction('Stop', main_toolbar)
-        action_stop.setIcon(QtGui.QIcon(assets.get_asset('icons8-stop-50.png')))
+        self.action_play = QtWidgets.QAction('Play', main_toolbar)
+        self.action_play.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
+        self.action_play.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
+        self.action_stop = QtWidgets.QAction('Stop', main_toolbar)
+        self.action_stop.setIcon(QtGui.QIcon(assets.get_asset('icons8-stop-50.png')))
+        self.action_stop.setEnabled(False)
 
-        main_toolbar.addAction(action_play)
-        main_toolbar.addAction(action_stop)
+        main_toolbar.addAction(self.action_play)
+        main_toolbar.addAction(self.action_stop)
         dock_main_toolbar = QtWidgets.QDockWidget()
         dock_main_toolbar.setWindowTitle('Controls')
         dock_main_toolbar.setWidget(main_toolbar)
@@ -76,9 +77,19 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         dock_node_tree.setWindowTitle('Nodes')
         dock_node_tree.setWidget(node_tree_wrapper)
 
+        # Add data tree
+        self.data_tree = QtWidgets.QTreeWidget()
+        self.data_tree.setColumnCount(2)
+
+        dock_data_tree = QtWidgets.QDockWidget()
+        dock_data_tree.setWindowTitle('Data')
+        dock_data_tree.setWidget(self.data_tree)
+
         # Add widgets to window
+        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock_data_tree)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_node_tree)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_main_toolbar)
+
         central_widget.layout().addWidget(self.tab_bar)
         # self.addToolBar(QtCore.Qt.LeftToolBarArea, main_toolbar)
         self.setMenuBar(menu_bar)
@@ -106,14 +117,59 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
             run_task = tasks.RunWorkflowTask(ax_nodes)
             run_task.set_on_finish(self.run_finished)
-            # run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_STARTED, )
+            run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
 
+            self.data_tree.clear()
+            self.action_play.setEnabled(False)
+            self.action_stop.setEnabled(True)
             print('Running task')
             run_task.start()
 
+    def node_run_finished(self, data):
+        node = data['node']
+        assert isinstance(node, Node)
+
+        node_item = QtWidgets.QTreeWidgetItem()
+        node_item.setText(0, node.get_name())
+        inputs = QtWidgets.QTreeWidgetItem()
+
+        # Update data tree with current node
+        if not node.has_input() or node.get_input().size() == 0:
+            inputs.setText(0, 'Inputs: None')
+        else:
+            inputs.setText(0, 'Inputs')
+
+            for inp in node.get_input().items():
+                item = QtWidgets.QTreeWidgetItem()
+                item.setText(0, inp.__class__.__name__)
+                item.setText(1, str(inp))
+
+                inputs.addChild(item)
+
+        outputs = QtWidgets.QTreeWidgetItem()
+
+        if node.get_output() is None or node.get_output().size() == 0:
+            outputs.setText(0, 'Output: None')
+        else:
+            outputs.setText(0, 'Output')
+
+            for outp in node.get_output().items():
+                item = QtWidgets.QTreeWidgetItem()
+                item.setText(0, outp.__class__.__name__)
+                item.setText(1, str(outp))
+                outputs.addChild(item)
+
+        node_item.addChild(inputs)
+        inputs.setExpanded(True)
+        node_item.addChild(outputs)
+        outputs.setExpanded(True)
+
+        self.data_tree.insertTopLevelItem(self.data_tree.topLevelItemCount(), node_item)
+        node_item.setExpanded(True)
+
     def run_finished(self, task: tasks.RunWorkflowTask):
-        for node in task.get_workflow().get_nodes():
-            print(node.output)
+        self.action_play.setEnabled(True)
+        self.action_stop.setEnabled(False)
 
     def add_node_to_current_workspace(self, node):
         wrapper = self.tab_bar.currentWidget().widget()
