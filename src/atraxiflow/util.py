@@ -7,7 +7,7 @@
 
 import os
 import atraxiflow
-from atraxiflow.core.exceptions import *
+from atraxiflow.exceptions import *
 
 
 def is_iterable(obj):

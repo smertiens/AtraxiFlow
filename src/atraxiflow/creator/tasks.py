@@ -47,6 +47,7 @@ class RunWorkflowTask(Task):
         super().__init__()
         self.nodes = nodes
         self.workflow = Workflow(nodes)
+        self.workflow.get_context().ui_env = True
 
     def get_workflow(self):
         return self.workflow

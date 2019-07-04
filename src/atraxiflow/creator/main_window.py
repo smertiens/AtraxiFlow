@@ -10,6 +10,7 @@ from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
 from atraxiflow.creator import assets, tasks
+import logging
 
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
@@ -19,6 +20,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         self.workflow_ctx = WorkflowContext()
         self.setWindowTitle('AtraxiFlow - Creator')
+
+        logging.getLogger('creator').debug('Building main window...')
 
         # Central widget
         central_widget = QtWidgets.QWidget()
@@ -99,6 +102,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # Create default tab
         self.tab_bar.addTab(self.create_workflow_tab(), 'Default Workflow')
 
+        logging.getLogger('creator').debug('Loading nodes...')
         self.load_node_tree()
 
         self.resize(1024, 800)
@@ -112,9 +116,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             root_node = node_container.get_root_node(selected_node)
             ax_nodes = node_container.extract_node_hierarchy_from_widgets(root_node)
 
-            for node in ax_nodes:
-                node.ui_env = True
-
             run_task = tasks.RunWorkflowTask(ax_nodes)
             run_task.set_on_finish(self.run_finished)
             run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
@@ -122,7 +123,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             self.data_tree.clear()
             self.action_play.setEnabled(False)
             self.action_stop.setEnabled(True)
-            print('Running task')
+            
             run_task.start()
 
     def node_run_finished(self, data):

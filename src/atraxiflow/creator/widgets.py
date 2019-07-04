@@ -7,16 +7,36 @@
 from PySide2 import QtCore, QtWidgets, QtGui
 from atraxiflow.core import Node, get_node_info
 from atraxiflow.base import assets
+from atraxiflow.exceptions import *
 
-"""
-class AxFileSelectionWidget(QtWidgets.QWidget):
-    
+
+class AxFileLineEditWidget(QtWidgets.QWidget):
+    text_changed = QtCore.Signal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        
+
+        self.filter = 'All files (*.*)'
+
         self.line_edit = QtWidgets.QLineEdit()
+        self.line_edit.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.text_changed.emit(s))
         self.btn = QtWidgets.QPushButton('...')
-"""
+        self.btn.setSizePolicy(QtWidgets.QSizePolicy.Minimum,QtWidgets.QSizePolicy.Preferred)
+        self.btn.connect(QtCore.SIGNAL('clicked()'), self.show_file_dialog)
+        self.setLayout(QtWidgets.QHBoxLayout())
+        self.layout().setContentsMargins(0, 0 , 0, 0)
+        self.layout().setSpacing(0)
+
+        self.layout().addWidget(self.line_edit)
+        self.layout().addWidget(self.btn)
+
+    def show_file_dialog(self):
+        dlg = QtWidgets.QFileDialog()
+        path = dlg.getOpenFileName(self, 'Find file', filter=self.filter)
+        path = path[0]
+
+        if path != '':
+            self.line_edit.setText(path)
 
 
 class AxListWidget(QtWidgets.QWidget):
@@ -67,8 +87,6 @@ class AxListWidget(QtWidgets.QWidget):
 
         self.layout().addWidget(self.list_widget)
         self.layout().addWidget(self.toolbar)
-
-
 
     def add_toolbar_action(self, action):
         self.toolbar.insertAction(self.action_remove, action)
@@ -140,15 +158,29 @@ class AxNodeWidget(QtWidgets.QFrame):
             control = self.node.get_field_ui(name)
             if control is None:
                 if prop.get_expected_type()[0] == str:
-                    control = QtWidgets.QLineEdit()
-                    control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
+                    if 'role' in prop.get_display_options():
+                        role = prop.get_display_options()['role']
+
+                        if role == 'file':
+                            control = AxFileLineEditWidget()
+                            control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
+                        else:
+                            raise NodeUIException('Role "%s" not found' % role)
+                    else:
+                        control = QtWidgets.QLineEdit()
+                        control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
+
                 elif prop.get_expected_type()[0] == bool:
                     control = QtWidgets.QCheckBox()
                     control.connect(QtCore.SIGNAL('stateChanged(int)'), lambda i, prop=prop: prop.set_value(i == 2))
+
                 elif prop.get_expected_type()[0] == list:
-                    raise Exception('Properties of type dict need to define a custom ui (for example using AxListWidget).')
+                    raise Exception(
+                        'Properties of type dict need to define a custom ui (for example using AxListWidget).')
+
                 elif prop.get_expected_type()[0] == dict:
                     raise Exception('Properties of type dict need to define a custom ui.')
+
                 else:
                     raise Exception('Unrecognized type: %s' % prop.get_expected_type()[0])
 
@@ -222,7 +254,6 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
         self.nodes.remove(node)
         node.deleteLater()
 
-
     def extract_node_hierarchy_from_widgets(self, root_node: AxNodeWidget) -> list:
         nodes = [root_node.node]
         while root_node.dock_child_widget is not None:
@@ -249,8 +280,7 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
             if isinstance(child, AxNodeWidget):
                 self.nodes.append(child)
 
-
-    def dock(self, upper: AxNodeWidget, lower: AxNodeWidget, recursive = True):
+    def dock(self, upper: AxNodeWidget, lower: AxNodeWidget, recursive=True):
         lower.move(
             upper.pos().x(),
             upper.pos().y() + upper.rect().height()
@@ -280,7 +310,8 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
                 QtCore.QSize(node.rect().width() + 2 * radius, 4 * radius)
             )
 
-            if hot_area.contains(widget.pos()) or hot_area.contains(widget.rect().topRight()) and (node.dock_child_widget is None):
+            if hot_area.contains(widget.pos()) or hot_area.contains(widget.rect().topRight()) and (
+                    node.dock_child_widget is None):
                 self.dock(node, widget)
             else:
                 if node == widget.dock_parent_widget:

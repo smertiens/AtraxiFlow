@@ -16,7 +16,8 @@ class TextFileInputNode(Node):
 
     def __init__(self, properties: dict = None):
         node_properties = {
-            'filename': Property(expected_type=str, required=True, label='Filename', hint='The filename to read from')
+            'filename': Property(expected_type=str, required=True, label='Filename', hint='The filename to read from',
+                                 display_options={'role': 'file'})
         }
         super().__init__(node_properties, properties)
 

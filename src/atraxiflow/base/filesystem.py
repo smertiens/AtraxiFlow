@@ -27,7 +27,7 @@ class LoadFilesNode(Node):
 
     def __init__(self, properties: dict = None):
         node_properties = {
-            'paths': Property(expected_type=list, required=True, display_options={'role': 'files_folders'})
+            'paths': Property(expected_type=list, required=True)
         }
         super().__init__(node_properties, properties)
         self.list_widget = None
@@ -52,9 +52,6 @@ class LoadFilesNode(Node):
             self.output.add(FilesystemResource(path))
 
     def apply_ui_data(self):
-        if not self.ui_env:
-            return
-
         self.property('paths').set_value(self.list_widget.get_item_list())
 
     def add_path(self, lst: AxListWidget, mode='files'):

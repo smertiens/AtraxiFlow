@@ -6,7 +6,8 @@
 #
 from PySide2 import QtWidgets
 from atraxiflow.creator import main_window
-import sys
+import atraxiflow.logging as ax_logging
+import sys, logging
 
 
 def launch_app():
@@ -18,4 +19,7 @@ def launch_app():
 
 
 if __name__ == '__main__':
+    ax_logging.setup_loggers()
+    logging.getLogger('creator').debug('Starting up creator...')
+
     launch_app()

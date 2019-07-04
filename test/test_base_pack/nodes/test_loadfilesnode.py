@@ -11,6 +11,8 @@ import os
 
 
 def test_node(tmpdir):
+    tmpdir = str(tmpdir)
+
     p1 = os.path.join(tmpdir, 'dir1')
     p2 = os.path.join(tmpdir, 'dir2')
     p3 = os.path.join(tmpdir, '*')

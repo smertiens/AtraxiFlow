@@ -115,7 +115,6 @@ class Node:
         self.output = Container()
         self.properties = node_properties
         self.apply_properties(user_properties)
-        self.ui_env = False
 
     @staticmethod
     def get_name() -> str:
@@ -168,7 +167,6 @@ class Node:
         return self.properties[name]
 
     def run(self, ctx):
-        self.apply_ui_data()
 
         for name, property in self.properties.items():
             if isinstance(property.value(), MissingRequiredValue):
@@ -201,9 +199,8 @@ class WorkflowContext:
     def __init__(self):
         self._nodes = {}
         self._symbol_table = {}
+        self.ui_env = False
         self.load_extensions()
-
-        self.get_logger().setLevel(logging.DEBUG)
 
     def autodiscover_nodes(self, root_package: str) -> list:
 
@@ -244,7 +241,7 @@ class WorkflowContext:
 
     def set_symbol(self, name: str, value: Any):
         if self.has_symbol(name):
-            self.get_logger().warning('Overriding existing symbol "{}"'.format(name))
+            logging.getLogger('core').warning('Overriding existing symbol "{}"'.format(name))
 
         self._symbol_table[name] = value
 
@@ -262,12 +259,14 @@ class WorkflowContext:
 
     def get_logger(self) -> logging.Logger:
         '''
-        Returns the streams logger
+        Returns the workflows logger for use by nodes
         :return: Logger
         '''
-        return logging.getLogger('workflow')
+        return logging.getLogger('workflow_ctx')
 
     def load_extensions(self):
+        self.get_logger().debug('Loading extensions...')
+
         for ext in self.get_registered_extensions():
             try:
                 mod = importlib.import_module(ext + '.flow_extension')
@@ -277,6 +276,7 @@ class WorkflowContext:
             if not hasattr(mod, 'boot'):
                 raise Exception('Invalid extension: Missing boot method')
 
+            logging.getLogger('core').debug('Booting "%s"...' % ext)
             mod.boot(self)
 
 
@@ -334,12 +334,15 @@ class Workflow(EventObject):
         for node in self._nodes:
             self._pos += 1
 
-            self._ctx.get_logger().debug("Running node {0}".format(node.__class__.__name__))
-
             if prev_node is not None:
                 node.set_input(prev_node)
 
             self.fire_event(self.EVENT_NODE_RUN_STARTED, {'node': node})
+            if self.get_context().ui_env:
+                logging.getLogger('core').debug('Workflow started in UI environment, running apply_ui_data() on node...')
+                node.apply_ui_data()
+
+            logging.getLogger('core').debug("Running node {0}...".format(node.__class__.__name__))
             res = node.run(self._ctx)
             self.fire_event(self.EVENT_NODE_RUN_FINISHED, {'node': node})
 
@@ -347,14 +350,14 @@ class Workflow(EventObject):
             nodes_processed += 1
 
             if res is False:
-                self._ctx.get_logger().warning("Node failed.")
-                self._ctx.get_logger().info(
+                logging.getLogger('core').warning("Node failed.")
+                logging.getLogger('core').info(
                     "Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
                 self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
 
                 return False
 
-        self._ctx.get_logger().info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
+        logging.getLogger('core').info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
         self.fire_event(self.EVENT_RUN_FINISHED, {'errors': False, 'nodes_processed': nodes_processed})
         return True
 
