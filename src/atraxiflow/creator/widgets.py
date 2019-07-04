@@ -21,10 +21,10 @@ class AxFileLineEditWidget(QtWidgets.QWidget):
         self.line_edit = QtWidgets.QLineEdit()
         self.line_edit.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.text_changed.emit(s))
         self.btn = QtWidgets.QPushButton('...')
-        self.btn.setSizePolicy(QtWidgets.QSizePolicy.Minimum,QtWidgets.QSizePolicy.Preferred)
+        self.btn.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.btn.connect(QtCore.SIGNAL('clicked()'), self.show_file_dialog)
         self.setLayout(QtWidgets.QHBoxLayout())
-        self.layout().setContentsMargins(0, 0 , 0, 0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
 
         self.layout().addWidget(self.line_edit)
@@ -147,7 +147,10 @@ class AxNodeWidget(QtWidgets.QFrame):
     def remove(self):
         self.parent().remove_node(self)
 
-    def get_default_controls(self):
+    def get_default_controls(self) -> QtWidgets.QWidget:
+        """
+        Tries to create a default ui for the given node
+        """
         widget = QtWidgets.QWidget()
         widget.setLayout(QtWidgets.QFormLayout())
 
@@ -155,7 +158,9 @@ class AxNodeWidget(QtWidgets.QFrame):
         for name, prop in self.node.get_properties().items():
             label = prop.get_label() if prop.get_label() != '' else name
 
+            # Try to get a widget for the given field from the node
             control = self.node.get_field_ui(name)
+
             if control is None:
                 if prop.get_expected_type()[0] == str:
                     if 'role' in prop.get_display_options():
@@ -164,6 +169,13 @@ class AxNodeWidget(QtWidgets.QFrame):
                         if role == 'file':
                             control = AxFileLineEditWidget()
                             control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
+                        elif role == 'select':
+                            # TODO: hookup to callback
+                            items = prop.get_display_options()['items'] if 'items' in prop.get_display_options() else []
+                            control = QtWidgets.QComboBox()
+                            control.setEditable(False)
+                            control.addItems(items)
+                            # control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
                         else:
                             raise NodeUIException('Role "%s" not found' % role)
                     else:
@@ -175,14 +187,14 @@ class AxNodeWidget(QtWidgets.QFrame):
                     control.connect(QtCore.SIGNAL('stateChanged(int)'), lambda i, prop=prop: prop.set_value(i == 2))
 
                 elif prop.get_expected_type()[0] == list:
-                    raise Exception(
+                    raise NodeUIException(
                         'Properties of type dict need to define a custom ui (for example using AxListWidget).')
 
                 elif prop.get_expected_type()[0] == dict:
-                    raise Exception('Properties of type dict need to define a custom ui.')
+                    raise NodeUIException('Properties of type dict need to define a custom ui.')
 
                 else:
-                    raise Exception('Unrecognized type: %s' % prop.get_expected_type()[0])
+                    raise NodeUIException('Unrecognized type: %s' % prop.get_expected_type()[0])
 
             widget.layout().addRow(label, control)
 

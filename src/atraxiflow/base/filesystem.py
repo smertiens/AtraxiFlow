@@ -354,6 +354,61 @@ class FSRenameNode(Node):
         }
         super().__init__(node_properties, properties)
 
+    def show_add_replace_dialog(self):
+        dlg = QtWidgets.QDialog()
+        dlg.setWindowTitle('Add string to replace')
+        dlg.setLayout(QtWidgets.QVBoxLayout())
+
+        form_layout = QtWidgets.QFormLayout()
+        line_search = QtWidgets.QLineEdit()
+        line_replace = QtWidgets.QLineEdit()
+
+        form_layout.addRow('Search', line_search)
+        form_layout.addRow('Replace', line_replace)
+        btn_box = QtWidgets.QDialogButtonBox()
+        btn_box.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        btn_box.connect(QtCore.SIGNAL('accepted()'), dlg.accept)
+        btn_box.connect(QtCore.SIGNAL('rejected()'), dlg.reject)
+        dlg.layout().addLayout(form_layout)
+        dlg.layout().addWidget(btn_box)
+
+        result = dlg.exec_()
+
+        if result == QtWidgets.QDialog.Accepted:
+            item = QtWidgets.QListWidgetItem()
+            item.setData(QtCore.Qt.UserRole, {line_search.text(), line_replace.text()})
+            item.setText('{} -> {}'.format(line_search.text(), line_replace.text()))
+            self.replace_list.add_item(item)
+
+    def get_field_ui(self, field_name: str) -> QtWidgets.QWidget:
+
+        if field_name == 'replace':
+
+            self.replace_list = AxListWidget()
+            self.replace_list.layout().setContentsMargins(0, 0, 0, 0)
+            action_add = QtWidgets.QAction('+T', self.replace_list.get_toolbar())
+            action_add.connect(QtCore.SIGNAL('triggered()'), self.show_add_replace_dialog)
+            action_add.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-text-50.png')))
+            self.replace_list.add_toolbar_action(action_add)
+            return self.replace_list
+
+        else:
+            return None
+
+    def apply_ui_data(self):
+
+        repl_list = {}
+        for n in range(0, self.replace_list.get_list().count()):
+            item = self.replace_list.get_list().item(n)
+            data = item.data(QtCore.Qt.UserRole)
+            print(data, type(data))
+            assert isinstance(data, dict)
+
+            repl_list += data
+
+        self.property('replace').set_value(repl_list)
+
+
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
 

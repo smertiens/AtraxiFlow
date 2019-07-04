@@ -27,6 +27,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         central_widget = QtWidgets.QWidget()
         central_widget.setLayout(QtWidgets.QHBoxLayout())
         central_widget.layout().setSpacing(0)
+        central_widget.layout().setContentsMargins(0,0,0,0)
 
         # Tab bar
         self.tab_bar = QtWidgets.QTabWidget()
@@ -36,15 +37,19 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # Main menu
         menu_bar = QtWidgets.QMenuBar()
         file_menu = QtWidgets.QMenu('&File')
+        menu_file_load_css = QtWidgets.QAction('Reload css', file_menu)
+        menu_file_load_css.connect(QtCore.SIGNAL('triggered()'), self.load_style)
         menu_file_quit = QtWidgets.QAction('Quit', file_menu)
+
         wf_menu = QtWidgets.QMenu('&Workflow')
         menu_wf_run = QtWidgets.QAction('Run', wf_menu)
-
+        file_menu.addAction(menu_file_load_css)
         menu_bar.addMenu(file_menu)
         menu_bar.addMenu(wf_menu)
 
         # Main toolbar
         main_toolbar = QtWidgets.QToolBar()
+        main_toolbar.setMovable(False)
 
         self.action_play = QtWidgets.QAction('Play', main_toolbar)
         self.action_play.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
@@ -53,6 +58,13 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.action_stop.setIcon(QtGui.QIcon(assets.get_asset('icons8-stop-50.png')))
         self.action_stop.setEnabled(False)
 
+        # Spacer
+        spacer = QtWidgets.QWidget()
+        spacer.setObjectName('tb_spacer')
+        spacer.resize(10,10)
+        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        main_toolbar.addWidget(spacer)
         main_toolbar.addAction(self.action_play)
         main_toolbar.addAction(self.action_stop)
         dock_main_toolbar = QtWidgets.QDockWidget()
@@ -66,8 +78,10 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         node_tree_wrapper = QtWidgets.QWidget()
         node_tree_wrapper.setLayout(QtWidgets.QVBoxLayout())
         node_tree_wrapper.layout().setSpacing(0)
+        node_tree_wrapper.layout().setContentsMargins(0, 0, 0, 0)
 
         tree_query_input = QtWidgets.QLineEdit()
+        tree_query_input.setObjectName('tree_query_input')
         tree_query_input.setPlaceholderText('Filter nodes...')
         tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.load_node_tree(s))
         self.node_tree = QtWidgets.QTreeWidget()
@@ -83,18 +97,31 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # Add data tree
         self.data_tree = QtWidgets.QTreeWidget()
         self.data_tree.setColumnCount(2)
+        self.data_tree.setHeaderHidden(True)
+        self.data_tree.setObjectName('data_tree')
 
         dock_data_tree = QtWidgets.QDockWidget()
         dock_data_tree.setWindowTitle('Data')
         dock_data_tree.setWidget(self.data_tree)
 
         # Add widgets to window
-        self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock_data_tree)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_node_tree)
-        self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_main_toolbar)
+        #self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock_data_tree)
+        #self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_node_tree)
+        #self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_main_toolbar)
 
-        central_widget.layout().addWidget(self.tab_bar)
-        # self.addToolBar(QtCore.Qt.LeftToolBarArea, main_toolbar)
+
+        horiz_splitter = QtWidgets.QSplitter()
+        horiz_splitter.addWidget(node_tree_wrapper)
+        horiz_splitter.addWidget(self.tab_bar)
+
+        vertical_splitter = QtWidgets.QSplitter()
+        vertical_splitter.setOrientation(QtCore.Qt.Vertical)
+        vertical_splitter.addWidget(horiz_splitter)
+        vertical_splitter.addWidget(self.data_tree)
+
+        #central_widget.layout().addWidget(self.tab_bar)
+        central_widget.layout().addWidget(vertical_splitter)
+        self.addToolBar(QtCore.Qt.TopToolBarArea, main_toolbar)
         self.setMenuBar(menu_bar)
         self.setCentralWidget(central_widget)
         self.setStatusBar(self.status_bar)
@@ -106,6 +133,11 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.load_node_tree()
 
         self.resize(1024, 800)
+
+    def load_style(self):
+        with open(assets.get_asset('style.css'), 'r') as f:
+            self.setStyleSheet(f.read())
+
 
     def run_active_workflow(self):
         node_container = self.tab_bar.currentWidget().widget()
