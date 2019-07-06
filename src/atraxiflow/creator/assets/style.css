@@ -1,5 +1,4 @@
 QWidget {
-    border: none;
     margin: 0;
     padding:0;
 }
@@ -24,12 +23,8 @@ QTabWidget::pane {
 }
 
 QLineEdit {
-    border:none;
-    padding: 5px 3px 5px 3px;
-}
-
-QLineEdit::hover {
     border: 1px solid gray;
+    padding: 5px 3px 5px 3px;
 }
 
 #tb_spacer, QAction {
@@ -48,8 +43,32 @@ QStatusBar {
 
 #tree_query_input {
     margin-bottom:5px;
+    border:none;
+}
+
+#tree_query_input::hover {
+    border: 1px solid gray;
 }
 
 #data_tree {
 
+}
+
+AxNodeWidget {
+    border: 1px solid black;
+    background: rgb(236,236,236);
+}
+
+#node_remove_btn {
+    margin: 5px;
+}
+
+#node_title {
+    font-weight:bold;
+    padding: 5px 0;
+    margin-bottom : 5px;
+}
+
+QGroupBox {
+    padding: 15px 10px;
 }

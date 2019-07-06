@@ -23,7 +23,7 @@ setuptools.setup(
     license='AGPL-3.0',
     author='Sean Mertiens',
     author_email='sean@atraxi-flow.com',
-    description='The flexible python workflow tool',
+    description='Flow based workflows',
     long_description=long_description,
     long_description_content_type="text/markdown",
 

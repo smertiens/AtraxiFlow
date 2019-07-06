@@ -20,6 +20,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         self.workflow_ctx = WorkflowContext()
         self.setWindowTitle('AtraxiFlow - Creator')
+        self.load_style()
 
         logging.getLogger('creator').debug('Building main window...')
 
@@ -27,7 +28,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         central_widget = QtWidgets.QWidget()
         central_widget.setLayout(QtWidgets.QHBoxLayout())
         central_widget.layout().setSpacing(0)
-        central_widget.layout().setContentsMargins(0,0,0,0)
+        central_widget.layout().setContentsMargins(0, 0, 0, 0)
 
         # Tab bar
         self.tab_bar = QtWidgets.QTabWidget()
@@ -38,6 +39,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         menu_bar = QtWidgets.QMenuBar()
         file_menu = QtWidgets.QMenu('&File')
         menu_file_load_css = QtWidgets.QAction('Reload css', file_menu)
+        menu_file_load_css.setShortcut(QtGui.QKeySequence('Ctrl+R'))
         menu_file_load_css.connect(QtCore.SIGNAL('triggered()'), self.load_style)
         menu_file_quit = QtWidgets.QAction('Quit', file_menu)
 
@@ -61,15 +63,12 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # Spacer
         spacer = QtWidgets.QWidget()
         spacer.setObjectName('tb_spacer')
-        spacer.resize(10,10)
+        spacer.resize(10, 10)
         spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
 
         main_toolbar.addWidget(spacer)
         main_toolbar.addAction(self.action_play)
         main_toolbar.addAction(self.action_stop)
-        dock_main_toolbar = QtWidgets.QDockWidget()
-        dock_main_toolbar.setWindowTitle('Controls')
-        dock_main_toolbar.setWidget(main_toolbar)
 
         # Statusbar
         self.status_bar = QtWidgets.QStatusBar()
@@ -85,30 +84,18 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         tree_query_input.setPlaceholderText('Filter nodes...')
         tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.load_node_tree(s))
         self.node_tree = QtWidgets.QTreeWidget()
+        self.node_tree.setObjectName('node_tree')
         self.node_tree.connect(QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'),
                                lambda i, c: self.add_node_to_current_workspace(i.data(c, QtCore.Qt.UserRole)))
         self.node_tree.setHeaderHidden(True)
         node_tree_wrapper.layout().addWidget(tree_query_input)
         node_tree_wrapper.layout().addWidget(self.node_tree)
-        dock_node_tree = QtWidgets.QDockWidget()
-        dock_node_tree.setWindowTitle('Nodes')
-        dock_node_tree.setWidget(node_tree_wrapper)
 
         # Add data tree
         self.data_tree = QtWidgets.QTreeWidget()
         self.data_tree.setColumnCount(2)
         self.data_tree.setHeaderHidden(True)
         self.data_tree.setObjectName('data_tree')
-
-        dock_data_tree = QtWidgets.QDockWidget()
-        dock_data_tree.setWindowTitle('Data')
-        dock_data_tree.setWidget(self.data_tree)
-
-        # Add widgets to window
-        #self.addDockWidget(QtCore.Qt.BottomDockWidgetArea, dock_data_tree)
-        #self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_node_tree)
-        #self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_main_toolbar)
-
 
         horiz_splitter = QtWidgets.QSplitter()
         horiz_splitter.addWidget(node_tree_wrapper)
@@ -119,7 +106,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         vertical_splitter.addWidget(horiz_splitter)
         vertical_splitter.addWidget(self.data_tree)
 
-        #central_widget.layout().addWidget(self.tab_bar)
         central_widget.layout().addWidget(vertical_splitter)
         self.addToolBar(QtCore.Qt.TopToolBarArea, main_toolbar)
         self.setMenuBar(menu_bar)
@@ -138,7 +124,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         with open(assets.get_asset('style.css'), 'r') as f:
             self.setStyleSheet(f.read())
 
-
     def run_active_workflow(self):
         node_container = self.tab_bar.currentWidget().widget()
         assert isinstance(node_container, AxNodeWidgetContainer)
@@ -155,7 +140,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             self.data_tree.clear()
             self.action_play.setEnabled(False)
             self.action_stop.setEnabled(True)
-            
+
             run_task.start()
 
     def node_run_finished(self, data):

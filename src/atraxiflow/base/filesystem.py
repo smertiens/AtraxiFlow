@@ -380,34 +380,98 @@ class FSRenameNode(Node):
             item.setText('{} -> {}'.format(line_search.text(), line_replace.text()))
             self.replace_list.add_item(item)
 
-    def get_field_ui(self, field_name: str) -> QtWidgets.QWidget:
+    def get_ui(self) -> QtWidgets.QWidget:
 
-        if field_name == 'replace':
+        def toggle_children(parent: QtWidgets.QWidget, state: bool):
+            for child in parent.children():
+                if isinstance(child, QtWidgets.QWidget):
+                    child.setEnabled(state)
 
-            self.replace_list = AxListWidget()
-            self.replace_list.layout().setContentsMargins(0, 0, 0, 0)
-            action_add = QtWidgets.QAction('+T', self.replace_list.get_toolbar())
-            action_add.connect(QtCore.SIGNAL('triggered()'), self.show_add_replace_dialog)
-            action_add.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-text-50.png')))
-            self.replace_list.add_toolbar_action(action_add)
-            return self.replace_list
+        def append_to_rename(txt: str):
+            self.line_target_name.setText(self.line_target_name.text() + txt)
 
-        else:
-            return None
+        widget = QtWidgets.QWidget()
+        widget.setLayout(QtWidgets.QVBoxLayout())
+
+        variables = {
+            'File basename': '{file.basename}',
+            'File extension': '{file.extension}',
+            'File path': '{file.path}',
+        }
+
+        # Rename
+        self.group_rename = QtWidgets.QGroupBox()
+        self.group_rename.setTitle('Rename')
+        self.group_rename.setCheckable(True)
+        self.group_rename.setChecked(True)
+        self.group_rename.connect(QtCore.SIGNAL('toggled(bool)'), lambda on: toggle_children(self.group_rename, on))
+        self.group_rename.setLayout(QtWidgets.QVBoxLayout())
+
+        ctx_target_name = QtWidgets.QMenu()
+        for lbl, var in variables.items():
+            action  = QtWidgets.QAction(ctx_target_name)
+            action.setText(lbl)
+            action.connect(QtCore.SIGNAL('triggered()'), lambda var=var: append_to_rename(var))
+            ctx_target_name.addAction(action)
+
+        self.line_target_name = QtWidgets.QLineEdit()
+        self.line_target_name.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.line_target_name.connect(QtCore.SIGNAL('customContextMenuRequested(QPoint)'),
+                                      lambda pos: ctx_target_name.exec_(self.line_target_name.mapToGlobal(pos)))
+
+
+        rename_text = QtWidgets.QLabel('The new name will be applied to the whole path (so if you change the ' + \
+                                       'directory part <strong>the files will be moved</strong>). There are a number ' + \
+                                       'of variables available, take a look at the context menu for a list.')
+        rename_text.setWordWrap(True)
+        self.group_rename.layout().addWidget(rename_text)
+        self.group_rename.layout().addWidget(self.line_target_name)
+
+        # Replace
+        self.group_replace = QtWidgets.QGroupBox()
+        self.group_replace.setTitle('Replace')
+        self.group_replace.setCheckable(True)
+        self.group_replace.setChecked(False)
+        self.group_replace.connect(QtCore.SIGNAL('toggled(bool)'), lambda on: toggle_children(self.group_replace, on))
+        self.group_replace.setLayout(QtWidgets.QVBoxLayout())
+
+        self.replace_list = AxListWidget()
+        self.replace_list.layout().setContentsMargins(0, 0, 0, 0)
+        action_add = QtWidgets.QAction('+T', self.replace_list.get_toolbar())
+        action_add.connect(QtCore.SIGNAL('triggered()'), self.show_add_replace_dialog)
+        action_add.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-text-50.png')))
+        self.replace_list.add_toolbar_action(action_add)
+        self.group_replace.layout().addWidget(self.replace_list)
+        toggle_children(self.replace_list, False)
+
+        self.check_dry = QtWidgets.QCheckBox()
+        self.check_dry.setText('Dry run')
+
+        widget.layout().addWidget(self.group_rename)
+        widget.layout().addWidget(self.group_replace)
+        widget.layout().addWidget(self.check_dry)
+
+        return widget
 
     def apply_ui_data(self):
 
-        repl_list = {}
-        for n in range(0, self.replace_list.get_list().count()):
-            item = self.replace_list.get_list().item(n)
-            data = item.data(QtCore.Qt.UserRole)
-            print(data, type(data))
-            assert isinstance(data, dict)
+        if self.group_rename.isChecked():
+            self.property('name').set_value(self.line_target_name.text())
 
-            repl_list += data
+        if self.group_replace.isChecked():
 
-        self.property('replace').set_value(repl_list)
+            repl_list = {}
+            for n in range(0, self.replace_list.get_list().count()):
+                item = self.replace_list.get_list().item(n)
+                data = item.data(QtCore.Qt.UserRole)
+                print(data, type(data))
+                assert isinstance(data, dict)
 
+                repl_list += data
+
+            self.property('replace').set_value(repl_list)
+
+        self.property('dry').set_value(self.check_dry.isChecked())
 
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
@@ -442,7 +506,8 @@ class FSRenameNode(Node):
                         new_name = new_name.replace(key, svp.parse(val))
 
             if self.property('dry').value() is True:
-                ctx.get_logger().info("DRY RUN: Rename {0} -> {1}".format(res.get_absolute_path(), new_name))
+                ctx.get_logger().debug("DRY RUN: Rename {0} -> {1}".format(res.get_absolute_path(), new_name))
+                self.output.add(FilesystemResource(new_name))
             else:
                 os.rename(res.get_absolute_path(), new_name)
                 self.output.add(FilesystemResource(new_name))

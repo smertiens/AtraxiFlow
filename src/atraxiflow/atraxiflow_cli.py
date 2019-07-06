@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-from atraxiflow.creator import creator_main
+from atraxiflow.creator import creator
 import click
 
 @click.group()
@@ -14,7 +14,7 @@ def cli():
 
 @cli.command('creator')
 def creator():
-    creator_main.launch_app()
+    creator.launch_app()
 
 if __name__ == '__main__':
     cli()

@@ -116,10 +116,10 @@ class AxNodeWidget(QtWidgets.QFrame):
         node_name = node_info['name'] if node_info['name'] != '' else self.node.__class__.__name__
         self.title_label = QtWidgets.QLabel(node_name)
         self.title_label.setAlignment(QtCore.Qt.AlignCenter)
-        self.title_label.setStyleSheet(
-            'padding: 5px; font-size:12px; font-weight:bold;')
-        self.title_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Preferred)
+        self.title_label.setObjectName('node_title')
+        self.title_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.btn_close = QtWidgets.QPushButton('x')
+        self.btn_close.setObjectName('node_remove_btn')
         self.btn_close.connect(QtCore.SIGNAL('pressed()'), self.remove)
         self.btn_close.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
         self.btn_close.setFlat(True)
@@ -127,17 +127,11 @@ class AxNodeWidget(QtWidgets.QFrame):
         title_layout = QtWidgets.QHBoxLayout()
         title_layout.addWidget(self.title_label)
         title_layout.addWidget(self.btn_close)
-        # self.title_label.setCursor(QtCore.Qt.SizeAllCursor)
-
-        # Content wrapper
-        self.content_wrapper = QtWidgets.QWidget(self)
-        self.content_wrapper.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
 
         # Add to window
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
         self.layout().addLayout(title_layout)
-        # self.layout().addWidget(self.content_wrapper)
 
         self.build_node_ui()
 
