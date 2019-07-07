@@ -103,30 +103,15 @@ class LoadFilesNode(Node):
 
 
 class FileFilterNode(Node):
-    '''
+    """
     @Name: Filter files and folders
-
-    Filter format
-
-    [file_property, comparator, value]
-
-    file_property:
-        filesize
-        date_created
-        date_modified
-
-    comparator: < > = <= >= !=
-    '''
+    """
 
     def __init__(self, properties: dict = None):
         node_properties = {
             'filter': Property(expected_type=list, required=True, hint='Filters filesystem resources')
         }
         super().__init__(node_properties, properties)
-
-    @staticmethod
-    def get_name() -> str:
-        return 'Filter files and folders'
 
     def _filesize_value_to_number(self, str_size: str) -> int:
         matches = re.match(r"(\d+) *([MKGT]*)", str_size.lstrip(" ").rstrip(" "))
@@ -163,6 +148,7 @@ class FileFilterNode(Node):
         if filter[0] == "file_size":
             left_val = fsres.get_filesize()
             right_val = self._filesize_value_to_number(filter[2])
+
         elif filter[0] == "date_created":
             left_val = fsres.get_created()
             right_val = dtp.process_string(filter[2])
@@ -254,6 +240,177 @@ class FileFilterNode(Node):
         else:
             self.ctx.get_logger().error("Invalid operator: %s".format(filter[1]))
             return False
+
+    def show_add_condition_dialog(self, condition_class = ''):
+        dlg = QtWidgets.QDialog()
+        dlg.setWindowTitle('Add new condition')
+        dlg.setLayout(QtWidgets.QVBoxLayout())
+
+        h_layout = QtWidgets.QHBoxLayout()
+        label = QtWidgets.QLabel()
+        h_layout.addWidget(label)
+        combo_operator = QtWidgets.QComboBox()
+        combo_operator.setEditable(False)
+        h_layout.addWidget(combo_operator)
+
+        operator_map = {}
+
+        if condition_class in ('filename', 'dir'):
+            operator_map = {
+                'contains': 'contains',
+                'starts with': 'startswith',
+                'ends with': 'endswith',
+                'matches (RegEx)': 'matches'
+            }
+
+            label.setText('Filename' if condition_class == 'filename' else 'Directory name')
+            combo_operator.addItems(list(operator_map.keys()))
+            control = QtWidgets.QLineEdit()
+            h_layout.addWidget(control)
+
+        elif condition_class == 'type':
+            label.setText('Path is a ')
+            control = QtWidgets.QComboBox()
+            control.setEditable(False)
+            control.addItems(['file', 'folder'])
+            h_layout.addWidget(control)
+            h_layout.removeWidget(combo_operator)
+
+        elif condition_class in ('created', 'modified'):
+            operator_map = {
+                'less than': '<',
+                'more than': '>',
+                'equals': '=',
+                'less or equal': '<=',
+                'more or equal': '>=',
+                'not': '!='
+            }
+
+            label.setText('Date created is' if condition_class == 'created' else 'Date modified is')
+            combo_operator.addItems(list(operator_map.keys()))
+            control = QtWidgets.QComboBox()
+            control.setEditable(True)
+            control.addItems(['today', 'yesterday', 'tomorrow'])
+            control.setCurrentText('')
+            h_layout.addWidget(control)
+
+        elif condition_class == 'size':
+            operator_map = {
+                'less than': '<',
+                'more than': '>',
+                'equals': '=',
+                'less or equal': '<=',
+                'more or equal': '>=',
+                'not': '!='
+            }
+
+            unit_map = {
+                'Bytes': '',
+                'Kilobytes': 'K',
+                'Megabytes': 'M',
+                'Gigabytes': 'G',
+                'Terabytes': 'T'
+            }
+
+            label.setText('Filesize is')
+            combo_operator.addItems(list(operator_map.keys()))
+            control = QtWidgets.QSpinBox()
+            control.setRange(1, 9999999)
+            h_layout.addWidget(control)
+            combo_unit =QtWidgets.QComboBox()
+            combo_unit.setEditable(False)
+            combo_unit.addItems(list(unit_map.keys()))
+            h_layout.addWidget(combo_unit)
+
+
+        button_box = QtWidgets.QDialogButtonBox()
+        button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
+        button_box.connect(QtCore.SIGNAL('accepted()'), dlg.accept)
+        button_box.connect(QtCore.SIGNAL('rejected()'), dlg.reject)
+
+        dlg.layout().addLayout(h_layout)
+        dlg.layout().addWidget(button_box)
+        if dlg.exec_() == QtWidgets.QDialog.Rejected:
+            return
+
+        # Add list item
+        if condition_class in ('filename', 'dir'):
+            text = control.text()
+
+            if combo_operator.currentText() == 'matches (RegEx)':
+                text = re.compile(text)
+
+            data = ['filename' if condition_class == 'filename' else 'filedir',
+                    operator_map[combo_operator.currentText()], control.text()]
+            item = QtWidgets.QListWidgetItem()
+            item.setData(QtCore.Qt.UserRole, data)
+            item.setText('%s %s "%s"' % ('Filename' if condition_class == 'filename' else 'Directory name',
+                                        combo_operator.currentText(), control.text()))
+            self.list_widget.add_item(item)
+
+        elif condition_class == 'type':
+            data = ['type', '=', control.currentText()]
+            item = QtWidgets.QListWidgetItem()
+            item.setData(QtCore.Qt.UserRole, data)
+            item.setText('Path is a %s' % control.currentText())
+            self.list_widget.add_item(item)
+
+        elif condition_class in ('created', 'modified'):
+            data = ['date_created' if condition_class == 'created' else 'date_modified', combo_operator.currentText(),
+                    control.currentText()]
+            item = QtWidgets.QListWidgetItem()
+            item.setData(QtCore.Qt.UserRole, data)
+            item.setText('%s %s "%s"' % ('Date created' if condition_class == 'created' else 'Date modified',
+                                       combo_operator.currentText(), control.currentText()))
+            self.list_widget.add_item(item)
+
+        elif condition_class == 'size':
+            data = ['file_size', combo_operator.currentText(), control.text() + combo_unit.currentText()]
+            item = QtWidgets.QListWidgetItem()
+            item.setData(QtCore.Qt.UserRole, data)
+            item.setText('File size %s %s %s' % (combo_operator.currentText(), control.text(), combo_unit.currentText()))
+            self.list_widget.add_item(item)
+
+    def apply_ui_data(self):
+        conditions = []
+        for n in range(0, self.list_widget.get_list().count()):
+            item = self.list_widget.get_list().item(n)
+            conditions.append(item.data(QtCore.Qt.UserRole))
+
+        self.property('filter').set_value(conditions)
+
+    def get_ui(self) -> QtWidgets.QWidget:
+        self.list_widget = AxListWidget()
+        btn_add_cond = QtWidgets.QPushButton()
+        mnu_cond = QtWidgets.QMenu(btn_add_cond)
+
+        action_add_filename = QtWidgets.QAction('Filter by filename', mnu_cond)
+        action_add_filename.connect(QtCore.SIGNAL('triggered()'), lambda: self.show_add_condition_dialog('filename'))
+        action_add_dir = QtWidgets.QAction('Filter by directory', mnu_cond)
+        action_add_dir.connect(QtCore.SIGNAL('triggered()'), lambda: self.show_add_condition_dialog('dir'))
+        action_add_type = QtWidgets.QAction('Filter by file type', mnu_cond)
+        action_add_type.connect(QtCore.SIGNAL('triggered()'), lambda: self.show_add_condition_dialog('type'))
+        action_add_created = QtWidgets.QAction('Filter by date created', mnu_cond)
+        action_add_created.connect(QtCore.SIGNAL('triggered()'), lambda: self.show_add_condition_dialog('created'))
+        action_add_modified = QtWidgets.QAction('Filter by date modified', mnu_cond)
+        action_add_modified.connect(QtCore.SIGNAL('triggered()'), lambda: self.show_add_condition_dialog('modified'))
+        action_add_size = QtWidgets.QAction('Filter by file size', mnu_cond)
+        action_add_size.connect(QtCore.SIGNAL('triggered()'), lambda: self.show_add_condition_dialog('size'))
+        mnu_cond.addAction(action_add_filename)
+        mnu_cond.addAction(action_add_dir)
+        mnu_cond.addAction(action_add_type)
+        mnu_cond.addAction(action_add_created)
+        mnu_cond.addAction(action_add_modified)
+        mnu_cond.addAction(action_add_size)
+
+        btn_add_cond.setIconSize(QtCore.QSize(20, 20))
+        btn_add_cond.setFlat(True)
+        btn_add_cond.setMenu(mnu_cond)
+        btn_add_cond.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-file-50.png')))
+
+        self.list_widget.add_toolbar_widget(btn_add_cond)
+
+        return self.list_widget
 
     def run(self, ctx: WorkflowContext):
         super().run(ctx)

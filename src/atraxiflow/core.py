@@ -201,6 +201,13 @@ class WorkflowContext:
         self._symbol_table = {}
         self.ui_env = False
         self.load_extensions()
+        self._main_window = None
+
+    def set_main_window(self, wnd):
+        self._main_window = wnd
+
+    def get_main_window(self) -> QtWidgets.QMainWindow:
+        return self._main_window
 
     def autodiscover_nodes(self, root_package: str) -> list:
 

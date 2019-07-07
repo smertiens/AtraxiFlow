@@ -93,7 +93,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         # Add data tree
         self.data_tree = QtWidgets.QTreeWidget()
-        self.data_tree.setColumnCount(2)
+        self.data_tree.setColumnCount(1)
         self.data_tree.setHeaderHidden(True)
         self.data_tree.setObjectName('data_tree')
 
@@ -133,7 +133,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             root_node = node_container.get_root_node(selected_node)
             ax_nodes = node_container.extract_node_hierarchy_from_widgets(root_node)
 
-            run_task = tasks.RunWorkflowTask(ax_nodes)
+            run_task = tasks.RunWorkflowTask(ax_nodes, self)
             run_task.set_on_finish(self.run_finished)
             run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
 
@@ -159,8 +159,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
             for inp in node.get_input().items():
                 item = QtWidgets.QTreeWidgetItem()
-                item.setText(0, inp.__class__.__name__)
-                item.setText(1, str(inp))
+                item.setText(0, inp.__class__.__name__ + ': ' + str(inp))
 
                 inputs.addChild(item)
 
@@ -173,8 +172,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
             for outp in node.get_output().items():
                 item = QtWidgets.QTreeWidgetItem()
-                item.setText(0, outp.__class__.__name__)
-                item.setText(1, str(outp))
+                item.setText(0, outp.__class__.__name__ + ': ' + str(outp))
                 outputs.addChild(item)
 
         node_item.addChild(inputs)

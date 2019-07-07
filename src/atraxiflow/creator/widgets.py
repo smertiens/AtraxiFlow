@@ -91,6 +91,8 @@ class AxListWidget(QtWidgets.QWidget):
     def add_toolbar_action(self, action):
         self.toolbar.insertAction(self.action_remove, action)
 
+    def add_toolbar_widget(self, w):
+        self.toolbar.insertWidget(self.action_remove, w)
 
 class AxNodeWidget(QtWidgets.QFrame):
 

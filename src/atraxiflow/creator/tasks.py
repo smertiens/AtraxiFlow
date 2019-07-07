@@ -43,10 +43,11 @@ class Task(threading.Thread):
 
 class RunWorkflowTask(Task):
 
-    def __init__(self, nodes: List[Node]):
+    def __init__(self, nodes: List[Node], main_window=None):
         super().__init__()
         self.nodes = nodes
         self.workflow = Workflow(nodes)
+        self.workflow.get_context().set_main_window(main_window)
         self.workflow.get_context().ui_env = True
 
     def get_workflow(self):
