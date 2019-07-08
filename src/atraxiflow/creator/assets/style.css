@@ -5,17 +5,21 @@ QWidget {
 
 QMainWindow {
    background:white;
+   padding-top:5px;
 }
 
 QTabBar::tab  {
-    background:white;
+    background:rgb(220,220,220);
     color:black;
-    border: none;
+    border-color:black;
+    border-style: solid;
+    border: 1px solid gray;
     padding: 10px 5px 10px 5px;
+    height:15px;
 }
 
-QTabWidget::tab-bar {
-    border:none;
+QTabBar::tab:selected  {
+    background:white;
 }
 
 QTabWidget::pane {
@@ -41,13 +45,14 @@ QStatusBar {
     color:white;
 }
 
-#tree_query_input {
-    margin-bottom:5px;
-    border:none;
+#status_label {
+    color:white;
 }
 
-#tree_query_input::hover {
+#tree_query_input {
+    margin-bottom:5px;
     border: 1px solid gray;
+    height:20px;
 }
 
 #data_tree {

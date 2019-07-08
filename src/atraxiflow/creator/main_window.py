@@ -5,12 +5,13 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging, sys, os
+import logging
+import sys
 
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
 from atraxiflow.creator import assets, tasks, wayfiles
-from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer
+from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer, AxWorkflowWidget
 
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
@@ -34,6 +35,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.tab_bar = QtWidgets.QTabWidget()
         self.tab_bar.setTabsClosable(True)
         self.tab_bar.setDocumentMode(True)
+        self.tab_bar.connect(QtCore.SIGNAL('tabCloseRequested(int)'), self.tab_closed)
 
         ## Main menu
         # File
@@ -46,54 +48,43 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         menu_file_new = QtWidgets.QAction('New workflow', file_menu)
         menu_file_new.connect(QtCore.SIGNAL('triggered()'), self.new_file)
-        menu_file_new.setShortcut(QtGui.QKeySequence('Ctrl + N'))
+        menu_file_new.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.New))
         file_menu.addAction(menu_file_new)
         file_menu.addSeparator()
         menu_file_save = QtWidgets.QAction('Save workflow', file_menu)
         menu_file_save.connect(QtCore.SIGNAL('triggered()'), self.save_file)
-        menu_file_save.setShortcut(QtGui.QKeySequence('Ctrl + S'))
+        menu_file_save.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Save))
         file_menu.addAction(menu_file_save)
         menu_file_save_as = QtWidgets.QAction('Save workflow as...', file_menu)
         menu_file_save_as.connect(QtCore.SIGNAL('triggered()'), lambda: self.save_file(True))
+        menu_file_save_as.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.SaveAs))
         file_menu.addAction(menu_file_save_as)
-        menu_file_open = QtWidgets.QAction('Open workflow file...', file_menu)
+        menu_file_open = QtWidgets.QAction('Open workflow...', file_menu)
         menu_file_open.connect(QtCore.SIGNAL('triggered()'), self.open_file)
+        menu_file_open.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Open))
         file_menu.addAction(menu_file_open)
-
+        file_menu.addSeparator()
         menu_file_quit = QtWidgets.QAction('Quit', file_menu)
         menu_file_quit.connect(QtCore.SIGNAL('triggered()'), self.quit_app)
+        menu_file_quit.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Quit))
         file_menu.addAction(menu_file_quit)
 
         # Workflow
         wf_menu = QtWidgets.QMenu('&Workflow')
-        menu_wf_run = QtWidgets.QAction('Run', wf_menu)
+        self.action_run = QtWidgets.QAction('Run')
+        self.action_run.setShortcut(QtGui.QKeySequence('Ctrl+r'))
+        self.action_run.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
+        self.action_run.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
+        wf_menu.addAction(self.action_run)
 
         menu_bar.addMenu(file_menu)
         menu_bar.addMenu(wf_menu)
 
-        # Main toolbar
-        main_toolbar = QtWidgets.QToolBar()
-        main_toolbar.setMovable(False)
-
-        self.action_play = QtWidgets.QAction('Play', main_toolbar)
-        self.action_play.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
-        self.action_play.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
-        self.action_stop = QtWidgets.QAction('Stop', main_toolbar)
-        self.action_stop.setIcon(QtGui.QIcon(assets.get_asset('icons8-stop-50.png')))
-        self.action_stop.setEnabled(False)
-
-        # Spacer
-        spacer = QtWidgets.QWidget()
-        spacer.setObjectName('tb_spacer')
-        spacer.resize(10, 10)
-        spacer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-
-        main_toolbar.addWidget(spacer)
-        main_toolbar.addAction(self.action_play)
-        main_toolbar.addAction(self.action_stop)
-
         # Statusbar
         self.status_bar = QtWidgets.QStatusBar()
+        self.status_label = QtWidgets.QLabel('Ready')
+        self.status_label.setObjectName('status_label')
+        self.status_bar.addWidget(self.status_label)
 
         # Node list
         node_tree_wrapper = QtWidgets.QWidget()
@@ -129,13 +120,12 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         vertical_splitter.addWidget(self.data_tree)
 
         central_widget.layout().addWidget(vertical_splitter)
-        self.addToolBar(QtCore.Qt.TopToolBarArea, main_toolbar)
         self.setMenuBar(menu_bar)
         self.setCentralWidget(central_widget)
         self.setStatusBar(self.status_bar)
 
         # Create default tab
-        self.create_workflow_tab('Default Workflow')
+        self.create_workflow_tab()
 
         logging.getLogger('creator').debug('Loading nodes...')
         self.load_node_tree()
@@ -151,15 +141,16 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
     def open_file(self):
         dlg = QtWidgets.QFileDialog()
-        filename = dlg.getOpenFileName(self, 'Open workflow file', filter='Way files (*.way);;All files (*.*)')
+        filename = dlg.getOpenFileName(self, 'Open workflow file', filter='Way files (*.way);;All files (*.*)')[0]
 
-        if filename[0] == '':
+        if filename == '':
             return
 
-        nodes = wayfiles.load(filename[0])
+        nodes = wayfiles.load(filename)
 
-        widget = self.create_workflow_tab(os.path.basename(filename[0]))
-        assert isinstance(widget, QtWidgets.QScrollArea)
+        widget = self.create_workflow_tab()
+        self.tab_bar.setCurrentWidget(widget)
+        assert isinstance(widget, AxWorkflowWidget)
         container = widget.widget()
         assert isinstance(container, AxNodeWidgetContainer)
 
@@ -169,19 +160,41 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             node.show()
             container.discover_nodes()
 
+        widget.set_filename(filename)
+        widget.set_modified(False)
+
     def save_file(self, save_as=False):
-        dlg = QtWidgets.QFileDialog()
-        filename = dlg.getSaveFileName(self, 'Save workflow', filter='Way files (*.way);;All files (*.*)')
-
-        if filename[0] == '':
-            return
-
         widget = self.tab_bar.currentWidget()
-        assert isinstance(widget, QtWidgets.QScrollArea)
+        assert isinstance(widget, AxWorkflowWidget)
         container = widget.widget()
         assert isinstance(container, AxNodeWidgetContainer)
 
-        wayfiles.dump(filename[0], container.get_nodes())
+        dlg = QtWidgets.QFileDialog()
+
+        if widget.filename == '' or save_as:
+            filename = dlg.getSaveFileName(self, 'Save workflow', filter='Way files (*.way);;All files (*.*)')[0]
+
+            if filename == '':
+                return
+
+            widget.set_filename(filename)
+
+        wayfiles.dump(widget.filename, container.get_nodes())
+        widget.set_modified(False)
+
+    def tab_closed(self, index):
+        widget = self.tab_bar.widget(index)
+        assert isinstance(widget, AxWorkflowWidget)
+
+        if widget.modified:
+            ans = QtWidgets.QMessageBox.question(self, 'Close tab', 'There are unsaved changes in this workflow.\n' + \
+                                           'Do you want to save your changes?', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+
+            if ans == QtWidgets.QMessageBox.Yes:
+                self.save_file()
+                return
+
+        self.tab_bar.removeTab(index)
 
     def filter_node_tree(self, q: str):
         it = QtWidgets.QTreeWidgetItemIterator(self.node_tree)
@@ -213,12 +226,16 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
 
             self.data_tree.clear()
-            self.action_play.setEnabled(False)
-            self.action_stop.setEnabled(True)
+            self.action_run.setEnabled(False)
 
+            logging.getLogger('creator').debug('Starting workflow thread...')
             run_task.start()
+        else:
+            logging.getLogger('creator').debug('No node selection found. Stopping run.')
 
     def node_run_finished(self, data):
+        logging.getLogger('creator').debug('Collecting inputs and outputs from node...')
+
         node = data['node']
         assert isinstance(node, Node)
 
@@ -259,8 +276,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         node_item.setExpanded(True)
 
     def run_finished(self, task: tasks.RunWorkflowTask):
-        self.action_play.setEnabled(True)
-        self.action_stop.setEnabled(False)
+        logging.getLogger('creator').debug('Workflow task has finished')
+        self.action_run.setEnabled(True)
 
     def add_node_to_current_workspace(self, node):
         # TODO make clear this will add a node from the node tree
@@ -268,8 +285,14 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             # maybe clicked a category
             return
 
-        wrapper = self.tab_bar.currentWidget().widget()
-        ui_node = self.create_node_widget(node(), wrapper)
+        if self.tab_bar.currentWidget() == None:
+            widget = self.create_workflow_tab()
+            widget.set_modified(True)
+            wrapper = widget.widget()
+        else:
+            wrapper = self.tab_bar.currentWidget().widget()
+
+        ui_node = AxNodeWidget(node(), wrapper)
         ui_node.move(10, 10)
         ui_node.show()
 
@@ -309,11 +332,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             self.node_tree.insertTopLevelItem(0, group_item)
             self.node_tree.expandAll()
 
-    def create_node_widget(self, node: Node, parent: AxNodeWidgetContainer):
-        return AxNodeWidget(node, parent)
-
-    def create_workflow_tab(self, title: str='New workflow') -> QtWidgets.QScrollArea:
-        scroll_area = QtWidgets.QScrollArea()
+    def create_workflow_tab(self, title: str = 'New workflow') -> AxWorkflowWidget:
+        scroll_area = AxWorkflowWidget()
         wrapper = AxNodeWidgetContainer()
         scroll_area.setWidget(wrapper)
         wrapper.resize(scroll_area.width(), scroll_area.height())

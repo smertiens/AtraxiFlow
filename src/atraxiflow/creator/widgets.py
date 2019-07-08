@@ -8,7 +8,7 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from atraxiflow.core import Node, get_node_info
 from atraxiflow.base import assets
 from atraxiflow.exceptions import *
-
+import os
 
 class AxFileLineEditWidget(QtWidgets.QWidget):
     text_changed = QtCore.Signal(str)
@@ -344,3 +344,27 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
             else:
                 if node == widget.dock_parent_widget:
                     self.undock(node, widget)
+
+
+class AxWorkflowWidget(QtWidgets.QScrollArea):
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.filename = ''
+        self.modified = False
+
+    def set_filename(self, filename: str):
+        self.filename = filename
+        self._update_tab_title()
+
+    def set_modified(self, modified: bool):
+        self.modified = modified
+        self._update_tab_title()
+
+    def _update_tab_title(self):
+        tab_bar = self.parentWidget().parentWidget()
+        assert isinstance(tab_bar, QtWidgets.QTabWidget)
+
+        tab_bar.setTabText(tab_bar.currentIndex(), ('New workflow' if self.filename == '' else os.path.basename(self.filename)) +
+                           (' *' if self.modified else ''))

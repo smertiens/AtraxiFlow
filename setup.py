@@ -3,6 +3,9 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open('requirements.txt', 'r') as fh:
+    requirements = fh.readlines()
+
 setuptools.setup(
     name='atraxi-flow',
     version='2.0.0',
@@ -27,7 +30,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
 
-    install_requires=['contemply', 'click', 'Pyside2', 'joblib'],
+    install_requires=requirements,
 
     python_requires='>=3.5'
 )

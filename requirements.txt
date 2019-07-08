@@ -2,3 +2,4 @@ contemply
 click
 Pyside2
 joblib
+colorama

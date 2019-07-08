@@ -6,14 +6,30 @@
 #
 
 import logging
+import colorama
+
 
 class AxLoggingConsoleFormatter(logging.Formatter):
 
     def format(self, record):
         super().format(record)
-        return '{} {}: {}'.format(self.formatTime(record, '%H:%M:%S'), record.module, record.getMessage())
+        txt = ''
 
-def setup_loggers(level = logging.DEBUG):
+        if record.levelno == logging.DEBUG:
+            txt += colorama.Style.DIM
+        elif record.levelno == logging.WARNING:
+            txt += colorama.Fore.YELLOW
+        elif record.levelno == logging.ERROR:
+            txt += colorama.Fore.RED
+
+        txt += '{} {}: {}'.format(self.formatTime(record, '%H:%M:%S'), record.module, record.getMessage())
+        txt += colorama.Style.RESET_ALL
+        return txt
+
+
+def setup_loggers(level=logging.DEBUG):
+    colorama.init()
+
     core_logger = logging.getLogger('core')
     ctx_logger = logging.getLogger('workflow_ctx')
     creator_logger = logging.getLogger('creator')
@@ -32,5 +48,3 @@ def setup_loggers(level = logging.DEBUG):
     # setup creator logger
     creator_logger.setLevel(level)
     creator_logger.addHandler(handler)
-
-

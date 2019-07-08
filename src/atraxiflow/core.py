@@ -387,7 +387,7 @@ def get_node_info(node_object: object) -> dict:
     docstr = inspect.getdoc(node_object)
 
     result = {
-        'name': node_object.__name__,
+        'name': node_object.__name__ if hasattr(node_object, '__name__') else node_object.__class__.__name__,
         'accepts': [],
         'returns': [],
         'hide': False
