@@ -20,7 +20,9 @@ __all__ = ['NullNode', 'EchoOutputNode', 'DelayNode', 'CLIInputNode', 'ShellExec
 
 
 class ShellExecNode(Node):
-
+    """
+    @Name: Execute console command
+    """
     def __init__(self, properties: dict = None):
         node_properties = {
             'cmd': Property(expected_type=str, required=True, label='Command',
@@ -73,6 +75,9 @@ class ShellExecNode(Node):
 
 
 class EchoOutputNode(Node):
+    """
+    @Name: Write to console
+    """
 
     def __init__(self, properties=None):
         node_properties = {
@@ -95,7 +100,9 @@ class EchoOutputNode(Node):
 
 
 class DelayNode(Node):
-
+    """
+    @Name: Add delay
+    """
     def __init__(self, properties=None):
         node_properties = {
             'time': Property(expected_type=(int, float), required=False, hint='Time to sleep', label='Time')
@@ -115,7 +122,9 @@ class DelayNode(Node):
             return time_input
 
 class NullNode(Node):
-
+    """
+    @Hide: True
+    """
     def __init__(self, properties=None):
         super().__init__({}, properties)
 
@@ -124,7 +133,9 @@ class NullNode(Node):
 
 
 class CLIInputNode(Node):
-
+    """
+    @Name: Get user input from console
+    """
     def __init__(self, properties=None):
         user_properties = {
             'prompt': Property(expected_type=str, required=False, label='Prompt',

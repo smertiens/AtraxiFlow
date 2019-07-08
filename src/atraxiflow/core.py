@@ -116,9 +116,12 @@ class Node:
         self.properties = node_properties
         self.apply_properties(user_properties)
 
-    @staticmethod
-    def get_name() -> str:
-        return ''
+    def serialize(self):
+        result = {}
+        for name, prop in self.properties.items():
+            result[name] = prop.value()
+
+        return result
 
     def apply_ui_data(self):
         """
@@ -350,7 +353,14 @@ class Workflow(EventObject):
                 node.apply_ui_data()
 
             logging.getLogger('core').debug("Running node {0}...".format(node.__class__.__name__))
-            res = node.run(self._ctx)
+            try:
+                res = node.run(self._ctx)
+            except Exception as e:
+                logging.getLogger('core').error(e.__class__.__name__ + ': ' + str(e))
+                self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
+                logging.getLogger('core').error('Stopping workflow execution due to an unexpected exception.')
+                return False
+
             self.fire_event(self.EVENT_NODE_RUN_FINISHED, {'node': node})
 
             prev_node = node
@@ -377,9 +387,10 @@ def get_node_info(node_object: object) -> dict:
     docstr = inspect.getdoc(node_object)
 
     result = {
-        'name': '',
+        'name': node_object.__name__,
         'accepts': [],
-        'returns': []
+        'returns': [],
+        'hide': False
     }
 
     if docstr is None:
@@ -393,6 +404,9 @@ def get_node_info(node_object: object) -> dict:
 
         k = line[1:line.find(':')].lower()
         val = line[line.find(':') + 1:].lstrip()
+
+        if k == 'hide':
+            val = True if val.lower() == 'true' else False
 
         if not k in result:
             raise KeyError('Unknown key: "%s"' % k)

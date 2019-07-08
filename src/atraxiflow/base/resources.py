@@ -18,6 +18,17 @@ class TextResource(Resource):
         self._value = value
         self.id = '%s.%s' % ('atraxiflow', self.__class__.__name__)
 
+    def __str__(self):
+        show_chars = 60
+
+        if len(self._value) > show_chars:
+            return self._value[:show_chars] + '... (%s more)' % (len(self._value) - show_chars)
+        else:
+            return self._value
+
+    def __repr__(self):
+        return self.__str__()
+
 
 class FilesystemResource(Resource):
 

@@ -140,6 +140,9 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.setMinimumWidth(300)
         self.setMaximumWidth(300)
 
+    def get_node(self) -> Node:
+        return self.node
+
     def remove(self):
         self.parent().remove_node(self)
 
@@ -165,22 +168,30 @@ class AxNodeWidget(QtWidgets.QFrame):
                         if role == 'file':
                             control = AxFileLineEditWidget()
                             control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
+                            if isinstance(prop.value(), str):
+                                control.line_edit.setText(prop.value())
                         elif role == 'select':
                             # TODO: hookup to callback
                             items = prop.get_display_options()['items'] if 'items' in prop.get_display_options() else []
                             control = QtWidgets.QComboBox()
                             control.setEditable(False)
                             control.addItems(items)
+                            if isinstance(prop.value(), str):
+                                control.setCurrentText(prop.value())
                             # control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
                         else:
                             raise NodeUIException('Role "%s" not found' % role)
                     else:
                         control = QtWidgets.QLineEdit()
                         control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
+                        if isinstance(prop.value(), str):
+                            control.setText(prop.value())
 
                 elif prop.get_expected_type()[0] == bool:
                     control = QtWidgets.QCheckBox()
                     control.connect(QtCore.SIGNAL('stateChanged(int)'), lambda i, prop=prop: prop.set_value(i == 2))
+                    if isinstance(prop.value(), bool):
+                        control.setChecked(prop.value())
 
                 elif prop.get_expected_type()[0] == list:
                     raise NodeUIException(
@@ -262,6 +273,12 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
         self.nodes.remove(node)
         node.deleteLater()
 
+    def clear(self):
+        for node in self.nodes:
+            node.deleteLater()
+
+        self.nodes.clear()
+
     def extract_node_hierarchy_from_widgets(self, root_node: AxNodeWidget) -> list:
         nodes = [root_node.node]
         while root_node.dock_child_widget is not None:
@@ -287,6 +304,9 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
         for child in self.children():
             if isinstance(child, AxNodeWidget):
                 self.nodes.append(child)
+
+    def get_nodes(self):
+        return self.nodes
 
     def dock(self, upper: AxNodeWidget, lower: AxNodeWidget, recursive=True):
         lower.move(

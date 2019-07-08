@@ -13,7 +13,9 @@ from atraxiflow.base.resources import TextResource
 
 
 class TextFileInputNode(Node):
-
+    """
+    @Name: Load textfile
+    """
     def __init__(self, properties: dict = None):
         node_properties = {
             'filename': Property(expected_type=str, required=True, label='Filename', hint='The filename to read from',
@@ -36,7 +38,9 @@ class TextFileInputNode(Node):
 
 
 class TextFileOutputNode(Node):
-
+    """
+    @Name: Write to textfile
+    """
     def __init__(self, properties: dict = None):
         node_properties = {
             'filename': Property(expected_type=str, label='Filename', required=True, hint='The filename to write to'),
@@ -65,9 +69,9 @@ class TextFileOutputNode(Node):
 
 
 class TextValidatorNode(Node):
-    '''
-    Offers different rules to validate a text
-    '''
+    """
+    @Name: Validate text
+    """
 
     def __init__(self, properties: dict = None):
 

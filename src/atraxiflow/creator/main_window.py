@@ -5,12 +5,12 @@
 # For more information on licensing see LICENSE file
 #
 
-from PySide2 import QtCore, QtWidgets, QtGui
-from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer
+import logging, sys, os
+
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
-from atraxiflow.creator import assets, tasks
-import logging
+from atraxiflow.creator import assets, tasks, wayfiles
+from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer
 
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
@@ -35,17 +35,39 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.tab_bar.setTabsClosable(True)
         self.tab_bar.setDocumentMode(True)
 
-        # Main menu
+        ## Main menu
+        # File
         menu_bar = QtWidgets.QMenuBar()
         file_menu = QtWidgets.QMenu('&File')
         menu_file_load_css = QtWidgets.QAction('Reload css', file_menu)
         menu_file_load_css.setShortcut(QtGui.QKeySequence('Ctrl+R'))
         menu_file_load_css.connect(QtCore.SIGNAL('triggered()'), self.load_style)
-        menu_file_quit = QtWidgets.QAction('Quit', file_menu)
+        # file_menu.addAction(menu_file_load_css)
 
+        menu_file_new = QtWidgets.QAction('New workflow', file_menu)
+        menu_file_new.connect(QtCore.SIGNAL('triggered()'), self.new_file)
+        menu_file_new.setShortcut(QtGui.QKeySequence('Ctrl + N'))
+        file_menu.addAction(menu_file_new)
+        file_menu.addSeparator()
+        menu_file_save = QtWidgets.QAction('Save workflow', file_menu)
+        menu_file_save.connect(QtCore.SIGNAL('triggered()'), self.save_file)
+        menu_file_save.setShortcut(QtGui.QKeySequence('Ctrl + S'))
+        file_menu.addAction(menu_file_save)
+        menu_file_save_as = QtWidgets.QAction('Save workflow as...', file_menu)
+        menu_file_save_as.connect(QtCore.SIGNAL('triggered()'), lambda: self.save_file(True))
+        file_menu.addAction(menu_file_save_as)
+        menu_file_open = QtWidgets.QAction('Open workflow file...', file_menu)
+        menu_file_open.connect(QtCore.SIGNAL('triggered()'), self.open_file)
+        file_menu.addAction(menu_file_open)
+
+        menu_file_quit = QtWidgets.QAction('Quit', file_menu)
+        menu_file_quit.connect(QtCore.SIGNAL('triggered()'), self.quit_app)
+        file_menu.addAction(menu_file_quit)
+
+        # Workflow
         wf_menu = QtWidgets.QMenu('&Workflow')
         menu_wf_run = QtWidgets.QAction('Run', wf_menu)
-        file_menu.addAction(menu_file_load_css)
+
         menu_bar.addMenu(file_menu)
         menu_bar.addMenu(wf_menu)
 
@@ -82,7 +104,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         tree_query_input = QtWidgets.QLineEdit()
         tree_query_input.setObjectName('tree_query_input')
         tree_query_input.setPlaceholderText('Filter nodes...')
-        tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.load_node_tree(s))
+        tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.filter_node_tree(s))
         self.node_tree = QtWidgets.QTreeWidget()
         self.node_tree.setObjectName('node_tree')
         self.node_tree.connect(QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'),
@@ -113,15 +135,68 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.setStatusBar(self.status_bar)
 
         # Create default tab
-        self.tab_bar.addTab(self.create_workflow_tab(), 'Default Workflow')
+        self.create_workflow_tab('Default Workflow')
 
         logging.getLogger('creator').debug('Loading nodes...')
         self.load_node_tree()
 
         self.resize(1024, 800)
 
+    def quit_app(self):
+        logging.getLogger('creator').debug('Exiting creator')
+        sys.exit(0)
+
+    def new_file(self):
+        self.create_workflow_tab('New file')
+
+    def open_file(self):
+        dlg = QtWidgets.QFileDialog()
+        filename = dlg.getOpenFileName(self, 'Open workflow file', filter='Way files (*.way);;All files (*.*)')
+
+        if filename[0] == '':
+            return
+
+        nodes = wayfiles.load(filename[0])
+
+        widget = self.create_workflow_tab(os.path.basename(filename[0]))
+        assert isinstance(widget, QtWidgets.QScrollArea)
+        container = widget.widget()
+        assert isinstance(container, AxNodeWidgetContainer)
+
+        container.clear()
+        for node in nodes:
+            node.setParent(container)
+            node.show()
+            container.discover_nodes()
+
+    def save_file(self, save_as=False):
+        dlg = QtWidgets.QFileDialog()
+        filename = dlg.getSaveFileName(self, 'Save workflow', filter='Way files (*.way);;All files (*.*)')
+
+        if filename[0] == '':
+            return
+
+        widget = self.tab_bar.currentWidget()
+        assert isinstance(widget, QtWidgets.QScrollArea)
+        container = widget.widget()
+        assert isinstance(container, AxNodeWidgetContainer)
+
+        wayfiles.dump(filename[0], container.get_nodes())
+
+    def filter_node_tree(self, q: str):
+        it = QtWidgets.QTreeWidgetItemIterator(self.node_tree)
+
+        while it.value():
+            item = it.value()
+
+            if item.childCount() == 0:
+                item.setHidden(q.lower() not in item.text(0).lower())
+
+            it += 1
+
     def load_style(self):
         with open(assets.get_asset('style.css'), 'r') as f:
+            logging.getLogger('creator').debug('Applying stylesheet...')
             self.setStyleSheet(f.read())
 
     def run_active_workflow(self):
@@ -148,7 +223,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         assert isinstance(node, Node)
 
         node_item = QtWidgets.QTreeWidgetItem()
-        node_item.setText(0, node.get_name())
+        node_item.setText(0, get_node_info(node)['name'])
         inputs = QtWidgets.QTreeWidgetItem()
 
         # Update data tree with current node
@@ -188,6 +263,11 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.action_stop.setEnabled(False)
 
     def add_node_to_current_workspace(self, node):
+        # TODO make clear this will add a node from the node tree
+        if node == None:
+            # maybe clicked a category
+            return
+
         wrapper = self.tab_bar.currentWidget().widget()
         ui_node = self.create_node_widget(node(), wrapper)
         ui_node.move(10, 10)
@@ -195,16 +275,15 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         wrapper.discover_nodes()
 
-    def load_node_tree(self, filter: str = None):
+    def load_node_tree(self):
 
-        def iter_nodes(parent_item, nodes, filter=None):
+        def iter_nodes(parent_item, nodes):
             for node in nodes:
-                if filter is not None:
-                    if not filter.lower() in node.__name__.lower():
-                        continue
+                if get_node_info(node)['hide']:
+                    continue
 
                 node_item = QtWidgets.QTreeWidgetItem()
-                node_item.setText(0, node.get_name() if node.get_name() != '' else str(node.__name__))
+                node_item.setText(0, get_node_info(node)['name'])
                 node_item.setData(0, QtCore.Qt.UserRole, node)
                 node_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-box-50.png')))
                 parent_item.addChild(node_item)
@@ -221,11 +300,11 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
                 for subgroup, nodes_2 in nodes.items():
                     subgroup_item = QtWidgets.QTreeWidgetItem()
                     subgroup_item.setText(0, subgroup)
-                    subgroup_item = iter_nodes(subgroup_item, nodes_2, filter)
+                    subgroup_item = iter_nodes(subgroup_item, nodes_2)
                     group_item.addChild(subgroup_item)
 
             elif isinstance(nodes, list):
-                group_item = iter_nodes(group_item, nodes, filter)
+                group_item = iter_nodes(group_item, nodes)
 
             self.node_tree.insertTopLevelItem(0, group_item)
             self.node_tree.expandAll()
@@ -233,10 +312,11 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
     def create_node_widget(self, node: Node, parent: AxNodeWidgetContainer):
         return AxNodeWidget(node, parent)
 
-    def create_workflow_tab(self, title=''):
+    def create_workflow_tab(self, title: str='New workflow') -> QtWidgets.QScrollArea:
         scroll_area = QtWidgets.QScrollArea()
         wrapper = AxNodeWidgetContainer()
         scroll_area.setWidget(wrapper)
         wrapper.resize(scroll_area.width(), scroll_area.height())
 
+        self.tab_bar.addTab(scroll_area, title)
         return scroll_area

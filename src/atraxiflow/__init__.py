@@ -4,3 +4,5 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
+
+__version__ = '2.0.0'

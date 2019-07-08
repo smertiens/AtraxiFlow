@@ -499,7 +499,9 @@ class FSCopyNode(Node):
 
 
 class FSRenameNode(Node):
-
+    """
+    @Name: Rename files and folders
+    """
     def __init__(self, properties: dict = None):
         node_properties = {
             'name': Property(expected_type=str, required=False, label='Target name',
