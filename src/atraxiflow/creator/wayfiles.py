@@ -8,7 +8,7 @@
 import pickle, uuid, logging
 import importlib
 from typing import List
-from atraxiflow import __version__
+from atraxiflow import __version__, util
 from atraxiflow.creator.widgets import AxNodeWidget
 from PySide2 import QtCore
 
@@ -21,7 +21,7 @@ def dump(filename: str, node_widgets: List[AxNodeWidget]):
 
     node_ids = {}
     for node in node_widgets:
-        node_ids[node] = str(uuid.uuid4())
+        node_ids[node] = uuid.uuid4().bytes
 
     for node in node_widgets:
         ax_node = node.get_node()
@@ -57,8 +57,18 @@ def load(filename: str) -> List[AxNodeWidget]:
     with open(filename, 'br') as f:
         data = pickle.load(f)
 
-    # TODO: check version
+    # Check version before loading
+    running_ver = util.version_str_to_int(__version__)
+    file_ver = util.version_str_to_int(data['ax_version'])
 
+    if file_ver > running_ver:
+        raise Exception('Cannot load file, requires AtraxiFlow version %s' % data['ax_version'])
+
+    # Since AxNodeWidgets must reference other widgets for docking, we map the node ids of our file
+    # to the resulting widgets and assign the correct widget references later
+    node_ids = {}
+
+    # Recreate nodes
     for raw_node in data['nodes']:
         mod = raw_node['ax_node_class'][:raw_node['ax_node_class'].rfind('.')]
         node_class = raw_node['ax_node_class'][raw_node['ax_node_class'].rfind('.') + 1:]
@@ -74,8 +84,21 @@ def load(filename: str) -> List[AxNodeWidget]:
             node_inst.property(name).set_value(val)
 
         widget = AxNodeWidget(node_inst)
+        setattr(widget, '_tmp_child', raw_node['child_widget'])
+        setattr(widget, '_tmp_parent', raw_node['parent_widget'])
         widget.move(QtCore.QPoint(raw_node['pos'][0],raw_node['pos'][1]))
 
+        node_ids[raw_node['id']] = widget
         nodes.append(widget)
+
+    # Dock widgets
+    for widget in nodes:
+        if widget._tmp_child is not None:
+            widget.dock_child_widget = node_ids[widget._tmp_child]
+        delattr(widget,'_tmp_child')
+
+        if widget._tmp_parent is not None:
+            widget.dock_parent_widget = node_ids[widget._tmp_parent]
+        delattr(widget, '_tmp_parent')
 
     return nodes

@@ -137,8 +137,9 @@ class AxNodeWidget(QtWidgets.QFrame):
 
         self.build_node_ui()
 
-        self.setMinimumWidth(300)
-        self.setMaximumWidth(300)
+        win_width = 400
+        self.setMinimumWidth(win_width)
+        self.setMaximumWidth(win_width)
 
     def get_node(self) -> Node:
         return self.node
@@ -171,14 +172,13 @@ class AxNodeWidget(QtWidgets.QFrame):
                             if isinstance(prop.value(), str):
                                 control.line_edit.setText(prop.value())
                         elif role == 'select':
-                            # TODO: hookup to callback
                             items = prop.get_display_options()['items'] if 'items' in prop.get_display_options() else []
                             control = QtWidgets.QComboBox()
                             control.setEditable(False)
                             control.addItems(items)
                             if isinstance(prop.value(), str):
                                 control.setCurrentText(prop.value())
-                            # control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
+                            control.connect(QtCore.SIGNAL('currentTextChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
                         else:
                             raise NodeUIException('Role "%s" not found' % role)
                     else:
@@ -192,6 +192,32 @@ class AxNodeWidget(QtWidgets.QFrame):
                     control.connect(QtCore.SIGNAL('stateChanged(int)'), lambda i, prop=prop: prop.set_value(i == 2))
                     if isinstance(prop.value(), bool):
                         control.setChecked(prop.value())
+
+                elif prop.get_expected_type()[0] == int:
+                    max = prop.get_display_options()['max'] if 'max' in prop.get_display_options() else 999999
+                    min = prop.get_display_options()['min'] if 'min' in prop.get_display_options() else 0
+                    step = prop.get_display_options()['step'] if 'step' in prop.get_display_options() else 1
+
+                    control = QtWidgets.QSpinBox()
+                    control.setRange(min, max)
+                    control.setSingleStep(step)
+                    control.connect(QtCore.SIGNAL('valueChanged(int)'), lambda i, prop=prop: prop.set_value(i))
+                    if isinstance(prop.value(), int):
+                        control.setValue(prop.value())
+
+                elif prop.get_expected_type()[0] == float:
+                    max = prop.get_display_options()['max'] if 'max' in prop.get_display_options() else 999999.0
+                    min = prop.get_display_options()['min'] if 'min' in prop.get_display_options() else 0.0
+                    step = prop.get_display_options()['step'] if 'step' in prop.get_display_options() else 1.0
+                    decimals = prop.get_display_options()['decimals'] if 'decimals' in prop.get_display_options() else 2
+
+                    control = QtWidgets.QDoubleSpinBox()
+                    control.setRange(min, max)
+                    control.setSingleStep(step)
+                    control.setDecimals(decimals)
+                    control.connect(QtCore.SIGNAL('valueChanged(double)'), lambda d, prop=prop: prop.set_value(d))
+                    if isinstance(prop.value(), float):
+                        control.setValue(prop.value())
 
                 elif prop.get_expected_type()[0] == list:
                     raise NodeUIException(

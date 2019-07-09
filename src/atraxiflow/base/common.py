@@ -105,7 +105,7 @@ class DelayNode(Node):
     """
     def __init__(self, properties=None):
         node_properties = {
-            'time': Property(expected_type=(int, float), required=False, hint='Time to sleep', label='Time')
+            'time': Property(expected_type=(float, int), required=False, hint='Time to sleep', label='Time')
         }
         super().__init__(node_properties, properties)
 
@@ -114,12 +114,6 @@ class DelayNode(Node):
         time.sleep(int(self.property('time').value()))
 
         return True
-
-    def get_field_ui(self, field_name:str) -> QtWidgets.QWidget:
-        if field_name == 'time':
-            time_input = QtWidgets.QLineEdit()
-            time_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.property('time').set_value(float(s)))
-            return time_input
 
 class NullNode(Node):
     """

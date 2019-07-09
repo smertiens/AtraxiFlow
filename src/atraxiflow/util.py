@@ -10,6 +10,11 @@ import atraxiflow
 from atraxiflow.exceptions import *
 
 
+def version_str_to_int(ver: str) -> int:
+    maj, min, rev = ver.split('.')
+    return maj * 100 + min * 10 + rev
+
+
 def is_iterable(obj):
     return isinstance(obj, dict) or isinstance(obj, list)
 
