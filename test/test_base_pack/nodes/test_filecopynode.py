@@ -49,7 +49,7 @@ def test_copy_file_dir_not_exists_create(make_fixtures):
     assert os.path.exists(str(make_fixtures.join('folder', 'folder2', 'testfile.txt')))
 
 
-def test_copy_file_dir_not_exists_dont_create(make_fixtures):
+def test_copy_file_dir_not_exists_dont_create(make_fixtures, caplog):
     cp = FSCopyNode({
         'dest': str(make_fixtures.join('folder', 'folder2')),
         'create_if_missing': False
@@ -59,9 +59,8 @@ def test_copy_file_dir_not_exists_dont_create(make_fixtures):
 
     src = LoadFilesNode({'paths': [str(make_fixtures.join('testfile.txt'))]})
 
-    with pytest.raises(FilesystemException):
-        assert Workflow.create([src, cp]).run()
-
+    assert not Workflow.create([src, cp]).run()
+    assert 'Destination does not exist and create_if_missing is False' in caplog.text
     assert not os.path.exists(str(make_fixtures.join('folder', 'folder2')))
 
 
