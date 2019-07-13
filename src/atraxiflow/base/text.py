@@ -71,6 +71,7 @@ class TextFileOutputNode(Node):
 class TextValidatorNode(Node):
     """
     @Name: Validate text
+    @Hide: True
     """
 
     def __init__(self, properties: dict = None):

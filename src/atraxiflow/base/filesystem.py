@@ -15,7 +15,7 @@ from atraxiflow.data import DatetimeProcessor, StringValueProcessor
 from atraxiflow.exceptions import FilesystemException
 from atraxiflow.properties import *
 from atraxiflow.base import assets
-from atraxiflow.creator.widgets import AxListWidget
+from atraxiflow.creator.widgets import AxListWidget, AxNodeWidget
 
 from PySide2 import QtWidgets, QtCore, QtGui
 
@@ -80,7 +80,7 @@ class LoadFilesNode(Node):
 
         self.list_widget.add_items(path)
 
-    def get_ui(self):
+    def get_ui(self, node_widget: AxNodeWidget) -> QtWidgets.QWidget:
         self.list_widget = AxListWidget()
         action_add_files = QtWidgets.QAction('+', self.list_widget.get_toolbar())
         action_add_files.connect(QtCore.SIGNAL('triggered()'), lambda lst=self.list_widget: self.add_path(lst, 'file'))
@@ -98,6 +98,7 @@ class LoadFilesNode(Node):
         self.list_widget.add_toolbar_action(action_add_files)
         self.list_widget.add_toolbar_action(action_add_folder)
         self.list_widget.add_toolbar_action(action_add_string)
+        self.list_widget.list_changed.connect(node_widget.modified)
 
         return self.list_widget
 
@@ -379,8 +380,9 @@ class FileFilterNode(Node):
 
         self.property('filter').set_value(conditions)
 
-    def get_ui(self) -> QtWidgets.QWidget:
+    def get_ui(self, node_widget: AxNodeWidget) -> QtWidgets.QWidget:
         self.list_widget = AxListWidget()
+        self.list_widget.list_changed.connect(node_widget.modified)
         btn_add_cond = QtWidgets.QPushButton()
         mnu_cond = QtWidgets.QMenu(btn_add_cond)
 
@@ -539,7 +541,7 @@ class FSRenameNode(Node):
             item.setText('{} -> {}'.format(line_search.text(), line_replace.text()))
             self.replace_list.add_item(item)
 
-    def get_ui(self) -> QtWidgets.QWidget:
+    def get_ui(self, node_widget: AxNodeWidget) -> QtWidgets.QWidget:
 
         def toggle_children(parent: QtWidgets.QWidget, state: bool):
             for child in parent.children():
@@ -574,6 +576,7 @@ class FSRenameNode(Node):
             ctx_target_name.addAction(action)
 
         self.line_target_name = QtWidgets.QLineEdit()
+        self.line_target_name.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: node_widget.modified)
         self.line_target_name.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.line_target_name.connect(QtCore.SIGNAL('customContextMenuRequested(QPoint)'),
                                       lambda pos: ctx_target_name.exec_(self.line_target_name.mapToGlobal(pos)))
@@ -595,6 +598,7 @@ class FSRenameNode(Node):
         self.group_replace.setLayout(QtWidgets.QVBoxLayout())
 
         self.replace_list = AxListWidget()
+        self.replace_list.list_changed.connect(node_widget.modified)
         self.replace_list.layout().setContentsMargins(0, 0, 0, 0)
         action_add = QtWidgets.QAction('+T', self.replace_list.get_toolbar())
         action_add.connect(QtCore.SIGNAL('triggered()'), self.show_add_replace_dialog)

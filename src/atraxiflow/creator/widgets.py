@@ -141,6 +141,11 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.setMinimumWidth(win_width)
         self.setMaximumWidth(win_width)
 
+    def modified(self):
+        wf_widget = self.parent().parent().parent()
+        assert isinstance(wf_widget, AxWorkflowWidget)
+        wf_widget.set_modified(True)
+
     def get_node(self) -> Node:
         return self.node
 
@@ -159,7 +164,7 @@ class AxNodeWidget(QtWidgets.QFrame):
             label = prop.get_label() if prop.get_label() != '' else name
 
             # Try to get a widget for the given field from the node
-            control = self.node.get_field_ui(name)
+            control = self.node.get_field_ui(name, self)
 
             if control is None:
                 if prop.get_expected_type()[0] == str:
@@ -169,6 +174,7 @@ class AxNodeWidget(QtWidgets.QFrame):
                         if role == 'file':
                             control = AxFileLineEditWidget()
                             control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
+                            control.text_changed.connect(self.modified)
                             if isinstance(prop.value(), str):
                                 control.line_edit.setText(prop.value())
                         elif role == 'select':
@@ -179,17 +185,21 @@ class AxNodeWidget(QtWidgets.QFrame):
                             if isinstance(prop.value(), str):
                                 control.setCurrentText(prop.value())
                             control.connect(QtCore.SIGNAL('currentTextChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
+                            control.connect(QtCore.SIGNAL('currentTextChanged(QString)'),
+                                            lambda s: self.modified())
                         else:
                             raise NodeUIException('Role "%s" not found' % role)
                     else:
                         control = QtWidgets.QLineEdit()
                         control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
+                        control.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.modified())
                         if isinstance(prop.value(), str):
                             control.setText(prop.value())
 
                 elif prop.get_expected_type()[0] == bool:
                     control = QtWidgets.QCheckBox()
                     control.connect(QtCore.SIGNAL('stateChanged(int)'), lambda i, prop=prop: prop.set_value(i == 2))
+                    control.connect(QtCore.SIGNAL('stateChanged(int)'), lambda i: self.modified())
                     if isinstance(prop.value(), bool):
                         control.setChecked(prop.value())
 
@@ -202,6 +212,7 @@ class AxNodeWidget(QtWidgets.QFrame):
                     control.setRange(min, max)
                     control.setSingleStep(step)
                     control.connect(QtCore.SIGNAL('valueChanged(int)'), lambda i, prop=prop: prop.set_value(i))
+                    control.connect(QtCore.SIGNAL('valueChanged(int)'), lambda i: self.modified())
                     if isinstance(prop.value(), int):
                         control.setValue(prop.value())
 
@@ -216,6 +227,7 @@ class AxNodeWidget(QtWidgets.QFrame):
                     control.setSingleStep(step)
                     control.setDecimals(decimals)
                     control.connect(QtCore.SIGNAL('valueChanged(double)'), lambda d, prop=prop: prop.set_value(d))
+                    control.connect(QtCore.SIGNAL('valueChanged(double)'), lambda d: self.modified())
                     if isinstance(prop.value(), float):
                         control.setValue(prop.value())
 
@@ -234,7 +246,7 @@ class AxNodeWidget(QtWidgets.QFrame):
         return widget
 
     def build_node_ui(self):
-        widget = self.node.get_ui()
+        widget = self.node.get_ui(self)
 
         if widget is None:
             widget = self.get_default_controls()
@@ -260,7 +272,6 @@ class AxNodeWidget(QtWidgets.QFrame):
     def mouseMoveEvent(self, event: QtGui.QMouseEvent):
         self.move(self.mapToParent(event.pos() - self.click_pos))
 
-        parent = self
         subnode = self.dock_child_widget
         offset_y = self.y() + self.height()
         while subnode is not None:
@@ -274,6 +285,7 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.parent().resize(parent_w, parent_h)
 
         self.parent().dock_neighbours(self)
+        self.modified()
 
 
 class AxNodeWidgetContainer(QtWidgets.QWidget):

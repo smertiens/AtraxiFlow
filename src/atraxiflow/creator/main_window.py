@@ -334,7 +334,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
     def create_workflow_tab(self, title: str = 'New workflow') -> AxWorkflowWidget:
         scroll_area = AxWorkflowWidget()
-        wrapper = AxNodeWidgetContainer()
+        wrapper = AxNodeWidgetContainer(scroll_area)
         scroll_area.setWidget(wrapper)
         wrapper.resize(scroll_area.width(), scroll_area.height())
 

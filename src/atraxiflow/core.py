@@ -129,10 +129,10 @@ class Node:
         """
         pass
 
-    def get_ui(self) -> QtWidgets.QWidget:
+    def get_ui(self, node_widget) -> QtWidgets.QWidget:
         return None
 
-    def get_field_ui(self, field_name: str) -> QtWidgets.QWidget:
+    def get_field_ui(self, field_name: str, node_widget) -> QtWidgets.QWidget:
         return None
 
     def get_properties(self) -> Dict[str, Property]:
