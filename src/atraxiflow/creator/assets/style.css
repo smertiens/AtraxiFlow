@@ -3,6 +3,10 @@ QWidget {
     padding:0;
 }
 
+QPushButton {
+    padding: 5px 10px;
+}
+
 QMainWindow {
    background:white;
    padding-top:5px;

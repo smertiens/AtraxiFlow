@@ -582,7 +582,7 @@ class FSRenameNode(Node):
 
         if result == QtWidgets.QDialog.Accepted:
             item = QtWidgets.QListWidgetItem()
-            item.setData(QtCore.Qt.UserRole, {line_search.text(), line_replace.text()})
+            item.setData(QtCore.Qt.UserRole, [line_search.text(), line_replace.text()])
             item.setText('{} -> {}'.format(line_search.text(), line_replace.text()))
             self.replace_list.add_item(item)
 
@@ -672,14 +672,25 @@ class FSRenameNode(Node):
             for n in range(0, self.replace_list.get_list().count()):
                 item = self.replace_list.get_list().item(n)
                 data = item.data(QtCore.Qt.UserRole)
-                print(data, type(data))
-                assert isinstance(data, dict)
+                assert isinstance(data, list)
 
-                repl_list += data
+                repl_list[data[0]] = data[1]
 
             self.property('replace').set_value(repl_list)
 
         self.property('dry').set_value(self.check_dry.isChecked())
+
+    def load_ui_data(self):
+        self.group_rename.setChecked(self.property('name').value() != '')
+        self.group_replace.setChecked(len(self.property('replace').value()) > 0)
+        self.check_dry.setChecked(len(self.property('replace').value()) > 0)
+        self.line_target_name.setText(self.property('name').value())
+
+        for find, repl in self.property('replace').value().items():
+            item = QtWidgets.QListWidgetItem()
+            item.setText('%s -> %s' % (find, repl))
+            item.setData(QtCore.Qt.UserRole, [find, repl])
+            self.replace_list.add_item(item)
 
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
