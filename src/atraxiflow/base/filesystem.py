@@ -54,6 +54,13 @@ class LoadFilesNode(Node):
     def apply_ui_data(self):
         self.property('paths').set_value(self.list_widget.get_item_list())
 
+    def load_ui_data(self):
+        if isinstance(self.property('paths').value(), MissingRequiredValue):
+            return
+
+        for item in self.property('paths').value():
+            self.list_widget.get_list().addItem(item)
+
     def add_path(self, lst: AxListWidget, mode='files'):
         path = ''
 
@@ -242,6 +249,34 @@ class FileFilterNode(Node):
             self.ctx.get_logger().error("Invalid operator: %s".format(filter[1]))
             return False
 
+    """def _ui_get_listitem_label(self, data: list) -> str:
+        label = ''
+
+        if data[0] in ('filename', 'filedir'):
+            if combo_operator.currentText() == 'matches (RegEx)':
+                text = re.compile(text)
+
+            data = ['filename' if condition_class == 'filename' else 'filedir',
+                    operator_map[combo_operator.currentText()], control.text()]
+            item.setText('%s %s "%s"' % ('Filename' if data[0] == 'filename' else 'Directory name',
+                                        data[0], control.text()))
+
+        elif condition_class == 'type':
+            data = ['type', '=', control.currentText()]
+            label = 'Path is a %s' % control.currentText()
+
+        elif condition_class in ('created', 'modified'):
+            data = ['date_created' if condition_class == 'created' else 'date_modified', combo_operator.currentText(),
+                    control.currentText()]
+            label = '%s %s "%s"' % ('Date created' if condition_class == 'created' else 'Date modified',
+                                       combo_operator.currentText(), control.currentText())
+
+        elif condition_class == 'size':
+            data = ['file_size', combo_operator.currentText(), control.text() + combo_unit.currentText()]
+            label = 'File size %s %s %s' % (combo_operator.currentText(), control.text(), combo_unit.currentText())
+
+        return label"""
+
     def show_add_condition_dialog(self, condition_class = ''):
         dlg = QtWidgets.QDialog()
         dlg.setWindowTitle('Add new condition')
@@ -341,35 +376,39 @@ class FileFilterNode(Node):
             if combo_operator.currentText() == 'matches (RegEx)':
                 text = re.compile(text)
 
+            label = '%s %s "%s"' % ('Filename' if condition_class == 'filename' else 'Directory name',
+                                        combo_operator.currentText(), control.text())
             data = ['filename' if condition_class == 'filename' else 'filedir',
-                    operator_map[combo_operator.currentText()], control.text()]
+                    operator_map[combo_operator.currentText()], control.text(), label]
             item = QtWidgets.QListWidgetItem()
             item.setData(QtCore.Qt.UserRole, data)
-            item.setText('%s %s "%s"' % ('Filename' if condition_class == 'filename' else 'Directory name',
-                                        combo_operator.currentText(), control.text()))
+            item.setText(label)
             self.list_widget.add_item(item)
 
         elif condition_class == 'type':
-            data = ['type', '=', control.currentText()]
+            label = 'Path is a %s' % control.currentText()
+            data = ['type', '=', control.currentText(), label]
             item = QtWidgets.QListWidgetItem()
             item.setData(QtCore.Qt.UserRole, data)
-            item.setText('Path is a %s' % control.currentText())
+            item.setText(label)
             self.list_widget.add_item(item)
 
         elif condition_class in ('created', 'modified'):
+            label = '%s %s "%s"' % ('Date created' if condition_class == 'created' else 'Date modified',
+                                       combo_operator.currentText(), control.currentText())
             data = ['date_created' if condition_class == 'created' else 'date_modified', combo_operator.currentText(),
-                    control.currentText()]
+                    control.currentText(), label]
             item = QtWidgets.QListWidgetItem()
             item.setData(QtCore.Qt.UserRole, data)
-            item.setText('%s %s "%s"' % ('Date created' if condition_class == 'created' else 'Date modified',
-                                       combo_operator.currentText(), control.currentText()))
+            item.setText(label)
             self.list_widget.add_item(item)
 
         elif condition_class == 'size':
-            data = ['file_size', combo_operator.currentText(), control.text() + combo_unit.currentText()]
+            label = 'File size %s %s %s' % (combo_operator.currentText(), control.text(), combo_unit.currentText())
+            data = ['file_size', combo_operator.currentText(), control.text() + combo_unit.currentText(), label]
             item = QtWidgets.QListWidgetItem()
             item.setData(QtCore.Qt.UserRole, data)
-            item.setText('File size %s %s %s' % (combo_operator.currentText(), control.text(), combo_unit.currentText()))
+            item.setText(label)
             self.list_widget.add_item(item)
 
     def apply_ui_data(self):
@@ -379,6 +418,12 @@ class FileFilterNode(Node):
             conditions.append(item.data(QtCore.Qt.UserRole))
 
         self.property('filter').set_value(conditions)
+
+    def load_ui_data(self):
+        for data in self.property('filter').value():
+            item = QtWidgets.QListWidgetItem(data[3])
+            item.setData(QtCore.Qt.UserRole, data)
+            self.list_widget.add_item(item)
 
     def get_ui(self, node_widget: AxNodeWidget) -> QtWidgets.QWidget:
         self.list_widget = AxListWidget()

@@ -34,6 +34,8 @@ def dump(filename: str, node_widgets: List[AxNodeWidget]):
         if node.dock_child_widget is not None:
             child_widget = node_ids[node.dock_child_widget]
 
+        ax_node.apply_ui_data()
+
         node_data = {
             'id': node_ids[node],
             'pos': (node.pos().x(), node.pos().y()),
@@ -84,6 +86,7 @@ def load(filename: str) -> List[AxNodeWidget]:
             node_inst.property(name).set_value(val)
 
         widget = AxNodeWidget(node_inst)
+        node_inst.load_ui_data()
         setattr(widget, '_tmp_child', raw_node['child_widget'])
         setattr(widget, '_tmp_parent', raw_node['parent_widget'])
         widget.move(QtCore.QPoint(raw_node['pos'][0],raw_node['pos'][1]))

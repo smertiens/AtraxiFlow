@@ -8,7 +8,7 @@ from PySide2 import QtCore, QtWidgets, QtGui
 from atraxiflow.core import Node, get_node_info
 from atraxiflow.base import assets
 from atraxiflow.exceptions import *
-import os
+import os, logging
 
 class AxFileLineEditWidget(QtWidgets.QWidget):
     text_changed = QtCore.Signal(str)
@@ -94,6 +94,11 @@ class AxListWidget(QtWidgets.QWidget):
     def add_toolbar_widget(self, w):
         self.toolbar.insertWidget(self.action_remove, w)
 
+    def setEnabled(self, enabled: bool):
+        super().setEnabled(enabled)
+        self.list_widget.setEnabled(enabled)
+        self.toolbar.setEnabled(enabled)
+
 class AxNodeWidget(QtWidgets.QFrame):
 
     def __init__(self, node: Node, parent: QtWidgets.QWidget = None):
@@ -142,9 +147,14 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.setMaximumWidth(win_width)
 
     def modified(self):
-        wf_widget = self.parent().parent().parent()
-        assert isinstance(wf_widget, AxWorkflowWidget)
-        wf_widget.set_modified(True)
+        try:
+            wf_widget = self.parent().parent().parent()
+            if isinstance(wf_widget, AxWorkflowWidget):
+                wf_widget.set_modified(True)
+            else:
+                raise AttributeError
+        except AttributeError:
+            logging.getLogger('creator').debug('Could not set modified state, parent is not an AxWorkflowWidget.')
 
     def get_node(self) -> Node:
         return self.node

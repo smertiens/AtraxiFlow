@@ -125,7 +125,15 @@ class Node:
 
     def apply_ui_data(self):
         """
-        This function is executed before the "run()" method in Creator
+        This function is executed before the "run()" method in Creator. It should ne used to write data from ui
+        widgets to the properties of an underlying node object.
+        """
+        pass
+
+    def load_ui_data(self):
+        """
+        This function is executed after the NodeWidget has been created from existing data (e.g. when loaded
+        from a file). It can be used to fill custom widgets.
         """
         pass
 
