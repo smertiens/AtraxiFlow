@@ -6,6 +6,19 @@ The flexible python workflow tool
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/smertiens/AtraxiFlow.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/smertiens/AtraxiFlow/context:python)
 [![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)
 
+## Note: AtraxiFlow 2.0 is coming up
+
+AtraxiFlow 2.0 will not be backward-compatible, existing nodes can still be easily rewritten. Some of the new key features
+are:
+
+* Simpler node structure  that result in even shorter scripts
+* Introduction of inputs and outputs
+* AtraxiCreator has been completely rewritten and is now a part of the AtraxiFlow Core package
+* Streams are now called Workflows
+* Improved logging
+
+---
+
 * Create easy-to-read automation scripts in minutes - work with files, folders, images or anything else 
 * Add your own logic as AtraxiFlow node and share it with others
 * Use a console for in- and output or add one of the UI nodes to show graphical messages and input forms 
