@@ -37,6 +37,31 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.tab_bar.setDocumentMode(True)
         self.tab_bar.connect(QtCore.SIGNAL('tabCloseRequested(int)'), self.tab_closed)
 
+        # Node list
+        node_tree_wrapper = QtWidgets.QWidget()
+        node_tree_wrapper.setLayout(QtWidgets.QVBoxLayout())
+        node_tree_wrapper.layout().setSpacing(0)
+        node_tree_wrapper.layout().setContentsMargins(0, 0, 0, 0)
+
+        tree_query_input = QtWidgets.QLineEdit()
+        tree_query_input.setObjectName('tree_query_input')
+        tree_query_input.setPlaceholderText('Filter nodes...')
+        tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.filter_node_tree(s))
+        self.node_tree = QtWidgets.QTreeWidget()
+        self.node_tree.setObjectName('node_tree')
+        self.node_tree.connect(QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'),
+                               lambda i, c: self.add_node_to_current_workspace(i.data(c, QtCore.Qt.UserRole)))
+        self.node_tree.setHeaderHidden(True)
+        node_tree_wrapper.layout().addWidget(tree_query_input)
+        node_tree_wrapper.layout().addWidget(self.node_tree)
+
+        # Add data tree
+        self.data_tree = QtWidgets.QTreeWidget()
+        self.data_tree.setColumnCount(1)
+        self.data_tree.setHeaderHidden(True)
+        self.data_tree.setObjectName('data_tree')
+
+
         ## Main menu
         # File
         menu_bar = QtWidgets.QMenuBar()
@@ -69,6 +94,25 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         menu_file_quit.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Quit))
         file_menu.addAction(menu_file_quit)
 
+        # Edit
+
+        # View
+        view_menu = QtWidgets.QMenu('&View')
+        action_show_node_list = QtWidgets.QAction('Show node list', view_menu)
+        action_show_node_list.setCheckable(True)
+        action_show_node_list.setChecked(True)
+        action_show_node_list.connect(QtCore.SIGNAL('triggered()'), lambda: node_tree_wrapper.setVisible(not node_tree_wrapper.isVisible()))
+
+        action_show_node_results = QtWidgets.QAction('Show node results', view_menu)
+        action_show_node_results.setCheckable(True)
+        action_show_node_results.setChecked(True)
+        action_show_node_results.setChecked(self.data_tree.isVisible())
+        action_show_node_results.connect(QtCore.SIGNAL('triggered()'),
+                                      lambda: self.data_tree.setVisible(not self.data_tree.isVisible()))
+
+        view_menu.addAction(action_show_node_list)
+        view_menu.addAction(action_show_node_results)
+
         # Workflow
         wf_menu = QtWidgets.QMenu('&Workflow')
         self.action_run = QtWidgets.QAction('Run')
@@ -78,6 +122,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         wf_menu.addAction(self.action_run)
 
         menu_bar.addMenu(file_menu)
+        menu_bar.addMenu(view_menu)
         menu_bar.addMenu(wf_menu)
 
         # Statusbar
@@ -85,30 +130,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.status_label = QtWidgets.QLabel('Ready')
         self.status_label.setObjectName('status_label')
         self.status_bar.addWidget(self.status_label)
-
-        # Node list
-        node_tree_wrapper = QtWidgets.QWidget()
-        node_tree_wrapper.setLayout(QtWidgets.QVBoxLayout())
-        node_tree_wrapper.layout().setSpacing(0)
-        node_tree_wrapper.layout().setContentsMargins(0, 0, 0, 0)
-
-        tree_query_input = QtWidgets.QLineEdit()
-        tree_query_input.setObjectName('tree_query_input')
-        tree_query_input.setPlaceholderText('Filter nodes...')
-        tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.filter_node_tree(s))
-        self.node_tree = QtWidgets.QTreeWidget()
-        self.node_tree.setObjectName('node_tree')
-        self.node_tree.connect(QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'),
-                               lambda i, c: self.add_node_to_current_workspace(i.data(c, QtCore.Qt.UserRole)))
-        self.node_tree.setHeaderHidden(True)
-        node_tree_wrapper.layout().addWidget(tree_query_input)
-        node_tree_wrapper.layout().addWidget(self.node_tree)
-
-        # Add data tree
-        self.data_tree = QtWidgets.QTreeWidget()
-        self.data_tree.setColumnCount(1)
-        self.data_tree.setHeaderHidden(True)
-        self.data_tree.setObjectName('data_tree')
 
         horiz_splitter = QtWidgets.QSplitter()
         horiz_splitter.addWidget(node_tree_wrapper)
@@ -213,7 +234,12 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             self.setStyleSheet(f.read())
 
     def run_active_workflow(self):
-        node_container = self.tab_bar.currentWidget().widget()
+        try:
+            node_container = self.tab_bar.currentWidget().widget()
+        except AttributeError:
+            logging.getLogger('creator').info('Run Workflow: No workflows currently open.')
+            return
+
         assert isinstance(node_container, AxNodeWidgetContainer)
 
         selected_node = node_container.get_selected_node()

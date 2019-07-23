@@ -4,11 +4,14 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
+import logging
+import os
+
 from PySide2 import QtCore, QtWidgets, QtGui
-from atraxiflow.core import Node, get_node_info
 from atraxiflow.base import assets
+from atraxiflow.core import Node, get_node_info
 from atraxiflow.exceptions import *
-import os, logging
+
 
 class AxFileLineEditWidget(QtWidgets.QWidget):
     text_changed = QtCore.Signal(str)
@@ -98,6 +101,7 @@ class AxListWidget(QtWidgets.QWidget):
         super().setEnabled(enabled)
         self.list_widget.setEnabled(enabled)
         self.toolbar.setEnabled(enabled)
+
 
 class AxNodeWidget(QtWidgets.QFrame):
 
@@ -194,7 +198,8 @@ class AxNodeWidget(QtWidgets.QFrame):
                             control.addItems(items)
                             if isinstance(prop.value(), str):
                                 control.setCurrentText(prop.value())
-                            control.connect(QtCore.SIGNAL('currentTextChanged(QString)'), lambda s, prop=prop: prop.set_value(s))
+                            control.connect(QtCore.SIGNAL('currentTextChanged(QString)'),
+                                            lambda s, prop=prop: prop.set_value(s))
                             control.connect(QtCore.SIGNAL('currentTextChanged(QString)'),
                                             lambda s: self.modified())
                         else:
@@ -251,7 +256,9 @@ class AxNodeWidget(QtWidgets.QFrame):
                 else:
                     raise NodeUIException('Unrecognized type: %s' % prop.get_expected_type()[0])
 
-            widget.layout().addRow(label, control)
+            label_w = QtWidgets.QLabel(label)
+            label_w.setToolTip(prop.get_hint())
+            widget.layout().addRow(label_w, control)
 
         return widget
 
@@ -414,5 +421,6 @@ class AxWorkflowWidget(QtWidgets.QScrollArea):
         tab_bar = self.parentWidget().parentWidget()
         assert isinstance(tab_bar, QtWidgets.QTabWidget)
 
-        tab_bar.setTabText(tab_bar.currentIndex(), ('New workflow' if self.filename == '' else os.path.basename(self.filename)) +
+        tab_bar.setTabText(tab_bar.currentIndex(),
+                           ('New workflow' if self.filename == '' else os.path.basename(self.filename)) +
                            (' *' if self.modified else ''))
