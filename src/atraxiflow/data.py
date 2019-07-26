@@ -8,10 +8,16 @@
 import logging
 import re
 from datetime import datetime, timedelta
-from atraxiflow.core import WorkflowContext
 from typing import Any
 
+from atraxiflow.core import WorkflowContext
+
+__all__ = ['DatetimeProcessor', 'StringValueProcessor']
+
 class DatetimeProcessor:
+    """
+    This class handles datetime information.
+    """
 
     RANGE_DATE = 'RANGE_DATE'
     RANGE_DATETIME_SHORT = 'RANGE_DATETIME_SHORT'
@@ -25,12 +31,24 @@ class DatetimeProcessor:
         Returns the classes logger
         :return: Logger
         '''
-        return logging.getLogger(DatetimeProcessor.__module__)
+        return logging.getLogger('core')
 
-    def get_range(self) -> datetime:
+    def get_range(self) -> str:
+        """
+        Returns the precision of the datetime object.
+        This is important for comparisons, since all numbers that are not covered by the given range
+        have to be set to 0.
+        :return: Type of range
+        """
         return self._range
 
-    def process_string(self, date_str: str):
+    def process_string(self, date_str: str) -> datetime:
+        """
+        Processes a string as date/datetime.
+
+        :param str date_str: THe string to parse
+        :return: A datetime object
+        """
         if 'today' == date_str:
             self._range = self.RANGE_DATE
             return datetime.now()
@@ -87,6 +105,10 @@ class DatetimeProcessor:
 
 
 class StringValueProcessor:
+    """
+    This class processes variables in strings.
+    Variable values are taken from the current WorkflowContext's symbol table
+    """
 
     def __init__(self, ctx: WorkflowContext):
         self._ctx = ctx
@@ -97,10 +119,6 @@ class StringValueProcessor:
         return self
 
     def parse(self, string: str) -> str:
-        """
-
-        :type string: str
-        """
         matches = re.findall("{(.+?)}", string)
 
         for match in matches:

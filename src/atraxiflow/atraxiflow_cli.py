@@ -8,13 +8,16 @@
 from atraxiflow.creator import creator
 import click
 
+
 @click.group()
 def cli():
     pass
 
+
 @cli.command('creator')
 def creator():
     creator.launch_app()
+
 
 if __name__ == '__main__':
     cli()

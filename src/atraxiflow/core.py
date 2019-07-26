@@ -5,31 +5,49 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
+import importlib
 import inspect
+import logging
+import pkgutil
+from typing import List, Any, Dict
 
 from PySide2 import QtWidgets
 from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
 from atraxiflow.properties import Property, MissingRequiredValue
-import importlib, pkgutil, inspect
-from typing import List, Any, Dict
 
 __all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext', 'get_node_info']
 
 
 class Resource:
     """
-    def __init__(self, value=None):
-        self._value = value
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
+    Resources need to create their own constructor. It should be possible to set the resources value
+    via the constructor.
+    A resources **id** is used to query resources of the given type inside a container. IDs must be **unique**
+    to the specific resource, so they should use prefixing or the modules path.
+
+    Assign a resources value to self._value or override :py:meth:`get_value` to use an other storage variable.
+
+    .. code-block:: python
+
+        def __init__(self, value=None):
+            self._value = value
+            self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
     """
 
     def get_value(self):
+        """
+
+        :return: The value of the resource
+        """
         return self._value
 
 
 class Container:
+    """
+    A container holds different resources and is used as the standard output of nodes.
+    The content of a container can be queried using :py:meth:`find`.
+    """
 
     def __init__(self, *kwargs):
         self._items = []
@@ -47,6 +65,11 @@ class Container:
         return self._items
 
     def first(self) -> Resource:
+        """
+        Returns the first item in the container or raise IndexError if Container is empty
+
+        :return: The first item in the container
+        """
         if len(self._items) == 0:
             raise IndexError()
 
@@ -57,11 +80,14 @@ class Container:
 
     def find(self, query: str) -> List[Resource]:
         """
+        Finds resources in the current container.
 
-        foo.bar: Return item with the id foo.bar
-        *: Return all items
-        *bar: Item id ending on "bar"
-        foo*: Item id starting with "foo"
+        **Example queries**
+
+        foo.bar: Find all resources with the id foo.bar
+        *: Find all items
+        *bar: Find resource id ending on "bar"
+        foo*: Find resource id starting with "foo"
 
         :param str query: Query string
         :return: Resources
@@ -82,7 +108,7 @@ class Container:
         return result
 
     def __str__(self):
-        lines = ['\t' +  x.__class__.__name__ + ': ' + str(x) for x in self._items]
+        lines = ['\t' + x.__class__.__name__ + ': ' + str(x) for x in self._items]
         lines.insert(0, 'Container:')
         return '\n'.join(lines)
 
@@ -94,19 +120,18 @@ class Node:
     """
     New nodes  should be initialized like this:
 
-    def __init__(self, properties = None):
-        self.output = Container()
-        self.user_properties = properties
-        self.properties = {}
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
+    .. code-block:: python
 
-        # Optional:
-        self.node_name = '' | Classname
+        def __init__(self, properties=None):
+            user_properties = {
+                # define your node's properties here
+            }
+            super().__init__(user_properties, properties)
 
-        # in run()
-        self.apply_properties(self.user_properties)
+    You can define additional properties of your node in the node classe's docstring using the following
+    directives:
 
+    @Name: Sets the node name as shown in Creator
     """
 
     def __init__(self, node_properties: Dict, user_properties: Dict, id: str = ''):
@@ -116,7 +141,11 @@ class Node:
         self.properties = node_properties
         self.apply_properties(user_properties)
 
-    def serialize(self):
+    def serialize(self) -> dict:
+        """
+
+        :return: Returns a dictionary with all property values
+        """
         result = {}
         for name, prop in self.properties.items():
             result[name] = prop.value()
@@ -125,7 +154,7 @@ class Node:
 
     def apply_ui_data(self):
         """
-        This function is executed before the "run()" method in Creator. It should ne used to write data from ui
+        This function is executed before the "run()" method in Creator. It should be used to write data from ui
         widgets to the properties of an underlying node object.
         """
         pass
@@ -138,9 +167,24 @@ class Node:
         pass
 
     def get_ui(self, node_widget) -> QtWidgets.QWidget:
+        """
+        Override this function to create the user interface of your node in Creator completely by yourself.
+        Remember to also override :py:meth:`apply_ui_data` and :py:meth:`load_ui_data` to keep node properties
+        and user interface in sync.
+
+        :param AxNodeWidget node_widget: The parent widget of the node's ui
+        :return: The node's user interface
+        """
         return None
 
     def get_field_ui(self, field_name: str, node_widget) -> QtWidgets.QWidget:
+        """
+        Overrides Creators default field for a property.
+
+        :param str field_name: The name of the property whose ui is requested
+        :param AxNodeWidget node_widget: The parent widget of the node's ui
+        :return: Returns the ui for a single field
+        """
         return None
 
     def get_properties(self) -> Dict[str, Property]:
@@ -148,7 +192,10 @@ class Node:
 
     def apply_properties(self, properties: dict):
         '''
-        Check and merge properties
+        This function checks the given properties against the node's defined properties and will also set
+        the default values. If a required value is not given, the value of the corresponding property is set to an
+        instance of :py:class:`MissingRequiredValue`. The node should check for that class and raise an error if
+        needed.
 
         :return: boolean
         '''
@@ -177,17 +224,19 @@ class Node:
 
         return self.properties[name]
 
-    def run(self, ctx):
+    def run(self, ctx) -> bool:
+        """
+        This is the main function of your node and must be overriden with the actual logic.
 
-        for name, property in self.properties.items():
-            if isinstance(property.value(), MissingRequiredValue):
-                raise Exception('Property "{}" is required'.format(name))
-
+        :param WorkflowContext ctx: The current WorkflowContext
+        :return: True if node execution was successful, False otherwise
+        """
+        return True
 
     def set_input(self, node):
         self._input = node
 
-    def get_input(self):
+    def get_input(self) -> Container:
         """
 
         :return: The output of the connected input node
@@ -206,21 +255,24 @@ class Node:
 
 
 class WorkflowContext:
+    """
+    Holds information about the current workflow environment.
+    It also takes care of extensions loading.
+    """
 
     def __init__(self):
         self._nodes = {}
         self._symbol_table = {}
         self.ui_env = False
         self.load_extensions()
-        self._main_window = None
-
-    def set_main_window(self, wnd):
-        self._main_window = wnd
-
-    def get_main_window(self) -> QtWidgets.QMainWindow:
-        return self._main_window
 
     def autodiscover_nodes(self, root_package: str) -> list:
+        """
+        This function will return a list of node classes from a given python package/module.
+
+        :param str root_package: The package/module path to look in
+        :return: A list of node classes
+        """
 
         def collect_module_data(mod):
             result = []
@@ -248,7 +300,14 @@ class WorkflowContext:
 
         return result
 
-    def publish_nodes(self, group_name: str, nodes: dict):
+    def publish_nodes(self, group_name: str, nodes: list):
+        """
+        Publishes the given nodes to a group with the specified group_name in the current context.
+        This way the nodes can be found by e.g. Creator
+
+        :param str group_name: The name of the group
+        :param list nodes: The nodes to publish - these can be loaded with :py:meth:`autodiscover_nodes`
+        """
         self._nodes[group_name] = nodes
 
     def get_nodes(self) -> Dict[str, list]:
@@ -283,6 +342,9 @@ class WorkflowContext:
         return logging.getLogger('workflow_ctx')
 
     def load_extensions(self):
+        """
+        Loads all reqistered extensions.
+        """
         self.get_logger().debug('Loading extensions...')
 
         for ext in self.get_registered_extensions():
@@ -320,16 +382,16 @@ class Workflow(EventObject):
 
     @staticmethod
     def create(nodes: List[Node] = None):
-        ''' Convenience function to create a new stream '''
+        """ Convenience function to create a new stream """
         return Workflow(nodes)
 
     def __rshift__(self, node):
-        '''
+        """
         Add nodes via >> operator
 
         :param other: Node
         :return: Stream
-        '''
+        """
         if isinstance(node, Node):
             self.add_node(node)
         elif isinstance(node, str) and node == 'run':
@@ -338,11 +400,11 @@ class Workflow(EventObject):
         return self
 
     def run(self) -> bool:
-        '''
+        """
         Starts the workflow processing
 
         :return: bool - If false, errors have occured while processing the stream
-        '''
+        """
         self._ctx.get_logger().info("Starting processing")
         self.fire_event(self.EVENT_RUN_STARTED)
         self._pos = -1
@@ -357,7 +419,8 @@ class Workflow(EventObject):
 
             self.fire_event(self.EVENT_NODE_RUN_STARTED, {'node': node})
             if self.get_context().ui_env:
-                logging.getLogger('core').debug('Workflow started in UI environment, running apply_ui_data() on node...')
+                logging.getLogger('core').debug(
+                    'Workflow started in UI environment, running apply_ui_data() on node...')
                 node.apply_ui_data()
 
             logging.getLogger('core').debug("Running node {0}...".format(node.__class__.__name__))
@@ -388,10 +451,19 @@ class Workflow(EventObject):
 
 
 def run():
+    """
+    Is used with flow syntax to execute the current workflow
+    """
     return 'run'
 
 
 def get_node_info(node_object: object) -> dict:
+    """
+    Returns a dictionary with information on the given node extracted from the node's docstring.
+
+    :param object node_object: Class or instance of node
+    :return: Dict
+    """
     docstr = inspect.getdoc(node_object)
 
     result = {

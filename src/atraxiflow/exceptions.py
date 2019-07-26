@@ -44,5 +44,6 @@ class PropertyNotFoundException(Exception):
 class InputException(Exception):
     pass
 
+
 class NodeUIException(Exception):
     pass

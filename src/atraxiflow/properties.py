@@ -6,9 +6,24 @@
 #
 from typing import Any, Dict
 
-class Property:
 
-    def __init__(self, value=None, expected_type=str, default=None, required=False, label='', hint='', display_options={}):
+class Property:
+    """
+    This class represents a single node property
+    """
+
+    def __init__(self, value=None, expected_type=str, default=None, required=False, label='', hint='',
+                 display_options={}):
+        """
+
+        :param Any value: The value of the property
+        :param type expected_type: The expected python type (e.g. str or bool)
+        :param Any default: A default value
+        :param bool required: True if the property is required to be able to run the node
+        :param str label: The label shown in Creator for this property
+        :param str hint: Some additional information on this property (usually shown in Creator as tooltip)
+        :param dict display_options: Display options (type-specific)
+        """
         if not isinstance(expected_type, tuple):
             expected_type = (expected_type,)
 
@@ -51,4 +66,7 @@ class Property:
 
 
 class MissingRequiredValue:
+    """
+    Dummy value that is used as value for required properties if they have no value set
+    """
     pass
