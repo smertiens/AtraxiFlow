@@ -18,6 +18,7 @@ class EventObject:
     To store the connected callbacks, the child class must define the _listeners variable in its constructor:
 
     .. code-block:: python
+
         self._listeners = {}
 
     """
