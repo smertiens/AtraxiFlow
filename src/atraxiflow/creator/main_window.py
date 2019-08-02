@@ -11,7 +11,7 @@ import sys
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
 from atraxiflow.creator import assets, tasks, wayfiles
-from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer, AxWorkflowWidget
+from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer, AxWorkflowWidget, AxNodeTreeWidget
 
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
@@ -19,25 +19,69 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Context needed for pulling available nodes
         self.workflow_ctx = WorkflowContext()
-        self.setWindowTitle('AtraxiFlow - Creator')
-        self.load_style()
-
         logging.getLogger('creator').debug('Building main window...')
 
-        # Central widget
-        central_widget = QtWidgets.QWidget()
-        central_widget.setLayout(QtWidgets.QHBoxLayout())
-        central_widget.layout().setSpacing(0)
-        central_widget.layout().setContentsMargins(0, 0, 0, 0)
-
-        # Tab bar
+        # Tab bar - displays the currently opened workflows
         self.tab_bar = QtWidgets.QTabWidget()
         self.tab_bar.setTabsClosable(True)
         self.tab_bar.setDocumentMode(True)
         self.tab_bar.connect(QtCore.SIGNAL('tabCloseRequested(int)'), self.tab_closed)
 
-        # Node list
+        # Statusbar
+        self.status_bar = QtWidgets.QStatusBar()
+        self.status_label = QtWidgets.QLabel('Ready')
+        self.status_label.setObjectName('status_label')
+        self.status_bar.addWidget(self.status_label)
+
+        # Splitter between node list and workflow area
+        horiz_splitter = QtWidgets.QSplitter()
+        self.node_list = AxNodeTreeWidget()  # self.create_node_list_widget()
+        self.node_list.node_dbl_clicked.connect(self.add_node_to_current_workspace)
+        horiz_splitter.addWidget(self.node_list)
+        horiz_splitter.addWidget(self.tab_bar)
+
+        # Splitter between node list/workflow area and data tree
+        vertical_splitter = QtWidgets.QSplitter()
+        vertical_splitter.setOrientation(QtCore.Qt.Vertical)
+        vertical_splitter.addWidget(horiz_splitter)
+        self.data_list = self.create_data_tree_widget()
+        vertical_splitter.addWidget(self.data_list)
+
+        # Central widget - holds node tree, data tree and workflow area
+        central_widget = QtWidgets.QWidget()
+        central_widget.setLayout(QtWidgets.QHBoxLayout())
+        central_widget.layout().setSpacing(0)
+        central_widget.layout().setContentsMargins(0, 0, 0, 0)
+        central_widget.layout().addWidget(vertical_splitter)
+
+        # Add components to main window
+        self.setMenuBar(self.create_main_menu())
+        self.setCentralWidget(central_widget)
+        self.setStatusBar(self.status_bar)
+
+        # Setup window title, style and size/position
+        self.setWindowTitle('AtraxiFlow - Creator')
+        self.load_style()
+        self.resize(1024, 800)
+
+        # Create default tab with new, empty workflow
+        self.create_workflow_tab()
+
+        # Load available nodes to tree
+        logging.getLogger('creator').debug('Loading nodes...')
+        self.load_node_tree()
+
+    def create_data_tree_widget(self) -> QtWidgets.QTreeWidget:
+        data_tree = QtWidgets.QTreeWidget()
+        data_tree.setColumnCount(1)
+        data_tree.setHeaderHidden(True)
+        data_tree.setObjectName('data_tree')
+        return data_tree
+
+    def create_node_list_widget(self) -> QtWidgets.QWidget:
+        # Its a tree - also: create separate widget
         node_tree_wrapper = QtWidgets.QWidget()
         node_tree_wrapper.setLayout(QtWidgets.QVBoxLayout())
         node_tree_wrapper.layout().setSpacing(0)
@@ -47,22 +91,17 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         tree_query_input.setObjectName('tree_query_input')
         tree_query_input.setPlaceholderText('Filter nodes...')
         tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.filter_node_tree(s))
-        self.node_tree = QtWidgets.QTreeWidget()
-        self.node_tree.setObjectName('node_tree')
-        self.node_tree.connect(QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'),
-                               lambda i, c: self.add_node_to_current_workspace(i.data(c, QtCore.Qt.UserRole)))
-        self.node_tree.setHeaderHidden(True)
+        node_tree = QtWidgets.QTreeWidget()
+        node_tree.setObjectName('node_tree')
+        node_tree.connect(QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'),
+                          lambda i, c: self.add_node_to_current_workspace(i.data(c, QtCore.Qt.UserRole)))
+        node_tree.setHeaderHidden(True)
         node_tree_wrapper.layout().addWidget(tree_query_input)
-        node_tree_wrapper.layout().addWidget(self.node_tree)
+        node_tree_wrapper.layout().addWidget(node_tree)
 
-        # Add data tree
-        self.data_tree = QtWidgets.QTreeWidget()
-        self.data_tree.setColumnCount(1)
-        self.data_tree.setHeaderHidden(True)
-        self.data_tree.setObjectName('data_tree')
+        return node_tree_wrapper
 
-
-        ## Main menu
+    def create_main_menu(self) -> QtWidgets.QMenuBar:
         # File
         menu_bar = QtWidgets.QMenuBar()
         file_menu = QtWidgets.QMenu('&File')
@@ -101,14 +140,15 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         action_show_node_list = QtWidgets.QAction('Show node list', view_menu)
         action_show_node_list.setCheckable(True)
         action_show_node_list.setChecked(True)
-        action_show_node_list.connect(QtCore.SIGNAL('triggered()'), lambda: node_tree_wrapper.setVisible(not node_tree_wrapper.isVisible()))
+        action_show_node_list.connect(QtCore.SIGNAL('triggered()'),
+                                      lambda: self.node_list.setVisible(not self.node_list.isVisible()))
 
         action_show_node_results = QtWidgets.QAction('Show node results', view_menu)
         action_show_node_results.setCheckable(True)
         action_show_node_results.setChecked(True)
-        action_show_node_results.setChecked(self.data_tree.isVisible())
+        action_show_node_results.setChecked(self.data_list.isVisible())
         action_show_node_results.connect(QtCore.SIGNAL('triggered()'),
-                                      lambda: self.data_tree.setVisible(not self.data_tree.isVisible()))
+                                         lambda: self.data_list.setVisible(not self.data_list.isVisible()))
 
         view_menu.addAction(action_show_node_list)
         view_menu.addAction(action_show_node_results)
@@ -125,33 +165,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         menu_bar.addMenu(view_menu)
         menu_bar.addMenu(wf_menu)
 
-        # Statusbar
-        self.status_bar = QtWidgets.QStatusBar()
-        self.status_label = QtWidgets.QLabel('Ready')
-        self.status_label.setObjectName('status_label')
-        self.status_bar.addWidget(self.status_label)
-
-        horiz_splitter = QtWidgets.QSplitter()
-        horiz_splitter.addWidget(node_tree_wrapper)
-        horiz_splitter.addWidget(self.tab_bar)
-
-        vertical_splitter = QtWidgets.QSplitter()
-        vertical_splitter.setOrientation(QtCore.Qt.Vertical)
-        vertical_splitter.addWidget(horiz_splitter)
-        vertical_splitter.addWidget(self.data_tree)
-
-        central_widget.layout().addWidget(vertical_splitter)
-        self.setMenuBar(menu_bar)
-        self.setCentralWidget(central_widget)
-        self.setStatusBar(self.status_bar)
-
-        # Create default tab
-        self.create_workflow_tab()
-
-        logging.getLogger('creator').debug('Loading nodes...')
-        self.load_node_tree()
-
-        self.resize(1024, 800)
+        return menu_bar
 
     def quit_app(self):
         logging.getLogger('creator').debug('Exiting creator')
@@ -209,24 +223,14 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         if widget.modified:
             ans = QtWidgets.QMessageBox.question(self, 'Close tab', 'There are unsaved changes in this workflow.\n' + \
-                                           'Do you want to save your changes?', QtWidgets.QMessageBox.Yes, QtWidgets.QMessageBox.No)
+                                                 'Do you want to save your changes?', QtWidgets.QMessageBox.Yes,
+                                                 QtWidgets.QMessageBox.No)
 
             if ans == QtWidgets.QMessageBox.Yes:
                 self.save_file()
                 return
 
         self.tab_bar.removeTab(index)
-
-    def filter_node_tree(self, q: str):
-        it = QtWidgets.QTreeWidgetItemIterator(self.node_tree)
-
-        while it.value():
-            item = it.value()
-
-            if item.childCount() == 0:
-                item.setHidden(q.lower() not in item.text(0).lower())
-
-            it += 1
 
     def load_style(self):
         with open(assets.get_asset('style.css'), 'r') as f:
@@ -247,11 +251,11 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             root_node = node_container.get_root_node(selected_node)
             ax_nodes = node_container.extract_node_hierarchy_from_widgets(root_node)
 
-            run_task = tasks.RunWorkflowTask(ax_nodes, self)
+            run_task = tasks.RunWorkflowTask(ax_nodes)
             run_task.set_on_finish(self.run_finished)
             run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
 
-            self.data_tree.clear()
+            self.data_list.clear()
             self.action_run.setEnabled(False)
 
             logging.getLogger('creator').debug('Starting workflow thread...')
@@ -306,11 +310,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.action_run.setEnabled(True)
 
     def add_node_to_current_workspace(self, node):
-        # TODO make clear this will add a node from the node tree
-        if node == None:
-            # maybe clicked a category
-            return
-
         if self.tab_bar.currentWidget() == None:
             widget = self.create_workflow_tab()
             widget.set_modified(True)
@@ -339,7 +338,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
             return parent_item
 
-        self.node_tree.clear()
+        self.node_list.clear()
 
         for group, nodes in self.workflow_ctx.get_nodes().items():
             group_item = QtWidgets.QTreeWidgetItem()
@@ -355,8 +354,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             elif isinstance(nodes, list):
                 group_item = iter_nodes(group_item, nodes)
 
-            self.node_tree.insertTopLevelItem(0, group_item)
-            self.node_tree.expandAll()
+            self.node_list.get_tree().insertTopLevelItem(0, group_item)
+            self.node_list.get_tree().expandAll()
 
     def create_workflow_tab(self, title: str = 'New workflow') -> AxWorkflowWidget:
         scroll_area = AxWorkflowWidget()

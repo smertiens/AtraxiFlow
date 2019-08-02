@@ -1,0 +1,27 @@
+#::
+name = ask('Enter the name for your new package:')
+create_assets = yesno('Do you want to create an assets directory?')
+#::
+
+>> "$name/__init__.py"
+
+<<
+
+>> "$name/flow_extensions.py"
+from atraxiflow.core import *
+
+
+def boot(ctx: WorkflowContext):
+    ctx.publish_nodes('AtraxiFlow', {
+        'Common': ctx.autodiscover_nodes('atraxiflow.base.common'),
+        'Filesystem': ctx.autodiscover_nodes('atraxiflow.base.filesystem'),
+        'Text': ctx.autodiscover_nodes('atraxiflow.base.text')
+    })
+<<
+
+#: if create_assets
+>> "assets/__init__.py"
+
+<<
+#: endif
+

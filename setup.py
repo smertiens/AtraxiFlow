@@ -29,8 +29,12 @@ setuptools.setup(
     description='Flow based workflows',
     long_description=long_description,
     long_description_content_type="text/markdown",
-
     install_requires=requirements,
+    python_requires='>=3.5',
 
-    python_requires='>=3.5'
+    entry_points={
+        'console_scripts': [
+            'atraxi-flow=atraxiflow.atraxiflow_cli:main',
+        ]
+    }
 )

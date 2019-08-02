@@ -4,13 +4,22 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
+# TODO: Implement tests for wayfiles
 
-import pickle, uuid, logging
 import importlib
-from typing import List
-from atraxiflow import __version__, util
-from atraxiflow.creator.widgets import AxNodeWidget
+import logging
+import pickle
+import uuid
+from typing import List, Any
+
 from PySide2 import QtCore
+from atraxiflow import __version__, util
+from atraxiflow.core import Workflow, Node
+from atraxiflow.creator.widgets import AxNodeWidget
+
+
+class WayfileException(Exception):
+    pass
 
 
 def dump(filename: str, node_widgets: List[AxNodeWidget]):
@@ -47,15 +56,13 @@ def dump(filename: str, node_widgets: List[AxNodeWidget]):
 
         data['nodes'].append(node_data)
 
-    logging.getLogger('creator').debug('Saving workflow to file {}'.format(filename))
+    logging.getLogger('creator').debug('Saving workflow to file %s' % filename)
     with open(filename, 'bw') as f:
         pickle.dump(data, f)
 
 
-def load(filename: str) -> List[AxNodeWidget]:
-    nodes = []
-
-    logging.getLogger('creator').debug('Loading workflow from file {}'.format(filename))
+def _open_and_validate(filename: str) -> Any:
+    logging.getLogger('creator').debug('Loading workflow from file %s' % filename)
     with open(filename, 'br') as f:
         data = pickle.load(f)
 
@@ -64,7 +71,40 @@ def load(filename: str) -> List[AxNodeWidget]:
     file_ver = util.version_str_to_int(data['ax_version'])
 
     if file_ver > running_ver:
-        raise Exception('Cannot load file, requires AtraxiFlow version %s' % data['ax_version'])
+        raise WayfileException('Cannot load file, requires AtraxiFlow version %s' % data['ax_version'])
+
+    return data
+
+def load_as_workflow(filename: str) -> Workflow:
+    wf = Workflow()
+    data = _open_and_validate(filename)
+    for raw_node in data['nodes']:
+        node_inst = _create_and_setup_nodes_from_raw_data(raw_node)
+        wf.add_node(node_inst)
+
+    return wf
+
+
+def _create_and_setup_nodes_from_raw_data(raw_node: dict) -> Node:
+    mod = raw_node['ax_node_class'][:raw_node['ax_node_class'].rfind('.')]
+    node_class = raw_node['ax_node_class'][raw_node['ax_node_class'].rfind('.') + 1:]
+
+    imp_mod = importlib.import_module(mod)
+    if hasattr(imp_mod, node_class):
+        node_mem = getattr(imp_mod, node_class)
+        node_inst = node_mem()
+    else:
+        raise WayfileException('Could not find node class: %s.%s' % (mod, node_class))
+
+    for name, val in raw_node['ax_node'].items():
+        node_inst.property(name).set_value(val)
+
+    return node_inst
+
+
+def load(filename: str) -> List[AxNodeWidget]:
+    nodes = []
+    data = _open_and_validate(filename)
 
     # Since AxNodeWidgets must reference other widgets for docking, we map the node ids of our file
     # to the resulting widgets and assign the correct widget references later
@@ -72,24 +112,13 @@ def load(filename: str) -> List[AxNodeWidget]:
 
     # Recreate nodes
     for raw_node in data['nodes']:
-        mod = raw_node['ax_node_class'][:raw_node['ax_node_class'].rfind('.')]
-        node_class = raw_node['ax_node_class'][raw_node['ax_node_class'].rfind('.') + 1:]
-
-        imp_mod = importlib.import_module(mod)
-        if hasattr(imp_mod, node_class):
-            node_mem = getattr(imp_mod, node_class)
-            node_inst = node_mem()
-        else:
-            raise Exception('Could not find node class')
-
-        for name, val in raw_node['ax_node'].items():
-            node_inst.property(name).set_value(val)
+        node_inst = _create_and_setup_nodes_from_raw_data(raw_node)
 
         widget = AxNodeWidget(node_inst)
         node_inst.load_ui_data()
         setattr(widget, '_tmp_child', raw_node['child_widget'])
         setattr(widget, '_tmp_parent', raw_node['parent_widget'])
-        widget.move(QtCore.QPoint(raw_node['pos'][0],raw_node['pos'][1]))
+        widget.move(QtCore.QPoint(raw_node['pos'][0], raw_node['pos'][1]))
 
         node_ids[raw_node['id']] = widget
         nodes.append(widget)
@@ -98,7 +127,7 @@ def load(filename: str) -> List[AxNodeWidget]:
     for widget in nodes:
         if widget._tmp_child is not None:
             widget.dock_child_widget = node_ids[widget._tmp_child]
-        delattr(widget,'_tmp_child')
+        delattr(widget, '_tmp_child')
 
         if widget._tmp_parent is not None:
             widget.dock_parent_widget = node_ids[widget._tmp_parent]

@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 
-import threading, logging
+import threading
 from typing import List, Callable
 
 from atraxiflow.core import *
@@ -43,11 +43,10 @@ class Task(threading.Thread):
 
 class RunWorkflowTask(Task):
 
-    def __init__(self, nodes: List[Node], main_window=None):
+    def __init__(self, nodes: List[Node]):
         super().__init__()
         self.nodes = nodes
         self.workflow = Workflow(nodes)
-        self.workflow.get_context().set_main_window(main_window)
         self.workflow.get_context().ui_env = True
 
     def get_workflow(self):

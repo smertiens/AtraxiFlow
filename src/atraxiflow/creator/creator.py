@@ -4,10 +4,12 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
+import logging
+import sys
+
+import atraxiflow.logging as ax_logging
 from PySide2 import QtWidgets
 from atraxiflow.creator import main_window
-import atraxiflow.logging as ax_logging
-import sys, logging
 
 
 def launch_app():

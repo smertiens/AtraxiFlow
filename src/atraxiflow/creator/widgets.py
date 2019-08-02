@@ -424,3 +424,53 @@ class AxWorkflowWidget(QtWidgets.QScrollArea):
         tab_bar.setTabText(tab_bar.currentIndex(),
                            ('New workflow' if self.filename == '' else os.path.basename(self.filename)) +
                            (' *' if self.modified else ''))
+
+
+class AxNodeTreeWidget(QtWidgets.QWidget):
+
+    node_dbl_clicked = QtCore.Signal(Node)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.setLayout(QtWidgets.QVBoxLayout())
+        self.layout().setSpacing(0)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+
+        self.tree_query_input = QtWidgets.QLineEdit()
+        self.tree_query_input.setObjectName('tree_query_input')
+        self.tree_query_input.setPlaceholderText('Filter nodes...')
+        self.tree_query_input.connect(QtCore.SIGNAL('textChanged(QString)'), lambda s: self.filter_node_tree(s))
+        self.node_tree = QtWidgets.QTreeWidget()
+        self.node_tree.setObjectName('node_tree')
+        self.node_tree.connect(QtCore.SIGNAL('itemDoubleClicked(QTreeWidgetItem*, int)'), self.item_dbl_clicked)
+        self.node_tree.setHeaderHidden(True)
+        self.layout().addWidget(self.tree_query_input)
+        self.layout().addWidget(self.node_tree)
+
+    def item_dbl_clicked(self, item: QtWidgets.QTreeWidgetItem, col: int):
+        node = item.data(col, QtCore.Qt.UserRole)
+
+        if node is not None:
+            self.node_dbl_clicked.emit(node)
+
+    def get_tree(self) ->QtWidgets.QTreeWidget:
+        return self.node_tree
+
+    def get_query_input(self) -> QtWidgets.QLineEdit:
+        return self.tree_query_input
+
+    def clear(self):
+        self.node_tree.clear()
+
+
+    def filter_node_tree(self, q: str):
+        it = QtWidgets.QTreeWidgetItemIterator(self.node_tree)
+
+        while it.value():
+            item = it.value()
+
+            if item.childCount() == 0:
+                item.setHidden(q.lower() not in item.text(0).lower())
+
+            it += 1
