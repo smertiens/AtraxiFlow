@@ -12,6 +12,8 @@ from atraxiflow.base import assets
 from atraxiflow.core import Node, get_node_info
 from atraxiflow.exceptions import *
 
+__all__ = ['AxNodeTreeWidget', 'AxNodeWidget', 'AxWorkflowWidget', 'AxNodeWidgetContainer', 'AxListWidget', 'AxFileLineEditWidget',
+           'ValueException']
 
 class AxFileLineEditWidget(QtWidgets.QWidget):
     text_changed = QtCore.Signal(str)
@@ -427,7 +429,6 @@ class AxWorkflowWidget(QtWidgets.QScrollArea):
 
 
 class AxNodeTreeWidget(QtWidgets.QWidget):
-
     node_dbl_clicked = QtCore.Signal(Node)
 
     def __init__(self, parent=None):
@@ -454,7 +455,7 @@ class AxNodeTreeWidget(QtWidgets.QWidget):
         if node is not None:
             self.node_dbl_clicked.emit(node)
 
-    def get_tree(self) ->QtWidgets.QTreeWidget:
+    def get_tree(self) -> QtWidgets.QTreeWidget:
         return self.node_tree
 
     def get_query_input(self) -> QtWidgets.QLineEdit:
@@ -462,7 +463,6 @@ class AxNodeTreeWidget(QtWidgets.QWidget):
 
     def clear(self):
         self.node_tree.clear()
-
 
     def filter_node_tree(self, q: str):
         it = QtWidgets.QTreeWidgetItemIterator(self.node_tree)

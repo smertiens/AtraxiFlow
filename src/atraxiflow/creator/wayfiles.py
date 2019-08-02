@@ -17,6 +17,8 @@ from atraxiflow import __version__, util
 from atraxiflow.core import Workflow, Node
 from atraxiflow.creator.widgets import AxNodeWidget
 
+__all__ = ['WayfileException', 'dump', 'load_as_workflow', 'load']
+
 
 class WayfileException(Exception):
     pass
@@ -74,6 +76,7 @@ def _open_and_validate(filename: str) -> Any:
         raise WayfileException('Cannot load file, requires AtraxiFlow version %s' % data['ax_version'])
 
     return data
+
 
 def load_as_workflow(filename: str) -> Workflow:
     wf = Workflow()

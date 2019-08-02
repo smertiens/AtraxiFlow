@@ -10,6 +10,8 @@ from typing import List, Callable
 
 from atraxiflow.core import *
 
+__all__ = ['Task', 'RunWorkflowTask']
+
 
 class Task(threading.Thread):
     def __init__(self):

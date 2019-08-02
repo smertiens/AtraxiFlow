@@ -6,6 +6,8 @@
 #
 from typing import Any, Dict
 
+__all__ = ['Property']
+
 
 class Property:
     """

@@ -13,6 +13,8 @@ from atraxiflow.core import Node
 from atraxiflow.creator import assets, tasks, wayfiles
 from atraxiflow.creator.widgets import AxNodeWidget, AxNodeWidgetContainer, AxWorkflowWidget, AxNodeTreeWidget
 
+__all__ = ['CreatorMainWindow']
+
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
 
