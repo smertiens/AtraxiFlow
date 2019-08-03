@@ -32,6 +32,11 @@ setuptools.setup(
     install_requires=requirements,
     python_requires='>=3.5',
 
+    package_data={
+            'atraxiflow': ['creator/assets/*', 'base/assets/*'],
+        },
+
+
     entry_points={
         'console_scripts': [
             'atraxi-flow=atraxiflow.atraxiflow_cli:main',

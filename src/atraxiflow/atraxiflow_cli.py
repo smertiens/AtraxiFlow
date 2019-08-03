@@ -7,7 +7,7 @@
 
 import click
 import os
-from atraxiflow.creator import creator, wayfiles
+from atraxiflow.creator import creator as ax_creator, wayfiles
 from contemply.frontend import TemplateParser
 
 @click.group()
@@ -17,7 +17,7 @@ def cli():
 
 @cli.command('creator')
 def creator():
-    creator.launch_app()
+    ax_creator.launch_app()
 
 
 @cli.command('run')

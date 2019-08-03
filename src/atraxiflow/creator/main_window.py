@@ -273,6 +273,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         node_item = QtWidgets.QTreeWidgetItem()
         node_item.setText(0, get_node_info(node)['name'])
+        node_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-box-50.png')))
         inputs = QtWidgets.QTreeWidgetItem()
 
         # Update data tree with current node
@@ -304,7 +305,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         node_item.addChild(outputs)
         outputs.setExpanded(True)
 
-        self.data_tree.insertTopLevelItem(self.data_tree.topLevelItemCount(), node_item)
+        self.data_list.insertTopLevelItem(self.data_list.topLevelItemCount(), node_item)
         node_item.setExpanded(True)
 
     def run_finished(self, task: tasks.RunWorkflowTask):

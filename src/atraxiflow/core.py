@@ -15,8 +15,9 @@ from PySide2 import QtWidgets
 from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
 from atraxiflow.properties import Property, MissingRequiredValue
+from atraxiflow.preferences import PreferencesProvider
 
-__all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext', 'get_node_info']
+__all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext', 'get_node_info', 'run']
 
 
 class Resource:
@@ -261,6 +262,7 @@ class WorkflowContext:
     """
 
     def __init__(self):
+        self.preferences = PreferencesProvider()
         self._nodes = {}
         self._symbol_table = {}
         self.ui_env = False
@@ -332,7 +334,7 @@ class WorkflowContext:
         return string
 
     def get_registered_extensions(self):
-        return ['atraxiflow.base']
+        return self.preferences.get('extensions', ['atraxiflow.base'])
 
     def get_logger(self) -> logging.Logger:
         '''
