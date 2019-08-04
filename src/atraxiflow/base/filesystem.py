@@ -4,20 +4,20 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-import os, glob
+import glob
+import os
 import re
 import shutil
 from pathlib import Path
 
+from PySide2 import QtWidgets, QtCore, QtGui
+from atraxiflow.base import assets
 from atraxiflow.base.resources import FilesystemResource
 from atraxiflow.core import *
+from atraxiflow.creator.widgets import AxListWidget, AxNodeWidget
 from atraxiflow.data import DatetimeProcessor, StringValueProcessor
 from atraxiflow.exceptions import FilesystemException
 from atraxiflow.properties import *
-from atraxiflow.base import assets
-from atraxiflow.creator.widgets import AxListWidget, AxNodeWidget
-
-from PySide2 import QtWidgets, QtCore, QtGui
 
 
 class LoadFilesNode(Node):
@@ -277,7 +277,7 @@ class FileFilterNode(Node):
 
         return label"""
 
-    def show_add_condition_dialog(self, condition_class = ''):
+    def show_add_condition_dialog(self, condition_class=''):
         dlg = QtWidgets.QDialog()
         dlg.setWindowTitle('Add new condition')
         dlg.setLayout(QtWidgets.QVBoxLayout())
@@ -353,11 +353,10 @@ class FileFilterNode(Node):
             control = QtWidgets.QSpinBox()
             control.setRange(1, 9999999)
             h_layout.addWidget(control)
-            combo_unit =QtWidgets.QComboBox()
+            combo_unit = QtWidgets.QComboBox()
             combo_unit.setEditable(False)
             combo_unit.addItems(list(unit_map.keys()))
             h_layout.addWidget(combo_unit)
-
 
         button_box = QtWidgets.QDialogButtonBox()
         button_box.setStandardButtons(QtWidgets.QDialogButtonBox.Ok | QtWidgets.QDialogButtonBox.Cancel)
@@ -377,7 +376,7 @@ class FileFilterNode(Node):
                 text = re.compile(text)
 
             label = '%s %s "%s"' % ('Filename' if condition_class == 'filename' else 'Directory name',
-                                        combo_operator.currentText(), control.text())
+                                    combo_operator.currentText(), control.text())
             data = ['filename' if condition_class == 'filename' else 'filedir',
                     operator_map[combo_operator.currentText()], control.text(), label]
             item = QtWidgets.QListWidgetItem()
@@ -395,7 +394,7 @@ class FileFilterNode(Node):
 
         elif condition_class in ('created', 'modified'):
             label = '%s %s "%s"' % ('Date created' if condition_class == 'created' else 'Date modified',
-                                       combo_operator.currentText(), control.currentText())
+                                    combo_operator.currentText(), control.currentText())
             data = ['date_created' if condition_class == 'created' else 'date_modified', combo_operator.currentText(),
                     control.currentText(), label]
             item = QtWidgets.QListWidgetItem()
@@ -549,6 +548,7 @@ class FSRenameNode(Node):
     """
     @Name: Rename files and folders
     """
+
     def __init__(self, properties: dict = None):
         node_properties = {
             'name': Property(expected_type=str, required=False, label='Target name',
@@ -615,7 +615,7 @@ class FSRenameNode(Node):
 
         ctx_target_name = QtWidgets.QMenu()
         for lbl, var in variables.items():
-            action  = QtWidgets.QAction(ctx_target_name)
+            action = QtWidgets.QAction(ctx_target_name)
             action.setText(lbl)
             action.connect(QtCore.SIGNAL('triggered()'), lambda var=var: append_to_rename(var))
             ctx_target_name.addAction(action)
@@ -625,7 +625,6 @@ class FSRenameNode(Node):
         self.line_target_name.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.line_target_name.connect(QtCore.SIGNAL('customContextMenuRequested(QPoint)'),
                                       lambda pos: ctx_target_name.exec_(self.line_target_name.mapToGlobal(pos)))
-
 
         rename_text = QtWidgets.QLabel('The new name will be applied to the whole path (so if you change the ' + \
                                        'directory part <strong>the files will be moved</strong>). There are a number ' + \

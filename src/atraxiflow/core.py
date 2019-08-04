@@ -11,13 +11,15 @@ import logging
 import pkgutil
 from typing import List, Any, Dict
 
+import regex
 from PySide2 import QtWidgets
 from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
-from atraxiflow.properties import Property, MissingRequiredValue
 from atraxiflow.preferences import PreferencesProvider
+from atraxiflow.properties import Property, MissingRequiredValue
 
-__all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext', 'get_node_info', 'run']
+__all__ = ['Node', 'Resource', 'Container', 'Workflow', 'WorkflowContext', 'get_node_info', 'run',
+           'MissingRequiredValue']
 
 
 class Resource:
@@ -331,6 +333,20 @@ class WorkflowContext:
         return self._symbol_table
 
     def process_str(self, string: str) -> str:
+        re = regex.compile(r'\{(?P<varname>[\w@]+)\}', regex.MULTILINE)
+        matches = re.finditer(string)
+
+        if matches is None:
+            return string
+
+        for match in matches:
+            varname = match.group('varname')
+
+            if self.has_symbol(varname):
+                string = string.replace('{%s}' % varname, self.get_symbol(varname))
+            else:
+                logging.getLogger('core').error('Unknown variable: %s' % varname)
+
         return string
 
     def get_registered_extensions(self):

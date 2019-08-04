@@ -21,7 +21,6 @@ def launch_app():
 
 
 if __name__ == '__main__':
-    ax_logging.setup_loggers()
     logging.getLogger('creator').debug('Starting up creator...')
 
     launch_app()

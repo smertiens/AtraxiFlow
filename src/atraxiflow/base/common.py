@@ -89,8 +89,8 @@ class EchoOutputNode(Node):
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
 
-        if self.property('msg') is not None:
-            print(self.property('msg').value())
+        if self.property('msg').value() is not None:
+            print(ctx.process_str(self.property('msg').value()))
 
         if self.has_input():
             for res in self.get_input().find('*'):

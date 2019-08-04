@@ -33,8 +33,8 @@ setuptools.setup(
     python_requires='>=3.5',
 
     package_data={
-            'atraxiflow': ['creator/assets/*', 'base/assets/*'],
-        },
+        'atraxiflow': ['creator/assets/*', 'base/assets/*'],
+    },
 
 
     entry_points={

@@ -1,5 +1,4 @@
 contemply>=1.1.0b1
 click
 Pyside2
-joblib
 colorama

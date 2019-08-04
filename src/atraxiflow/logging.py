@@ -11,6 +11,8 @@ import colorama
 
 __all__ = ['AxLoggingConsoleFormatter', 'setup_loggers']
 
+AXFLOW_LOGGING_SETUP = False
+
 class AxLoggingConsoleFormatter(logging.Formatter):
 
     def format(self, record):
@@ -29,7 +31,18 @@ class AxLoggingConsoleFormatter(logging.Formatter):
         return txt
 
 
+def set_level(level):
+    if AXFLOW_LOGGING_SETUP == False:
+        print('')
+        return
+
 def setup_loggers(level=logging.DEBUG):
+    global AXFLOW_LOGGING_SETUP
+
+    if AXFLOW_LOGGING_SETUP == True:
+        logging.getLogger('core').debug('Skipping logger setup. Logging already setup.')
+        return
+
     colorama.init()
 
     core_logger = logging.getLogger('core')
@@ -50,3 +63,5 @@ def setup_loggers(level=logging.DEBUG):
     # setup creator logger
     creator_logger.setLevel(level)
     creator_logger.addHandler(handler)
+
+    AXFLOW_LOGGING_SETUP = True
