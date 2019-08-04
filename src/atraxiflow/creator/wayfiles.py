@@ -12,13 +12,13 @@ import logging
 import uuid
 from typing import List, Any
 
-import regex
+import re
 from PySide2 import QtCore
 from atraxiflow import util
 from atraxiflow.core import Workflow, Node, MissingRequiredValue
 from atraxiflow.creator.widgets import AxNodeWidget
 
-__all__ = ['WayfileException', 'dump', 'load_as_workflow', 'load']
+__all__ = ['WayfileException', 'dump', 'load', 'load_as_widgets', 'dump_widgets']
 
 WAYFILE_VERSION = 1, 0, 0
 
@@ -29,7 +29,7 @@ class WayfileException(Exception):
 
 class WayJSONEncoder(json.JSONEncoder):
     def default(self, o):
-        if type(o) == type(regex.compile('')):
+        if type(o) == type(re.compile('')):
             return '__@axflow_internal', 'regex', o.pattern
         elif isinstance(o, MissingRequiredValue):
             return '__@axflow_internal', 'class', 'atraxiflow.core.MissingRequiredValue'
@@ -41,7 +41,7 @@ def _way_unpickle_object(o):
     if isinstance(o, list) and len(o) > 0:
         if o[0] == '__@axflow_internal':
             if o[1] == 'regex':
-                return regex.compile(o[2])
+                return re.compile(o[2])
             elif o[1] == 'class':
                 if o[2] == 'atraxiflow.core.MissingRequiredValue':
                     return MissingRequiredValue()

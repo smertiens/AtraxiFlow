@@ -11,7 +11,7 @@ import logging
 import pkgutil
 from typing import List, Any, Dict
 
-import regex
+import re
 from PySide2 import QtWidgets
 from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
@@ -333,8 +333,8 @@ class WorkflowContext:
         return self._symbol_table
 
     def process_str(self, string: str) -> str:
-        re = regex.compile(r'\{(?P<varname>[\w@]+)\}', regex.MULTILINE)
-        matches = re.finditer(string)
+        regex = re.compile(r'\{(?P<varname>[\w@]+)\}', re.MULTILINE)
+        matches = regex.finditer(string)
 
         if matches is None:
             return string
