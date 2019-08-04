@@ -183,7 +183,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         if filename == '':
             return
 
-        nodes = wayfiles.load(filename)
+        nodes = wayfiles.load_as_widgets(filename)
 
         widget = self.create_workflow_tab()
         self.tab_bar.setCurrentWidget(widget)
@@ -216,7 +216,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
             widget.set_filename(filename)
 
-        wayfiles.dump(widget.filename, container.get_nodes())
+        wayfiles.dump_widgets(widget.filename, container.get_nodes())
         widget.set_modified(False)
 
     def tab_closed(self, index):

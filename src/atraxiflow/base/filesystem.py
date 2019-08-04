@@ -553,7 +553,7 @@ class FSRenameNode(Node):
         node_properties = {
             'name': Property(expected_type=str, required=False, label='Target name',
                              hint='A string to rename the given files to', default=''),
-            'replace': Property(expected_type=dict, required=False, default=None, label='Replace',
+            'replace': Property(expected_type=dict, required=False, default={}, label='Replace',
                                 hint='A list of strings to replace. The key can be a compiled regular expression.'),
             'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
                             hint='If true no files/folders will be renamed, only a message in the log will be created')
@@ -682,7 +682,7 @@ class FSRenameNode(Node):
     def load_ui_data(self):
         self.group_rename.setChecked(self.property('name').value() != '')
         self.group_replace.setChecked(len(self.property('replace').value()) > 0)
-        self.check_dry.setChecked(len(self.property('replace').value()) > 0)
+        self.check_dry.setChecked(self.property('dry').value())
         self.line_target_name.setText(self.property('name').value())
 
         for find, repl in self.property('replace').value().items():

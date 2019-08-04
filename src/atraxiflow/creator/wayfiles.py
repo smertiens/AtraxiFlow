@@ -51,7 +51,7 @@ def _way_unpickle_object(o):
     return o
 
 
-def dump(filename: str, node_widgets: List[AxNodeWidget]):
+def _get_data_skeleton() -> dict:
     data = {
         'file_version': WAYFILE_VERSION,
         'meta': {
@@ -63,6 +63,34 @@ def dump(filename: str, node_widgets: List[AxNodeWidget]):
             'ui_nodes': []
         }
     }
+
+    return data
+
+
+def _build_data_from_node(ax_node: Node, ui_node_id) -> dict:
+    return {
+        'ui_node': ui_node_id,
+        'node_class': ax_node.__class__.__module__ + '.' + ax_node.__class__.__name__,
+        'properties': ax_node.serialize_properties(),
+    }
+
+
+def dump(filename: str, nodes: List[Node]):
+    data = _get_data_skeleton()
+
+    for node in nodes:
+        node.apply_ui_data()
+
+        node_data = _build_data_from_node(node, '')
+        data['nodes'].append(node_data)
+
+    logging.getLogger('creator').debug('Saving workflow to file %s' % filename)
+    with open(filename, 'w') as f:
+        json.dump(data, f, cls=WayJSONEncoder)
+
+
+def dump_widgets(filename: str, node_widgets: List[AxNodeWidget]):
+    data = _get_data_skeleton()
 
     node_ids = {}
     for node in node_widgets:
@@ -80,11 +108,7 @@ def dump(filename: str, node_widgets: List[AxNodeWidget]):
         if node.dock_child_widget is not None:
             child_widget_id = node_ids[node.dock_child_widget]
 
-        node_data = {
-            'ui_node': node_ids[node],
-            'node_class': ax_node.__class__.__module__ + '.' + ax_node.__class__.__name__,
-            'properties': ax_node.serialize(),
-        }
+        node_data = _build_data_from_node(ax_node, node_ids[node])
 
         ui_node_data = {
             'id': node_ids[node],
@@ -111,19 +135,19 @@ def _open_and_validate(filename: str) -> Any:
     file_ver = util.version_tuple_to_int(data['file_version'])
 
     if file_ver > running_ver:
-        raise WayfileException('Cannot load file, requires Wayfile library version %s' % '.'.join(data['file_version']))
+        raise WayfileException('Cannot load file, requires Wayfile library version %s' % util.version_tuple_to_str(data['file_version']))
 
     return data
 
 
-def load_as_workflow(filename: str) -> Workflow:
-    wf = Workflow()
+def load(filename: str) -> list:
+    nodes = []
     data = _open_and_validate(filename)
     for raw_node in data['nodes']:
         node_inst = _create_and_setup_nodes_from_raw_data(raw_node)
-        wf.add_node(node_inst)
+        nodes.append(node_inst)
 
-    return wf
+    return nodes
 
 
 def _create_and_setup_nodes_from_raw_data(raw_node: dict) -> Node:
@@ -143,7 +167,7 @@ def _create_and_setup_nodes_from_raw_data(raw_node: dict) -> Node:
     return node_inst
 
 
-def load(filename: str) -> List[AxNodeWidget]:
+def load_as_widgets(filename: str) -> List[AxNodeWidget]:
     nodes = []
     ui_nodes = []
     data = _open_and_validate(filename)

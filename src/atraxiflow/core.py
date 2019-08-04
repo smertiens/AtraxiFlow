@@ -144,7 +144,7 @@ class Node:
         self.properties = node_properties
         self.apply_properties(user_properties)
 
-    def serialize(self) -> dict:
+    def serialize_properties(self) -> dict:
         """
 
         :return: Returns a dictionary with all property values

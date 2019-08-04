@@ -13,6 +13,7 @@ __all__ = ['AxLoggingConsoleFormatter', 'setup_loggers']
 
 AXFLOW_LOGGING_SETUP = False
 
+
 class AxLoggingConsoleFormatter(logging.Formatter):
 
     def format(self, record):
@@ -33,8 +34,13 @@ class AxLoggingConsoleFormatter(logging.Formatter):
 
 def set_level(level):
     if AXFLOW_LOGGING_SETUP == False:
-        print('')
+        print('Error: Logging has not been set up.')
         return
+
+    logging.getLogger('core').setLevel(level)
+    logging.getLogger('workflow_ctx').setLevel(level)
+    logging.getLogger('creator').setLevel(level)
+
 
 def setup_loggers(level=logging.DEBUG):
     global AXFLOW_LOGGING_SETUP
