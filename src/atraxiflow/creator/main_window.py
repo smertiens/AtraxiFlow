@@ -368,3 +368,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         self.tab_bar.addTab(scroll_area, title)
         return scroll_area
+
+    def closeEvent(self, event: QtGui.QCloseEvent):
+        logging.getLogger('creator').debug('Closing main window..')
+        for n in range(0, self.tab_bar.count()):
+            self.tab_closed(n)

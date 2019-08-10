@@ -105,7 +105,7 @@ class DelayNode(Node):
     """
     def __init__(self, properties=None):
         node_properties = {
-            'time': Property(expected_type=(float, int), required=False, hint='Time to sleep', label='Time')
+            'time': Property(expected_type=(float, int), required=False, hint='Time to sleep (in seconds)', label='Time')
         }
         super().__init__(node_properties, properties)
 
