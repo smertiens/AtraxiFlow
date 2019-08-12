@@ -6,7 +6,8 @@
 #
 
 __all__ = ['ResourceException', 'EnvironmentException', 'ValueException', 'ExecutionException', 'FilesystemException',
-           'GUIException', 'PropertyException', 'InputException', 'PropertyNotFoundException', 'NodeUIException']
+           'GUIException', 'PropertyException', 'InputException', 'PropertyNotFoundException', 'NodeUIException',
+           'ExtensionException']
 
 
 class ResourceException(Exception):
@@ -46,4 +47,8 @@ class InputException(Exception):
 
 
 class NodeUIException(Exception):
+    pass
+
+
+class ExtensionException(Exception):
     pass

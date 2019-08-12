@@ -1,0 +1,83 @@
+#::
+echo("Let's start with your new AtraxiFlow extension. What is the name of your extension (e.g. Simple Math Extension)? ")
+name = ask('Extension name: ')
+echo("Now we need a name for the python package containing your extension (eg. ax_simple_math_extension).")
+echo("Consider the rules for naming python / PyPi packages.")
+pack_name = ask('Package name: ')
+
+author_name = ask('What should be the extensions author name? ')
+description = ask('Enter a short description for your extension: ')
+
+create_assets = yesno('Do you want to create an assets directory?')
+#::
+
+#: >> '$pack_name/setup.py', True
+import setuptools
+
+setuptools.setup(
+    name='$pack_name',
+    version='1.0.0',
+    packages=setuptools.find_packages('src'),
+    package_dir={'': 'src'},
+    url='',
+    project_urls={
+
+    },
+    keywords='atraxiflow',
+    license='',
+    author='$author_name',
+    author_email='',
+    description='$description',
+    install_requires=['atraxiflow'],
+    python_requires='>=3.5',
+)
+#: <<
+
+#: >> '$pack_name/src/$pack_name/__init__.py', True
+
+#: <<
+
+#: >> '$pack_name/src/$pack_name/nodes.py', True
+from atraxiflow.core import *
+
+class MyNode(Node):
+    """
+    @Name: My Node
+    """
+    def __init__(self, properties=None):
+        node_properties = {
+            'text': Property(expected_type=str, required=True, hint='Some text', label='Text')
+        }
+        super().__init__(node_properties, properties)
+
+    def run(self, ctx: WorkflowContext):
+        super().run(ctx)
+        print(self.properties('text').value())
+
+        return True
+#: <<
+
+#: >> "$pack_name/src/$pack_name/flow_extension.py"
+from atraxiflow.core import *
+
+
+def boot(ctx: WorkflowContext):
+    # This method is called every time your extension is loaded.
+    # The publish_nodes() method returns all nodes that should be shown from your package in creator.
+    # In the following example, all nodes in the nodes-module will be added to creator under the category "My nodes"
+
+    ctx.publish_nodes('$name', {
+        '$name': ctx.autodiscover_nodes('$pack_name.nodes')
+    })
+#: <<
+
+#: if create_assets
+#: >> "$name/src/$name/assets/__init__.py"
+import os
+
+def get_asset(path):
+    dirname = os.path.dirname(__file__)
+    return os.path.realpath(os.path.join(dirname, path))
+#: <<
+#: endif
+

@@ -9,4 +9,4 @@ import logging
 
 __version__ = '2.0.0'
 
-setup_loggers(logging.DEBUG)
+setup_loggers()

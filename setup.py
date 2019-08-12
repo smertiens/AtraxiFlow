@@ -1,16 +1,20 @@
+import os
 import setuptools
 
-with open("README.md", "r") as fh:
+basepath = os.path.dirname(__file__)
+basepath += '/' if basepath != '' else ''
+
+with open(basepath + "README.md", "r") as fh:
     long_description = fh.read()
 
-with open('requirements.txt', 'r') as fh:
+with open(basepath + 'requirements.txt', 'r') as fh:
     requirements = fh.readlines()
 
 setuptools.setup(
     name='atraxi-flow',
     version='2.0.0',
-    packages=setuptools.find_packages('src'),
-    package_dir={'':'src'},
+    packages=setuptools.find_packages(basepath + 'src'),
+    package_dir={'': basepath + 'src'},
     classifiers=[
         'Development Status :: 4 - Beta',
         "Programming Language :: Python :: 3",
@@ -33,9 +37,8 @@ setuptools.setup(
     python_requires='>=3.5',
 
     package_data={
-        'atraxiflow': ['creator/assets/*', 'base/assets/*'],
+        'atraxiflow': ['creator/assets/*', 'base/assets/*', 'templates/*'],
     },
-
 
     entry_points={
         'console_scripts': [

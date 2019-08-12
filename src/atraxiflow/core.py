@@ -9,9 +9,9 @@ import importlib
 import inspect
 import logging
 import pkgutil
+import re
 from typing import List, Any, Dict
 
-import re
 from PySide2 import QtWidgets
 from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
@@ -353,11 +353,28 @@ class WorkflowContext:
         return self.preferences.get('extensions', ['atraxiflow.base'])
 
     def get_logger(self) -> logging.Logger:
-        '''
+        """
         Returns the workflows logger for use by nodes
         :return: Logger
-        '''
+        """
         return logging.getLogger('workflow_ctx')
+
+    def get_extension_module(self, modname):
+        """
+        Takes a package string and returns a package instance
+
+        :param str modname: The module to load
+        :return: object
+        """
+        try:
+            mod = importlib.import_module(modname + '.flow_extension')
+        except ImportError:
+            raise ExtensionException('Error loading extension %s' % modname)
+
+        if not hasattr(mod, 'boot'):
+            raise ExtensionException('Invalid extension: Missing boot method')
+
+        return mod
 
     def load_extensions(self):
         """
@@ -366,13 +383,7 @@ class WorkflowContext:
         self.get_logger().debug('Loading extensions...')
 
         for ext in self.get_registered_extensions():
-            try:
-                mod = importlib.import_module(ext + '.flow_extension')
-            except ImportError:
-                raise Exception('Error loading extension %s' % ext)
-
-            if not hasattr(mod, 'boot'):
-                raise Exception('Invalid extension: Missing boot method')
+            mod = self.get_extension_module(ext)
 
             logging.getLogger('core').debug('Booting "%s"...' % ext)
             mod.boot(self)
