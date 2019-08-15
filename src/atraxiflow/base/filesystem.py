@@ -11,6 +11,7 @@ import shutil
 from pathlib import Path
 
 from PySide2 import QtWidgets, QtCore, QtGui
+
 from atraxiflow.base import assets
 from atraxiflow.base.resources import FilesystemResource
 from atraxiflow.core import *

@@ -5,19 +5,20 @@
 # For more information on licensing see LICENSE file
 #
 
+import logging
 import os
 
 import click
-import logging
 import colorama
+from contemply.cli import prompt
+from contemply.frontend import TemplateParser
+
 from atraxiflow import __version__ as ax_version
-from atraxiflow.logging import set_level
 from atraxiflow.core import Workflow, WorkflowContext
 from atraxiflow.creator import creator as ax_creator, wayfiles
 from atraxiflow.exceptions import *
+from atraxiflow.logging import set_level
 from atraxiflow.preferences import PreferencesProvider
-from contemply.cli import prompt
-from contemply.frontend import TemplateParser
 
 
 @click.group()

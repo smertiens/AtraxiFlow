@@ -4,18 +4,18 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-import logging
 import re
 
+from atraxiflow.base.resources import TextResource
 from atraxiflow.core import *
 from atraxiflow.properties import *
-from atraxiflow.base.resources import TextResource
 
 
 class TextFileInputNode(Node):
     """
     @Name: Load textfile
     """
+
     def __init__(self, properties: dict = None):
         node_properties = {
             'filename': Property(expected_type=str, required=True, label='Filename', hint='The filename to read from',
@@ -41,6 +41,7 @@ class TextFileOutputNode(Node):
     """
     @Name: Write to textfile
     """
+
     def __init__(self, properties: dict = None):
         node_properties = {
             'filename': Property(expected_type=str, label='Filename', required=True, hint='The filename to write to'),

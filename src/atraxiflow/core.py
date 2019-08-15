@@ -13,6 +13,7 @@ import re
 from typing import List, Any, Dict
 
 from PySide2 import QtWidgets
+
 from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
 from atraxiflow.preferences import PreferencesProvider

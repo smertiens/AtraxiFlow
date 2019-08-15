@@ -5,16 +5,15 @@
 # For more information on licensing see LICENSE file
 #
 
+import os
+import platform
 import shlex
 import subprocess
-import os
 import time
-import platform
 
-from PySide2 import QtWidgets, QtCore
+from atraxiflow.base.resources import TextResource
 from atraxiflow.core import *
 from atraxiflow.properties import Property
-from atraxiflow.base.resources import TextResource
 
 __all__ = ['NullNode', 'EchoOutputNode', 'DelayNode', 'CLIInputNode', 'ShellExecNode']
 
@@ -23,6 +22,7 @@ class ShellExecNode(Node):
     """
     @Name: Execute console command
     """
+
     def __init__(self, properties: dict = None):
         node_properties = {
             'cmd': Property(expected_type=str, required=True, label='Command',
@@ -32,7 +32,6 @@ class ShellExecNode(Node):
         }
 
         super().__init__(node_properties, properties)
-
 
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
@@ -85,7 +84,6 @@ class EchoOutputNode(Node):
         }
         super().__init__(node_properties, properties)
 
-
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
 
@@ -103,9 +101,11 @@ class DelayNode(Node):
     """
     @Name: Add delay
     """
+
     def __init__(self, properties=None):
         node_properties = {
-            'time': Property(expected_type=(float, int), required=False, hint='Time to sleep (in seconds)', label='Time')
+            'time': Property(expected_type=(float, int), required=False, hint='Time to sleep (in seconds)',
+                             label='Time')
         }
         super().__init__(node_properties, properties)
 
@@ -115,10 +115,12 @@ class DelayNode(Node):
 
         return True
 
+
 class NullNode(Node):
     """
     @Hide: True
     """
+
     def __init__(self, properties=None):
         super().__init__({}, properties)
 
@@ -130,6 +132,7 @@ class CLIInputNode(Node):
     """
     @Name: Get user input from console
     """
+
     def __init__(self, properties=None):
         user_properties = {
             'prompt': Property(expected_type=str, required=False, label='Prompt',
@@ -149,22 +152,3 @@ class CLIInputNode(Node):
 
         self.output.add(TextResource(user_input))
         return True
-
-
-"""
-class ExecNode(Node):
-    def __init__(self, properties=None):
-        self.output = Container()
-        self.properties = {
-            'callable': Property(expected_type=str, required=True,hint='Callable to run', label='Callable')
-        }
-        self.id = '%s.%s' % (self.__module__, self.__class__.__name__)
-        self._input = None
-        self.apply_properties(properties)
-
-
-    def run(self, ctx: WorkflowContext):
-        obj = self.property('callable').value()
-        ctx.get_logger().debug('Executing {0}()'.format(obj))
-        self.output = Container(obj())
-"""

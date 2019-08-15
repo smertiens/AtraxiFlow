@@ -5,15 +5,15 @@ import contemply.cli as cli
 
 root = os.path.dirname(os.path.abspath(__file__))
 
-try:
-    import atraxiflow
-except ModuleNotFoundError:
-    sys.path.insert(0, (os.path.join(root, 'src')))
-    import atraxiflow
+sys.path.insert(0, (os.path.join(root, 'src')))
+import atraxiflow
 
 
 def clean_dist():
-    shutil.rmtree(os.path.join(root, 'dist'))
+    try:
+        shutil.rmtree(os.path.join(root, 'dist'))
+    except FileNotFoundError:
+        pass
 
 
 def build_package():

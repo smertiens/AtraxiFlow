@@ -14,6 +14,7 @@ from atraxiflow.core import WorkflowContext
 
 __all__ = ['DatetimeProcessor', 'StringValueProcessor']
 
+
 class DatetimeProcessor:
     """
     This class handles datetime information.
