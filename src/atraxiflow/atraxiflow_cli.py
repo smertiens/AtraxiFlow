@@ -10,12 +10,13 @@ import os
 
 import click
 import colorama
-from contemply.cli import prompt
+from contemply.cli import prompt, user_input
 from contemply.frontend import TemplateParser
 
 from atraxiflow import __version__ as ax_version
-from atraxiflow.core import Workflow, WorkflowContext
-from atraxiflow.creator import creator as ax_creator, wayfiles
+from atraxiflow.core import WorkflowContext, Workflow
+from atraxiflow.creator import creator as ax_creator
+from atraxiflow.creator.wayfiles import Wayfile, WayDefaultWorkflow
 from atraxiflow.exceptions import *
 from atraxiflow.logging import set_level
 from atraxiflow.preferences import PreferencesProvider
@@ -42,9 +43,47 @@ def run(filename, verbose):
     if verbose:
         set_level(logging.DEBUG)
 
-    nodes = wayfiles.load(filename)
-    wf = Workflow(nodes)
-    wf.run()
+    wf = Wayfile()
+    wf.load(filename)
+
+    # Get a list of available workflows (excluding default workflow)
+    if len(wf.workflows) < 1:
+        logging.getLogger('core').error('No workflow found. The source file could be corrupted.')
+    elif len(wf.workflows) == 1:
+        print('No workflows found for running.')
+        return
+
+    choose = []
+    for workflow in wf.workflows:
+        if isinstance(workflow, WayDefaultWorkflow):
+            continue
+
+        choose.append(workflow)
+
+    print('The following workflows were found in "%s":\n' % os.path.basename(filename))
+    for n, workflow in enumerate(choose):
+        print(colorama.Fore.LIGHTYELLOW_EX + '[%s]' % (n + 1) + colorama.Fore.RESET + ' %s' % workflow.get_name())
+
+    while True:
+        user_choice = user_input('\nRun workflow: ')
+
+        if user_choice == '':
+            print('Quittting.')
+            return
+        elif user_choice.isnumeric():
+            user_choice = int(user_choice)
+
+            if user_choice > 0 and user_choice <= len(choose):
+                nodes = [wf_node.node for wf_node in choose[user_choice - 1].nodes]
+
+                print('')
+                print('*' * 5 + ' ' + choose[user_choice - 1].get_name() + ' ' + '*' * 5)
+                run_workflow = Workflow(nodes)
+                run_workflow.run()
+
+                return
+
+        print('Please enter a number between %s and %s' % (1, len(choose)))
 
 
 @cli.command('create')

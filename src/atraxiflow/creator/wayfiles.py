@@ -61,6 +61,9 @@ class WayWorkflow:
     def get_nodes(self) -> list:
         return self.nodes
 
+    def get_name(self):
+        return self.name
+
 
 class WayDefaultWorkflow(WayWorkflow):
     pass
