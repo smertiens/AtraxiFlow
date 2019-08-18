@@ -68,6 +68,10 @@ AxNodeWidget {
     background: rgb(236,236,236);
 }
 
+#__creator_workflow_widget {
+    background: red;
+}
+
 #node_remove_btn {
     margin: 5px;
 }

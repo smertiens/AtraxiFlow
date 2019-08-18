@@ -6,14 +6,17 @@
 #
 import logging
 import os
+import uuid
 
 from PySide2 import QtCore, QtWidgets, QtGui
+
 from atraxiflow.base import assets
 from atraxiflow.core import Node, get_node_info
 from atraxiflow.exceptions import *
 
-__all__ = ['AxNodeTreeWidget', 'AxNodeWidget', 'AxWorkflowWidget', 'AxNodeWidgetContainer', 'AxListWidget', 'AxFileLineEditWidget',
-           'ValueException']
+__all__ = ['AxNodeTreeWidget', 'AxNodeWidget', 'AxWorkflowWidget', 'AxNodeWidgetContainer', 'AxListWidget',
+           'AxFileLineEditWidget', 'AxWorkflowNodeWidget']
+
 
 class AxFileLineEditWidget(QtWidgets.QWidget):
     text_changed = QtCore.Signal(str)
@@ -105,11 +108,33 @@ class AxListWidget(QtWidgets.QWidget):
         self.toolbar.setEnabled(enabled)
 
 
+class AxWorkflowNodeWidget(QtWidgets.QFrame):
+
+    def __init__(self, name: str = '', parent: QtWidgets.QWidget = None):
+        super().__init__(parent)
+        self._id = str(uuid.uuid4())
+        self._name = name
+        self.setObjectName('workflow_widget')
+
+        self.setLayout(QtWidgets.QHBoxLayout())
+
+        self.input_name = QtWidgets.QLineEdit()
+        self.input_name.setText(self._name)
+        self.input_name.setObjectName('workflow_widget_name_input')
+
+        self.layout().addWidget(self.input_name)
+
+        win_width = 400
+        self.setMinimumWidth(win_width)
+        self.setMaximumWidth(win_width)
+
+
 class AxNodeWidget(QtWidgets.QFrame):
 
     def __init__(self, node: Node, parent: QtWidgets.QWidget = None):
         super().__init__(parent)
 
+        self.id = str(uuid.uuid4())
         self.node = node
         self.selected = False
 
@@ -335,6 +360,14 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
             node.deleteLater()
 
         self.nodes.clear()
+
+    def extract_widget_hierarchy_from_root_widget(self, root_node: AxNodeWidget) -> list:
+        widgets = [root_node.node]
+        while root_node.dock_child_widget is not None:
+            widgets.append(root_node.dock_child_widget)
+            root_node = root_node.dock_child_widget
+
+        return widgets
 
     def extract_node_hierarchy_from_widgets(self, root_node: AxNodeWidget) -> list:
         nodes = [root_node.node]
