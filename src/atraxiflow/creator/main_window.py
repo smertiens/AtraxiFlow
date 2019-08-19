@@ -14,6 +14,7 @@ from atraxiflow.creator import assets, tasks
 from atraxiflow.creator.nodes import WorkflowNode
 from atraxiflow.creator.wayfiles import *
 from atraxiflow.creator.widgets import *
+from atraxiflow.preferences import PreferencesProvider
 
 __all__ = ['CreatorMainWindow']
 
@@ -22,6 +23,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
     def __init__(self):
         super().__init__()
+
+        self.pref = PreferencesProvider()
 
         # Context needed for pulling available nodes
         self.workflow_ctx = WorkflowContext()
@@ -52,6 +55,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         vertical_splitter.addWidget(horiz_splitter)
         self.data_list = self.create_data_tree_widget()
         vertical_splitter.addWidget(self.data_list)
+        # TODO: splitter pos
 
         # Central widget - holds node tree, data tree and workflow area
         central_widget = QtWidgets.QWidget()
@@ -62,6 +66,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         # Add components to main window
         self.setMenuBar(self.create_main_menu())
+        self.load_recent_files_list()
         self.setCentralWidget(central_widget)
         self.setStatusBar(self.status_bar)
 
@@ -108,36 +113,40 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
     def create_main_menu(self) -> QtWidgets.QMenuBar:
         # File
         menu_bar = QtWidgets.QMenuBar()
-        file_menu = QtWidgets.QMenu('&File')
-        menu_file_load_css = QtWidgets.QAction('Reload css', file_menu)
+        self.file_menu = QtWidgets.QMenu('&File')
+        menu_file_load_css = QtWidgets.QAction('Reload css', self.file_menu)
         menu_file_load_css.setShortcut(QtGui.QKeySequence('Ctrl+R'))
         menu_file_load_css.connect(QtCore.SIGNAL('triggered()'), self.load_style)
         # file_menu.addAction(menu_file_load_css)
 
-        menu_file_new = QtWidgets.QAction('New workflow', file_menu)
+        menu_file_new = QtWidgets.QAction('New workflow', self.file_menu)
         menu_file_new.connect(QtCore.SIGNAL('triggered()'), self.new_file)
         menu_file_new.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.New))
-        file_menu.addAction(menu_file_new)
-        file_menu.addSeparator()
-        menu_file_save = QtWidgets.QAction('Save workflow', file_menu)
+        self.file_menu.addAction(menu_file_new)
+        self.file_menu.addSeparator()
+        menu_file_save = QtWidgets.QAction('Save workflow', self.file_menu)
         menu_file_save.connect(QtCore.SIGNAL('triggered()'), self.save_file)
         menu_file_save.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Save))
-        file_menu.addAction(menu_file_save)
-        menu_file_save_as = QtWidgets.QAction('Save workflow as...', file_menu)
+        self.file_menu.addAction(menu_file_save)
+        menu_file_save_as = QtWidgets.QAction('Save workflow as...', self.file_menu)
         menu_file_save_as.connect(QtCore.SIGNAL('triggered()'), lambda: self.save_file(True))
         menu_file_save_as.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.SaveAs))
-        file_menu.addAction(menu_file_save_as)
-        menu_file_open = QtWidgets.QAction('Open workflow...', file_menu)
+        self.file_menu.addAction(menu_file_save_as)
+        menu_file_open = QtWidgets.QAction('Open workflow...', self.file_menu)
         menu_file_open.connect(QtCore.SIGNAL('triggered()'), self.open_file)
         menu_file_open.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Open))
-        file_menu.addAction(menu_file_open)
-        file_menu.addSeparator()
-        menu_file_quit = QtWidgets.QAction('Quit', file_menu)
+        self.file_menu.addAction(menu_file_open)
+
+        self.menu_file_recent = self.file_menu.addMenu('Reopen file')
+
+        self.file_menu.addSeparator()
+        menu_file_quit = QtWidgets.QAction('Quit', self.file_menu)
         menu_file_quit.connect(QtCore.SIGNAL('triggered()'), self.quit_app)
         menu_file_quit.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Quit))
-        file_menu.addAction(menu_file_quit)
+        self.file_menu.addAction(menu_file_quit)
 
         # Edit
+        # delete node
 
         # View
         view_menu = QtWidgets.QMenu('&View')
@@ -150,7 +159,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         action_show_node_results = QtWidgets.QAction('Show node results', view_menu)
         action_show_node_results.setCheckable(True)
         action_show_node_results.setChecked(True)
-        action_show_node_results.setChecked(self.data_list.isVisible())
         action_show_node_results.connect(QtCore.SIGNAL('triggered()'),
                                          lambda: self.data_list.setVisible(not self.data_list.isVisible()))
 
@@ -165,11 +173,37 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.action_run.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
         wf_menu.addAction(self.action_run)
 
-        menu_bar.addMenu(file_menu)
+        menu_bar.addMenu(self.file_menu)
         menu_bar.addMenu(view_menu)
         menu_bar.addMenu(wf_menu)
 
         return menu_bar
+
+    def load_recent_files_list(self):
+        self.recent_files_list = self.pref.get('creator_recent_files', [])
+
+        # File - Recent files
+        self.menu_file_recent.clear()
+        for recent_file_entry in self.recent_files_list:
+            action_recent = QtWidgets.QAction(recent_file_entry, self.menu_file_recent)
+            action_recent.connect(QtCore.SIGNAL('triggered()'), lambda recent_file_entry=recent_file_entry:
+            self.open_file(recent_file_entry))
+            self.menu_file_recent.addAction(action_recent)
+
+    def add_recent_file_entry(self, entry):
+        list_max_size = 5
+
+        if len(self.recent_files_list) == list_max_size:
+            self.recent_files_list.pop()
+
+        if entry in self.recent_files_list:
+            self.recent_files_list.remove(entry)
+
+        self.recent_files_list.insert(0, entry)
+        self.pref.set('creator_recent_files', self.recent_files_list)
+        self.pref.save()
+
+        self.load_recent_files_list()
 
     def quit_app(self):
         logging.getLogger('creator').debug('Exiting creator')
@@ -178,12 +212,13 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
     def new_file(self):
         self.create_workflow_tab('New file')
 
-    def open_file(self):
-        dlg = QtWidgets.QFileDialog()
-        filename = dlg.getOpenFileName(self, 'Open workflow file', filter='Way files (*.way);;All files (*.*)')[0]
+    def open_file(self, filename=None):
+        if filename is None:
+            dlg = QtWidgets.QFileDialog()
+            filename = dlg.getOpenFileName(self, 'Open workflow file', filter='Way files (*.way);;All files (*.*)')[0]
 
-        if filename == '':
-            return
+            if filename == '':
+                return
 
         wayfile = Wayfile()
         wayfile.load(filename)
@@ -254,6 +289,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         widget.set_filename(filename)
         widget.set_modified(False)
+        self.add_recent_file_entry(filename)
 
     def save_file(self, save_as=False):
         widget = self.tab_bar.currentWidget()

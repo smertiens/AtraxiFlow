@@ -305,7 +305,7 @@ class WorkflowContext:
 
         return result
 
-    def publish_nodes(self, group_name: str, nodes: list):
+    def publish_nodes(self, group_name: str, nodes: dict):
         """
         Publishes the given nodes to a group with the specified group_name in the current context.
         This way the nodes can be found by e.g. Creator
