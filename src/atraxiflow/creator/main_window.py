@@ -15,6 +15,7 @@ from atraxiflow.creator.nodes import WorkflowNode
 from atraxiflow.creator.wayfiles import *
 from atraxiflow.creator.widgets import *
 from atraxiflow.preferences import PreferencesProvider
+from atraxiflow import util
 
 __all__ = ['CreatorMainWindow']
 
@@ -114,10 +115,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # File
         menu_bar = QtWidgets.QMenuBar()
         self.file_menu = QtWidgets.QMenu('&File')
-        menu_file_load_css = QtWidgets.QAction('Reload css', self.file_menu)
-        menu_file_load_css.setShortcut(QtGui.QKeySequence('Ctrl+R'))
-        menu_file_load_css.connect(QtCore.SIGNAL('triggered()'), self.load_style)
-        # file_menu.addAction(menu_file_load_css)
+
 
         menu_file_new = QtWidgets.QAction('New workflow', self.file_menu)
         menu_file_new.connect(QtCore.SIGNAL('triggered()'), self.new_file)
@@ -176,6 +174,15 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         menu_bar.addMenu(self.file_menu)
         menu_bar.addMenu(view_menu)
         menu_bar.addMenu(wf_menu)
+
+        if util.is_debug():
+            dev_menu = QtWidgets.QMenu('&Developer')
+            menu_file_load_css = QtWidgets.QAction('Reload css', dev_menu)
+            menu_file_load_css.setShortcut(QtGui.QKeySequence('Ctrl+R'))
+            menu_file_load_css.connect(QtCore.SIGNAL('triggered()'), self.load_style)
+            dev_menu.addAction(menu_file_load_css)
+
+            menu_bar.addMenu(dev_menu)
 
         return menu_bar
 

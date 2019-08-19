@@ -5,8 +5,13 @@
 # For more information on licensing see LICENSE file
 #
 from atraxiflow.logging import *
+from atraxiflow import util
 import logging
+
 
 __version__ = '2.0.0.dev1'
 
-setup_loggers()
+if util.is_debug():
+    setup_loggers(logging.DEBUG)
+else:
+    setup_loggers()
