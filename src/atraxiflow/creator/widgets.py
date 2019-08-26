@@ -21,10 +21,13 @@ __all__ = ['AxNodeTreeWidget', 'AxNodeWidget', 'AxWorkflowWidget', 'AxNodeWidget
 
 class AxFileLineEditWidget(QtWidgets.QWidget):
     text_changed = QtCore.Signal(str)
+    FindFile = 'FindFile'
+    FindFolder = 'FindFolder'
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.find = self.FindFile
         self.filter = 'All files (*.*)'
 
         self.line_edit = QtWidgets.QLineEdit()
@@ -43,10 +46,19 @@ class AxFileLineEditWidget(QtWidgets.QWidget):
         self.layout().addWidget(self.line_edit)
         self.layout().addWidget(self.btn)
 
+    def set_find_mode(self, mode):
+        self.find = mode
+
     def show_file_dialog(self):
         dlg = QtWidgets.QFileDialog()
-        path = dlg.getOpenFileName(self, 'Find file', filter=self.filter)
-        path = path[0]
+        path = ''
+
+        if self.find == self.FindFile:
+            path = dlg.getOpenFileName(self, 'Find file', filter=self.filter)
+            path = path[0]
+
+        elif self.find == self.FindFolder:
+            path = dlg.getExistingDirectory(self, 'Find folder', options=QtWidgets.QFileDialog.ShowDirsOnly)
 
         if path != '':
             self.line_edit.setText(path)
@@ -199,8 +211,12 @@ class AxNodeWidget(QtWidgets.QFrame):
                     if 'role' in prop.get_display_options():
                         role = prop.get_display_options()['role']
 
-                        if role == 'file':
+                        if role == 'file' or role == 'folder':
                             control = AxFileLineEditWidget()
+
+                            if role == 'folder':
+                                control.set_find_mode(control.FindFolder)
+
                             control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
                             control.text_changed.connect(self.modified)
                             if isinstance(prop.value(), str):
@@ -448,6 +464,7 @@ class AxWorkflowNodeWidget(AxNodeWidget):
         # Change look of title label
         self.title_label.setObjectName('ax_workflow_node_title')
         self.title_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.title_label.setText(node.property('name').value())
 
         # Create workflow toolbar
         self.action_rename = QtWidgets.QAction('Rename workflow')
@@ -481,6 +498,10 @@ class AxWorkflowNodeWidget(AxNodeWidget):
         else:
             self.node.property('name').set_value(new_name)
             self.title_label.setText(new_name)
+
+            workflow_widget = self.parent().parent().parent()
+            assert isinstance(workflow_widget, AxWorkflowWidget)
+            workflow_widget.set_modified(True)
 
 
 class AxWorkflowWidget(QtWidgets.QScrollArea):

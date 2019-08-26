@@ -518,6 +518,48 @@ class FSCopyNode(Node):
         return True
 
 
+class FSMoveNode(Node):
+    """
+    @Name: Move files
+    """
+
+    def __init__(self, properties=None):
+        node_properties = {
+            'dest': Property(expected_type=str, required=True, label='Destination', hint='The directoy to move the files to',
+                                 display_options={'role': 'folder'}),
+            'create_dirs': Property(expected_type=bool, required=False, label='Create destination directories',
+                                    hint='Create missing destination paths', default=False),
+            'dry': Property(expected_type=bool, required=False, label='Dry', hint='Simulate file operation', default=False)
+        }
+        super().__init__(node_properties, properties)
+
+    def run(self, ctx: WorkflowContext):
+        super().run(ctx)
+
+        # In case the node is run multiple times, we will empty the output container
+        self.output.clear()
+
+        if self.property('create_dirs').value() and not os.path.exists(self.property('dest').value()):
+            ctx.get_logger().debug('Creating missing destination directory "%s"' % self.property('dest').value())
+            os.makedirs(self.property('dest').value())
+
+        resources = self.get_input().find('atraxiflow.FilesystemResource')
+        for res in resources:
+            assert isinstance(res, FilesystemResource)  # helps with autocompletion
+
+            dest_name = os.path.join(self.property('dest').value(), res.get_filename())
+
+            if self.property('dry').value():
+                ctx.get_logger().debug('DRY RUN: Moving file "%s" -> "%s"' % (res.get_absolute_path(), dest_name))
+            else:
+                ctx.get_logger().debug('Moving file "%s" -> "%s"' % (res.get_absolute_path(), dest_name))
+                os.rename(res.get_absolute_path(), dest_name)
+
+            self.output.add(FilesystemResource(dest_name))
+
+        return True
+
+
 class FSRenameNode(Node):
     """
     @Name: Rename files and folders

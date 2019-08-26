@@ -244,7 +244,12 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
             if not isinstance(wf, WayDefaultWorkflow):
                 # create workflow node
-                wf_widget = AxWorkflowNodeWidget(WorkflowNode(), container)
+                wf_ax_node = WorkflowNode({
+                    'name': wf.name
+                })
+                wf_widget = AxWorkflowNodeWidget(wf_ax_node, container)
+                wf_widget.run_triggered.connect(lambda: self.run_workflow_node(wf_widget))
+
                 if 'creator_pos' in wf.data:
                     wf_widget.move(wf.data['creator_pos'][0], wf.data['creator_pos'][1])
                 else:
