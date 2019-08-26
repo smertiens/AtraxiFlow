@@ -8,6 +8,7 @@
 import logging
 import sys
 
+from atraxiflow import util
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
 from atraxiflow.creator import assets, tasks
@@ -15,7 +16,6 @@ from atraxiflow.creator.nodes import WorkflowNode
 from atraxiflow.creator.wayfiles import *
 from atraxiflow.creator.widgets import *
 from atraxiflow.preferences import PreferencesProvider
-from atraxiflow import util
 
 __all__ = ['CreatorMainWindow']
 
@@ -115,7 +115,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # File
         menu_bar = QtWidgets.QMenuBar()
         self.file_menu = QtWidgets.QMenu('&File')
-
 
         menu_file_new = QtWidgets.QAction('New workflow', self.file_menu)
         menu_file_new.connect(QtCore.SIGNAL('triggered()'), self.new_file)
@@ -245,7 +244,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
             if not isinstance(wf, WayDefaultWorkflow):
                 # create workflow node
-                wf_widget = AxNodeWidget(WorkflowNode(), container)
+                wf_widget = AxWorkflowNodeWidget(WorkflowNode(), container)
                 if 'creator_pos' in wf.data:
                     wf_widget.move(wf.data['creator_pos'][0], wf.data['creator_pos'][1])
                 else:
@@ -404,6 +403,32 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             logging.getLogger('creator').debug('Applying stylesheet...')
             self.setStyleSheet(f.read())
 
+    def run_workflow_node(self, wf_node: AxWorkflowNodeWidget):
+        node_container = wf_node.parent()
+        assert isinstance(node_container, AxNodeWidgetContainer)
+
+        ax_nodes = node_container.extract_node_hierarchy_from_widgets(wf_node)
+
+        self.data_list.clear()
+
+        wf_item = QtWidgets.QTreeWidgetItem()
+        if isinstance(wf_node.get_node(), WorkflowNode):
+            wf_item.setText(0, 'Workflow: %s' % wf_node.get_node().property('name').value())
+            ax_nodes.pop(0)  # Workflow nodes should not be processed
+        else:
+            wf_item.setText(0, 'Workflow: (default)')
+        self.data_list.insertTopLevelItem(0, wf_item)
+        wf_item.setExpanded(True)
+
+        run_task = tasks.RunWorkflowTask(ax_nodes)
+        run_task.set_on_finish(self.run_finished)
+        run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
+
+        self.action_run.setEnabled(False)
+
+        logging.getLogger('creator').debug('Starting workflow thread...')
+        run_task.start()
+
     def run_active_workflow(self):
         try:
             node_container = self.tab_bar.currentWidget().widget()
@@ -416,27 +441,13 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         selected_node = node_container.get_selected_node()
         if selected_node is not None:
             root_node = node_container.get_root_node(selected_node)
-            ax_nodes = node_container.extract_node_hierarchy_from_widgets(root_node)
 
-            self.data_list.clear()
+            if not isinstance(root_node, AxWorkflowNodeWidget):
+                logging.getLogger('creator').error('You need to parent your nodes to a workflow to run them.')
+                return
 
-            wf_item = QtWidgets.QTreeWidgetItem()
-            if isinstance(root_node.get_node(), WorkflowNode):
-                wf_item.setText(0, 'Workflow: %s' % root_node.get_node().property('name').value())
-                ax_nodes.pop(0)  # Workflow nodes should not be processed
-            else:
-                wf_item.setText(0, 'Workflow: (default)')
-            self.data_list.insertTopLevelItem(0, wf_item)
-            wf_item.setExpanded(True)
+            self.run_workflow_node(root_node)
 
-            run_task = tasks.RunWorkflowTask(ax_nodes)
-            run_task.set_on_finish(self.run_finished)
-            run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
-
-            self.action_run.setEnabled(False)
-
-            logging.getLogger('creator').debug('Starting workflow thread...')
-            run_task.start()
         else:
             logging.getLogger('creator').debug('No node selection found. Stopping run.')
 
@@ -448,7 +459,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
         node_item = QtWidgets.QTreeWidgetItem()
         node_item.setText(0, get_node_info(node)['name'])
-        node_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-box-50.png')))
+        node_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-cube-50.png')))
         inputs = QtWidgets.QTreeWidgetItem()
 
         # Update data tree with current node
@@ -497,7 +508,14 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         else:
             wrapper = self.tab_bar.currentWidget().widget()
 
-        ui_node = AxNodeWidget(node(), wrapper)
+        node = node()
+
+        if isinstance(node, WorkflowNode):
+            ui_node = AxWorkflowNodeWidget(node, wrapper)
+            ui_node.run_triggered.connect(lambda: self.run_workflow_node(ui_node))
+        else:
+            ui_node = AxNodeWidget(node, wrapper)
+
         ui_node.move(10, 10)
         ui_node.show()
 
@@ -513,7 +531,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
                 node_item = QtWidgets.QTreeWidgetItem()
                 node_item.setText(0, get_node_info(node)['name'])
                 node_item.setData(0, QtCore.Qt.UserRole, node)
-                node_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-box-50.png')))
+                node_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-cube-50.png')))
                 parent_item.addChild(node_item)
 
             return parent_item
@@ -541,6 +559,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         workflow_item = QtWidgets.QTreeWidgetItem()
         workflow_item.setText(0, 'Workflow')
         workflow_item.setData(0, QtCore.Qt.UserRole, WorkflowNode)
+        workflow_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-module-50.png')))
         self.node_list.get_tree().insertTopLevelItem(0, workflow_item)
 
     def create_workflow_tab(self, title: str = 'New workflow') -> AxWorkflowWidget:
@@ -554,5 +573,5 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
     def closeEvent(self, event: QtGui.QCloseEvent):
         logging.getLogger('creator').debug('Closing main window..')
-        for n in range(0, self.tab_bar.count()):
+        for n in range(0, self.tab_bar.count() - 1):
             self.tab_closed(n)
