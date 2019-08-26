@@ -1,12 +1,10 @@
-# AtraxiFlow
+# AtraxiFlow 2.0
 The flexible python workflow tool
 
-[![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
+[![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=develop)](https://travis-ci.org/smertiens/AtraxiFlow)
 [![Documentation Status](https://readthedocs.org/projects/atraxiflow/badge/?version=latest)](https://atraxiflow.readthedocs.io/en/latest/?badge=latest)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/smertiens/AtraxiFlow.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/smertiens/AtraxiFlow/context:python)
 [![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)
-
-## Note: AtraxiFlow 2.0 is coming up
 
 AtraxiFlow 2.0 will not be backward-compatible, existing nodes can still be easily rewritten. Some of the new key features
 are:
@@ -37,8 +35,8 @@ pip install atraxi-flow
 
 **Requirements**
 
-* Python 3.4 or higher
-* If you want to use the UI nodes and functions, you will need to install [Pyside2](https://pypi.org/project/PySide2/) (optional)
+* Python 3.5 or higher
+* If you want to use the UI nodes and functions, you will need a graphical environment
 
 **Latest Changes**
 
@@ -50,21 +48,3 @@ _1.0.1:_ ShellExecNode: new options "echo_command" and "echo_output"
 
 _1.0.0:_ First production release  
 
-
-**Example script**
-
-```python
-from atraxiflow.nodes.common import CLIInputNode, EchoOutputNode
-from atraxiflow.nodes.text import TextValidatorNode
-from atraxiflow.core.stream import *
-
-get_name = CLIInputNode('node', {'prompt': "What's your name? ", 'save_to': 'username' })
-get_greeting = CLIInputNode('node', {'prompt': "And your favourite greeting? ", 'save_to': 'usergreeting' })
-
-# let's make sure we have a name and a greeting
-check_input = TextValidatorNode({'sources': 'Text:user*', 'rules': {'not_empty': {}}})
-out = EchoOutputNode({'msg': '{Text:usergreeting} {Text:username}, nice to meet you!'})
-
-# let's go!
-Stream.create() >> get_name >> get_greeting >> check_input >> out >> flow()
-```

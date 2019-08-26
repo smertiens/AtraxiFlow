@@ -1,0 +1,31 @@
+#::
+name = ask("What is the name of your new node (e.g. My Node)? ")
+class = ask("What is the name of your nodes class (e.g. MyNode)? ")
+filename = lowercase(class)
+#::
+
+#: >> '$filename.py'
+from atraxiflow.core import *
+
+class $class(Node):
+    """
+    @Name: $name
+    """
+    def __init__(self, properties=None):
+        node_properties = {
+            'text': Property(expected_type=str, required=True, hint='Some text', label='Text')
+        }
+        super().__init__(node_properties, properties)
+
+    def run(self, ctx: WorkflowContext):
+        super().run(ctx)
+
+        # In case the node is run multiple times, we will empty the output container
+        self.output.clear()
+
+        print(self.properties('text').value())
+
+        self.output.add(self.properties('text').value())
+
+        return True
+#: <<

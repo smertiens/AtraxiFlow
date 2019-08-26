@@ -1,0 +1,125 @@
+QWidget {
+    margin: 0;
+    padding:0;
+}
+
+QPushButton {
+    padding: 5px 10px;
+}
+
+#ax_toolbar_pushbutton {
+    padding: 0;
+}
+
+QMainWindow {
+   background:white;
+   padding-top:5px;
+}
+
+QTabBar::tab  {
+    background:rgb(220,220,220);
+    color:black;
+    border-color:black;
+    border-style: solid;
+    border: 1px solid gray;
+    padding: 5px 5px 5px 5px;
+    height:20px;
+}
+
+QTabBar::tab:selected  {
+    background:white;
+}
+
+QTabBar::close-button {
+    image: url(assets/icons8-delete-16.png);
+}
+
+QTabWidget::pane {
+    border:none;
+}
+
+QLineEdit {
+    padding: 5px 3px 5px 3px;
+    border: 1px solid rgb(119,113, 133);
+}
+
+#tb_spacer, QAction {
+    background: rgb(180, 180, 180);
+}
+
+QToolbar {
+    padding: 5px;
+    background: rgb(180, 180, 180);
+}
+
+QStatusBar {
+    background: rgb(58,58,58);
+    color:white;
+}
+
+#status_label {
+    color:white;
+}
+
+#tree_query_input {
+    margin-bottom:5px;
+    border: 1px solid rgb(119,113, 133);
+    height:20px;
+}
+
+#data_tree, #node_tree {
+    border: 1px solid rgb(119,113, 133);
+}
+
+/*****************
+Node Widget Style
+*****************/
+
+AxNodeWidget {
+    border: none;
+    border-bottom: 1px solid rgb(166,166,166);
+    background: rgb(239,239,239);
+    padding: 0px 10px 5px 10px;
+}
+
+AxNodeWidgetContainer, AxWorkflowWidget {
+    background: rgb(58,58,58);
+}
+
+#ax_workflow_node {
+    background: white;
+    padding: 5px 10px 5px 5px;
+}
+
+#ax_workflow_node_title {
+    font-size: 20px;
+}
+
+#node_remove_btn {
+    margin-right: -10px;
+}
+
+#node_title {
+    font-weight:bold;
+    padding: 10px 0;
+    margin-bottom : 5px;
+    margin-left: -10px;
+}
+
+QGroupBox {
+    padding: 15px 10px;
+}
+
+
+#ax_filelineedit_button {
+    background: white;
+    border-top: 1px solid rgb(119,113, 133);
+    border-right: 1px solid rgb(119,113, 133);
+    border-bottom: 1px solid rgb(119,113, 133);
+    border-left: none;
+}
+
+#ax_filelineedit_input {
+    border-right: none;
+    padding: 5px 3px 5px 3px;
+}

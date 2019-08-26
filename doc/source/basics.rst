@@ -1,6 +1,38 @@
 The concept
 ***********
 
+The Stream
+==========
+
+Nodes
+=====
+All data that the node works on is supplied via an input. A Node can have unlimited inputs.
+A node's output or a resource can be connected to a specific input via the input's name.
+If no input name is specified, the **"primary" input** is used (the first input that has primary=True).
+This helps in keeping code short and clean. For example a FileCopy node would probably expect a list of files to
+copy as it's primary input.
+
+If no primary input is set and no input name is specified, the "default" input is used.
+This input merely serves as a connector between nodes, so they are executed in order.
+For example an EchoNode that prints a message to the screen, would be connected via the default input,
+so the message is printed after the previous node has finished. The node itself would not expect to
+receive anything via the default input (the message to print could be set as a property).
+
+How a node performs a task is set by it's properties.
+
+Every node has an output. The output is a list of resources. It can be empty, if the node does not have an output.
+
+Resources
+=========
+All data is passed between nodes as resources. This means, that all inputs expect resources and all nodes output resources.
+A resource can be simple and for example contain a single number or more complex and for example contain a list of files and folders.
+Resources can be added to the stream. They can then be queried with resource queries. A TextResource for example could be added to the stream and it's content be used as a variable in a string property.
+When resources are set as an input to a node, they do not need to be added to the stream, since the node will discover them through the input.
+
+
+OLD TEXT:
+
+
 AtraxiFlow is a workflow tool for Python. It is meant to be simple, inuitive and
 flexible. Everyone familiar with basic python scripting should be able to create
 complex workflows without reading extensive API docs or manuals.
