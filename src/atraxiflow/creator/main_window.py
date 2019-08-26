@@ -12,6 +12,7 @@ from atraxiflow import util
 from atraxiflow.base.filesystem import *
 from atraxiflow.core import Node
 from atraxiflow.creator import assets, tasks
+from atraxiflow.creator.about_dialog import *
 from atraxiflow.creator.nodes import WorkflowNode
 from atraxiflow.creator.wayfiles import *
 from atraxiflow.creator.widgets import *
@@ -163,16 +164,14 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         view_menu.addAction(action_show_node_results)
 
         # Workflow
-        wf_menu = QtWidgets.QMenu('&Workflow')
-        self.action_run = QtWidgets.QAction('Run')
-        self.action_run.setShortcut(QtGui.QKeySequence('Ctrl+r'))
-        self.action_run.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
-        self.action_run.connect(QtCore.SIGNAL('triggered()'), self.run_active_workflow)
-        wf_menu.addAction(self.action_run)
+        help_menu = QtWidgets.QMenu('&Help')
+        self.action_about = QtWidgets.QAction('About...', help_menu)
+        self.action_about.connect(QtCore.SIGNAL('triggered()'), self.show_about_dlg)
+        help_menu.addAction(self.action_about)
 
         menu_bar.addMenu(self.file_menu)
         menu_bar.addMenu(view_menu)
-        menu_bar.addMenu(wf_menu)
+        menu_bar.addMenu(help_menu)
 
         if util.is_debug():
             dev_menu = QtWidgets.QMenu('&Developer')
@@ -184,6 +183,10 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             menu_bar.addMenu(dev_menu)
 
         return menu_bar
+
+    def show_about_dlg(self):
+        dlg = AboutDialog(self)
+        dlg.exec_()
 
     def load_recent_files_list(self):
         self.recent_files_list = self.pref.get('creator_recent_files', [])

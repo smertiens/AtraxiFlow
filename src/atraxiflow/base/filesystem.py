@@ -457,7 +457,7 @@ class FSCopyNode(Node):
     def __init__(self, properties: dict = None):
         node_properties = {
             'dest': Property(expected_type=str, required=True, label='Destination',
-                             hint='The destination on the filesystem to copy the source to'),
+                             hint='The destination on the filesystem to copy the source to', display_options={'role':'folder'}),
             'create_if_missing': Property(expected_type=bool, required=False, label='Create missing folders',
                                           hint='Creates the destination path if it is missing', default=True),
             'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
