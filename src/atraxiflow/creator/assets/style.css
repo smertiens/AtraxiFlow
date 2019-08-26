@@ -7,6 +7,10 @@ QPushButton {
     padding: 5px 10px;
 }
 
+#ax_toolbar_pushbutton {
+    padding: 0;
+}
+
 QMainWindow {
    background:white;
    padding-top:5px;

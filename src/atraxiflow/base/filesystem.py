@@ -250,34 +250,6 @@ class FileFilterNode(Node):
             self.ctx.get_logger().error("Invalid operator: %s".format(filter[1]))
             return False
 
-    """def _ui_get_listitem_label(self, data: list) -> str:
-        label = ''
-
-        if data[0] in ('filename', 'filedir'):
-            if combo_operator.currentText() == 'matches (RegEx)':
-                text = re.compile(text)
-
-            data = ['filename' if condition_class == 'filename' else 'filedir',
-                    operator_map[combo_operator.currentText()], control.text()]
-            item.setText('%s %s "%s"' % ('Filename' if data[0] == 'filename' else 'Directory name',
-                                        data[0], control.text()))
-
-        elif condition_class == 'type':
-            data = ['type', '=', control.currentText()]
-            label = 'Path is a %s' % control.currentText()
-
-        elif condition_class in ('created', 'modified'):
-            data = ['date_created' if condition_class == 'created' else 'date_modified', combo_operator.currentText(),
-                    control.currentText()]
-            label = '%s %s "%s"' % ('Date created' if condition_class == 'created' else 'Date modified',
-                                       combo_operator.currentText(), control.currentText())
-
-        elif condition_class == 'size':
-            data = ['file_size', combo_operator.currentText(), control.text() + combo_unit.currentText()]
-            label = 'File size %s %s %s' % (combo_operator.currentText(), control.text(), combo_unit.currentText())
-
-        return label"""
-
     def show_add_condition_dialog(self, condition_class=''):
         dlg = QtWidgets.QDialog()
         dlg.setWindowTitle('Add new condition')
@@ -429,6 +401,7 @@ class FileFilterNode(Node):
         self.list_widget = AxListWidget()
         self.list_widget.list_changed.connect(node_widget.modified)
         btn_add_cond = QtWidgets.QPushButton()
+        btn_add_cond.setObjectName('ax_toolbar_pushbutton')
         mnu_cond = QtWidgets.QMenu(btn_add_cond)
 
         action_add_filename = QtWidgets.QAction('Filter by filename', mnu_cond)
