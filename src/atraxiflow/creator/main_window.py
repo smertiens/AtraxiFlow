@@ -22,7 +22,6 @@ __all__ = ['CreatorMainWindow']
 
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
-
     WND_SETTINGS_VERSION = 100
 
     def __init__(self):
@@ -40,7 +39,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.tab_bar.setTabsClosable(True)
         self.tab_bar.setDocumentMode(True)
         self.tab_bar.connect(QtCore.SIGNAL('tabCloseRequested(int)'), self.tab_closed)
-        self.tab_bar.setStyleSheet('QTabBar::close-button {image: url(%s); }' % assets.get_asset('icons8-delete-16.png'))
+        self.tab_bar.setStyleSheet(
+            'QTabBar::close-button {image: url(%s); }' % assets.get_asset('icons8-delete-16.png'))
 
         # Splitter between node list and workflow area
         horiz_splitter = QtWidgets.QSplitter()
