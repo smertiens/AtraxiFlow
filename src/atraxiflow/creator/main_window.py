@@ -405,10 +405,11 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
     def tab_closed(self, index):
         widget = self.tab_bar.widget(index)
+        title = self.tab_bar.tabText(index).rstrip('*')
         assert isinstance(widget, AxWorkflowWidget)
 
         if widget.modified:
-            ans = QtWidgets.QMessageBox.question(self, 'Close tab', 'There are unsaved changes in this workspace.\n' + \
+            ans = QtWidgets.QMessageBox.question(self, 'Close tab', 'There are unsaved changes in "%s". ' % title + \
                                                  'Do you want to save your changes?', QtWidgets.QMessageBox.Yes,
                                                  QtWidgets.QMessageBox.No)
 
@@ -443,8 +444,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         run_task = tasks.RunWorkflowTask(ax_nodes)
         run_task.set_on_finish(self.run_finished)
         run_task.get_workflow().add_listener(Workflow.EVENT_NODE_RUN_FINISHED, self.node_run_finished)
-
-        self.action_run.setEnabled(False)
 
         logging.getLogger('creator').debug('Starting workflow thread...')
         run_task.start()
@@ -517,7 +516,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
 
     def run_finished(self, task: tasks.RunWorkflowTask):
         logging.getLogger('creator').debug('Workflow task has finished')
-        self.action_run.setEnabled(True)
 
     def node_tree_item_dblclick(self, node):
 
@@ -540,6 +538,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         ui_node.show()
 
         wrapper.discover_nodes()
+        wrapper.parent().parent().set_modified(True)
 
     def load_node_tree(self):
 
@@ -588,6 +587,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             self.n_new_workspace += 1
 
         scroll_area = AxWorkflowWidget()
+        scroll_area.unsaved_name = title
         wrapper = AxNodeWidgetContainer(scroll_area)
         scroll_area.setWidget(wrapper)
         wrapper.resize(scroll_area.width(), scroll_area.height())

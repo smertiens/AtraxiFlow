@@ -520,6 +520,7 @@ class AxWorkflowWidget(QtWidgets.QScrollArea):
         super().__init__(parent)
 
         self.filename = ''
+        self.unsaved_name = 'New Workspace'
         self.modified = False
 
     def set_filename(self, filename: str):
@@ -535,7 +536,7 @@ class AxWorkflowWidget(QtWidgets.QScrollArea):
         assert isinstance(tab_bar, QtWidgets.QTabWidget)
 
         tab_bar.setTabText(tab_bar.currentIndex(),
-                           ('New workflow' if self.filename == '' else os.path.basename(self.filename)) +
+                           (self.unsaved_name if self.filename == '' else os.path.basename(self.filename)) +
                            (' *' if self.modified else ''))
 
 

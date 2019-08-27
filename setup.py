@@ -12,7 +12,7 @@ with open(basepath + 'requirements.txt', 'r') as fh:
 
 setuptools.setup(
     name='atraxi-flow',
-    version='2.0.0dev1',
+    version='2.0.0alpha1',
     packages=setuptools.find_packages(basepath + 'src'),
     package_dir={'': basepath + 'src'},
     classifiers=[

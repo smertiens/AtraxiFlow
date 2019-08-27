@@ -9,7 +9,7 @@ from atraxiflow import util
 import logging
 
 
-__version__ = '2.0.0.dev1'
+__version__ = '2.0.0alpha1'
 
 if util.is_debug():
     setup_loggers(logging.DEBUG)

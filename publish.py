@@ -26,8 +26,8 @@ def build_package():
     os.system('python3 setup.py sdist bdist_wheel')
 
     print('Checking files...')
-    for file in [os.path.join(root, 'dist', 'atraxi-flow-{0}.tar.gz').format(atraxiflow.__version__),
-                 os.path.join(root, 'dist', 'atraxi_flow-{0}-py3-none-any.whl').format(atraxiflow.__version__)]:
+    for file in [os.path.join(root, 'dist', 'atraxi-flow-{0}.tar.gz').format('2.0.0a1'),
+                 os.path.join(root, 'dist', 'atraxi_flow-{0}-py3-none-any.whl').format('2.0.0a1')]:
 
         if os.path.exists(file):
             print('{0} okay'.format(os.path.basename(file)))
