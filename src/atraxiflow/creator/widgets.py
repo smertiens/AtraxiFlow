@@ -23,6 +23,7 @@ class AxFileLineEditWidget(QtWidgets.QWidget):
     text_changed = QtCore.Signal(str)
     FindFile = 'FindFile'
     FindFolder = 'FindFolder'
+    SaveFile = 'SaveFile'
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -55,6 +56,10 @@ class AxFileLineEditWidget(QtWidgets.QWidget):
 
         if self.find == self.FindFile:
             path = dlg.getOpenFileName(self, 'Find file', filter=self.filter)
+            path = path[0]
+
+        elif self.find == self.SaveFile:
+            path = dlg.getSaveFileName(self, 'Save file', filter=self.filter)
             path = path[0]
 
         elif self.find == self.FindFolder:
@@ -235,6 +240,9 @@ class AxNodeWidget(QtWidgets.QFrame):
 
                             if role == 'folder':
                                 control.set_find_mode(control.FindFolder)
+                            elif role == 'file' and 'role_file_mode' in prop.get_display_options():
+                                if prop.get_display_options()['role_file_mode'] == 'save_file':
+                                    control.set_find_mode(control.SaveFile)
 
                             control.text_changed.connect(lambda s, prop=prop: prop.set_value(s))
                             control.text_changed.connect(self.modified)

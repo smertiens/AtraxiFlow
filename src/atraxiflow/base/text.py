@@ -44,7 +44,8 @@ class TextFileOutputNode(Node):
 
     def __init__(self, properties: dict = None):
         node_properties = {
-            'filename': Property(expected_type=str, label='Filename', required=True, hint='The filename to write to'),
+            'filename': Property(expected_type=str, label='Filename', required=True, hint='The filename to write to',
+                                 display_options={'role': 'file', 'role_file_mode': 'save_file'}),
             'newline_per_res': Property(expected_type=bool, label='Newline after each resource', required=False,
                                         default=True,
                                         hint='When writing multiple resources, a newline will be added after each resources output')
