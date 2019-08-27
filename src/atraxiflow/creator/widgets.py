@@ -91,24 +91,32 @@ class AxListWidget(QtWidgets.QWidget):
         self.list_widget.addItem(item)
         self.list_changed.emit()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, show_edit_button=True):
         super().__init__(parent)
+
+        self.show_edit_button = show_edit_button
 
         self.setLayout(QtWidgets.QHBoxLayout())
         self.layout().setSpacing(0)
 
         self.list_widget = QtWidgets.QListWidget()
+        self.list_widget.setFixedHeight(140)
         self.list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
 
         self.toolbar = QtWidgets.QToolBar()
         self.toolbar.setOrientation(QtCore.Qt.Vertical)
         self.toolbar.setIconSize(QtCore.QSize(20, 20))
 
-        self.action_remove = QtWidgets.QAction('-', self.toolbar)
+        self.action_remove = QtWidgets.QAction('Remove item', self.toolbar)
         self.action_remove.connect(QtCore.SIGNAL('triggered()'), self.remove_selected)
         self.action_remove.setIcon(QtGui.QIcon(assets.get_asset('icons8-remove-50.png')))
-
         self.toolbar.addAction(self.action_remove)
+
+        if self.show_edit_button:
+            self.action_edit = QtWidgets.QAction('Edit item', self.toolbar)
+            self.action_edit.connect(QtCore.SIGNAL('triggered()'), self.edit_selected)
+            self.action_edit.setIcon(QtGui.QIcon(assets.get_asset('icons8-edit-50.png')))
+            self.toolbar.addAction(self.action_edit)
 
         self.layout().addWidget(self.list_widget)
         self.layout().addWidget(self.toolbar)
@@ -124,6 +132,17 @@ class AxListWidget(QtWidgets.QWidget):
         self.list_widget.setEnabled(enabled)
         self.toolbar.setEnabled(enabled)
 
+    def edit_selected(self):
+        if len(self.list_widget.selectedItems()) == 0:
+            return
+
+        item = self.list_widget.selectedItems()[0]
+
+        dlg_result = QtWidgets.QInputDialog.getText(self, 'Edit list item', 'Enter the new value for the current item:',
+                                                    text=item.text())
+
+        if dlg_result[1]:
+            item.setText(dlg_result[0])
 
 class AxNodeWidget(QtWidgets.QFrame):
 

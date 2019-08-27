@@ -23,7 +23,7 @@ from atraxiflow.properties import *
 
 class LoadFilesNode(Node):
     """
-    @Name: Get files and folder
+    @Name: Get files and folders
     """
 
     def __init__(self, properties: dict = None):
@@ -90,16 +90,16 @@ class LoadFilesNode(Node):
 
     def get_ui(self, node_widget: AxNodeWidget) -> QtWidgets.QWidget:
         self.list_widget = AxListWidget()
-        action_add_files = QtWidgets.QAction('+', self.list_widget.get_toolbar())
+        action_add_files = QtWidgets.QAction('Add file', self.list_widget.get_toolbar())
         action_add_files.connect(QtCore.SIGNAL('triggered()'), lambda lst=self.list_widget: self.add_path(lst, 'file'))
         action_add_files.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-file-50.png')))
 
-        action_add_folder = QtWidgets.QAction('+F', self.list_widget.get_toolbar())
+        action_add_folder = QtWidgets.QAction('Add folder', self.list_widget.get_toolbar())
         action_add_folder.connect(QtCore.SIGNAL('triggered()'),
                                   lambda lst=self.list_widget: self.add_path(lst, 'folder'))
         action_add_folder.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-folder-50.png')))
 
-        action_add_string = QtWidgets.QAction('+T', self.list_widget.get_toolbar())
+        action_add_string = QtWidgets.QAction('Add path pattern', self.list_widget.get_toolbar())
         action_add_string.connect(QtCore.SIGNAL('triggered()'), lambda lst=self.list_widget: self.add_path(lst, 'text'))
         action_add_string.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-text-50.png')))
 
@@ -398,7 +398,7 @@ class FileFilterNode(Node):
             self.list_widget.add_item(item)
 
     def get_ui(self, node_widget: AxNodeWidget) -> QtWidgets.QWidget:
-        self.list_widget = AxListWidget()
+        self.list_widget = AxListWidget(show_edit_button=False)
         self.list_widget.list_changed.connect(node_widget.modified)
         btn_add_cond = QtWidgets.QPushButton()
         btn_add_cond.setObjectName('ax_toolbar_pushbutton')
@@ -657,10 +657,10 @@ class FSRenameNode(Node):
         self.group_replace.connect(QtCore.SIGNAL('toggled(bool)'), lambda on: toggle_children(self.group_replace, on))
         self.group_replace.setLayout(QtWidgets.QVBoxLayout())
 
-        self.replace_list = AxListWidget()
+        self.replace_list = AxListWidget(show_edit_button=False)
         self.replace_list.list_changed.connect(node_widget.modified)
         self.replace_list.layout().setContentsMargins(0, 0, 0, 0)
-        action_add = QtWidgets.QAction('+T', self.replace_list.get_toolbar())
+        action_add = QtWidgets.QAction('Add replacement rule', self.replace_list.get_toolbar())
         action_add.connect(QtCore.SIGNAL('triggered()'), self.show_add_replace_dialog)
         action_add.setIcon(QtGui.QIcon(assets.get_asset('icons8-add-text-50.png')))
         self.replace_list.add_toolbar_action(action_add)
