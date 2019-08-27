@@ -30,10 +30,6 @@ QTabBar::tab:selected  {
     background:white;
 }
 
-QTabBar::close-button {
-    image: url(assets/icons8-delete-16.png);
-}
-
 QTabWidget::pane {
     border:none;
 }

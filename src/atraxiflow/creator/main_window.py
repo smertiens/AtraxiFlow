@@ -23,10 +23,13 @@ __all__ = ['CreatorMainWindow']
 
 class CreatorMainWindow(QtWidgets.QMainWindow):
 
+    WND_SETTINGS_VERSION = 100
+
     def __init__(self):
         super().__init__()
 
         self.pref = PreferencesProvider()
+        self.n_new_workspace = 1
 
         # Context needed for pulling available nodes
         self.workflow_ctx = WorkflowContext()
@@ -37,12 +40,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.tab_bar.setTabsClosable(True)
         self.tab_bar.setDocumentMode(True)
         self.tab_bar.connect(QtCore.SIGNAL('tabCloseRequested(int)'), self.tab_closed)
-
-        # Statusbar
-        self.status_bar = QtWidgets.QStatusBar()
-        self.status_label = QtWidgets.QLabel('Ready')
-        self.status_label.setObjectName('status_label')
-        self.status_bar.addWidget(self.status_label)
+        self.tab_bar.setStyleSheet('QTabBar::close-button {image: url(%s); }' % assets.get_asset('icons8-delete-16.png'))
 
         # Splitter between node list and workflow area
         horiz_splitter = QtWidgets.QSplitter()
@@ -50,6 +48,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.node_list.node_dbl_clicked.connect(self.node_tree_item_dblclick)
         horiz_splitter.addWidget(self.node_list)
         horiz_splitter.addWidget(self.tab_bar)
+        horiz_splitter.setStretchFactor(0, 2)
+        horiz_splitter.setStretchFactor(1, 3)
 
         # Splitter between node list/workflow area and data tree
         vertical_splitter = QtWidgets.QSplitter()
@@ -57,7 +57,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         vertical_splitter.addWidget(horiz_splitter)
         self.data_list = self.create_data_tree_widget()
         vertical_splitter.addWidget(self.data_list)
-        # TODO: splitter pos
+        vertical_splitter.setStretchFactor(0, 3)
+        vertical_splitter.setStretchFactor(1, 1)
 
         # Central widget - holds node tree, data tree and workflow area
         central_widget = QtWidgets.QWidget()
@@ -70,7 +71,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         self.setMenuBar(self.create_main_menu())
         self.load_recent_files_list()
         self.setCentralWidget(central_widget)
-        self.setStatusBar(self.status_bar)
 
         # Setup window title, style and size/position
         self.setWindowTitle('AtraxiFlow - Creator')
@@ -83,6 +83,8 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         # Load available nodes to tree
         logging.getLogger('creator').debug('Loading nodes...')
         self.load_node_tree()
+
+        self.restore_window_settings()
 
     def create_data_tree_widget(self) -> QtWidgets.QTreeWidget:
         data_tree = QtWidgets.QTreeWidget()
@@ -117,20 +119,20 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         menu_bar = QtWidgets.QMenuBar()
         self.file_menu = QtWidgets.QMenu('&File')
 
-        menu_file_new = QtWidgets.QAction('New workflow', self.file_menu)
+        menu_file_new = QtWidgets.QAction('New workspace', self.file_menu)
         menu_file_new.connect(QtCore.SIGNAL('triggered()'), self.new_file)
         menu_file_new.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.New))
         self.file_menu.addAction(menu_file_new)
         self.file_menu.addSeparator()
-        menu_file_save = QtWidgets.QAction('Save workflow', self.file_menu)
+        menu_file_save = QtWidgets.QAction('Save workspace', self.file_menu)
         menu_file_save.connect(QtCore.SIGNAL('triggered()'), self.save_file)
         menu_file_save.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Save))
         self.file_menu.addAction(menu_file_save)
-        menu_file_save_as = QtWidgets.QAction('Save workflow as...', self.file_menu)
+        menu_file_save_as = QtWidgets.QAction('Save workspace as...', self.file_menu)
         menu_file_save_as.connect(QtCore.SIGNAL('triggered()'), lambda: self.save_file(True))
         menu_file_save_as.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.SaveAs))
         self.file_menu.addAction(menu_file_save_as)
-        menu_file_open = QtWidgets.QAction('Open workflow...', self.file_menu)
+        menu_file_open = QtWidgets.QAction('Open workspace...', self.file_menu)
         menu_file_open.connect(QtCore.SIGNAL('triggered()'), self.open_file)
         menu_file_open.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Open))
         self.file_menu.addAction(menu_file_open)
@@ -150,15 +152,15 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         view_menu = QtWidgets.QMenu('&View')
         action_show_node_list = QtWidgets.QAction('Show node list', view_menu)
         action_show_node_list.setCheckable(True)
-        action_show_node_list.setChecked(True)
-        action_show_node_list.connect(QtCore.SIGNAL('triggered()'),
-                                      lambda: self.node_list.setVisible(not self.node_list.isVisible()))
+        action_show_node_list.setChecked(self.pref.get('ui_show_node_list', True))
+        self.node_list.setVisible(self.pref.get('ui_show_node_list', True))
+        action_show_node_list.connect(QtCore.SIGNAL('triggered()'), self.toggle_node_list)
 
         action_show_node_results = QtWidgets.QAction('Show node results', view_menu)
         action_show_node_results.setCheckable(True)
-        action_show_node_results.setChecked(True)
-        action_show_node_results.connect(QtCore.SIGNAL('triggered()'),
-                                         lambda: self.data_list.setVisible(not self.data_list.isVisible()))
+        action_show_node_results.setChecked(self.pref.get('ui_show_node_results', True))
+        self.data_list.setVisible(self.pref.get('ui_show_node_results', True))
+        action_show_node_results.connect(QtCore.SIGNAL('triggered()'), self.toggle_node_results)
 
         view_menu.addAction(action_show_node_list)
         view_menu.addAction(action_show_node_results)
@@ -183,6 +185,16 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
             menu_bar.addMenu(dev_menu)
 
         return menu_bar
+
+    def toggle_node_list(self):
+        self.node_list.setVisible(not self.node_list.isVisible())
+        self.pref.set('ui_show_node_list', self.node_list.isVisible())
+        self.pref.save()
+
+    def toggle_node_results(self):
+        self.data_list.setVisible(not self.data_list.isVisible())
+        self.pref.set('ui_show_node_results', self.data_list.isVisible())
+        self.pref.save()
 
     def show_about_dlg(self):
         dlg = AboutDialog(self)
@@ -219,12 +231,12 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         sys.exit(0)
 
     def new_file(self):
-        self.create_workflow_tab('New file')
+        self.create_workflow_tab()
 
     def open_file(self, filename=None):
         if filename is None:
             dlg = QtWidgets.QFileDialog()
-            filename = dlg.getOpenFileName(self, 'Open workflow file', filter='Way files (*.way);;All files (*.*)')[0]
+            filename = dlg.getOpenFileName(self, 'Open workspace file', filter='Way files (*.way);;All files (*.*)')[0]
 
             if filename == '':
                 return
@@ -396,7 +408,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         assert isinstance(widget, AxWorkflowWidget)
 
         if widget.modified:
-            ans = QtWidgets.QMessageBox.question(self, 'Close tab', 'There are unsaved changes in this workflow.\n' + \
+            ans = QtWidgets.QMessageBox.question(self, 'Close tab', 'There are unsaved changes in this workspace.\n' + \
                                                  'Do you want to save your changes?', QtWidgets.QMessageBox.Yes,
                                                  QtWidgets.QMessageBox.No)
 
@@ -441,7 +453,7 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         try:
             node_container = self.tab_bar.currentWidget().widget()
         except AttributeError:
-            logging.getLogger('creator').info('Run Workflow: No workflows currently open.')
+            logging.getLogger('creator').info('Run Workflow: No workspaces currently open.')
             return
 
         assert isinstance(node_container, AxNodeWidgetContainer)
@@ -570,7 +582,11 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         workflow_item.setIcon(0, QtGui.QIcon(assets.get_asset('icons8-module-50.png')))
         self.node_list.get_tree().insertTopLevelItem(0, workflow_item)
 
-    def create_workflow_tab(self, title: str = 'New workflow') -> AxWorkflowWidget:
+    def create_workflow_tab(self, title: str = None) -> AxWorkflowWidget:
+        if title is None:
+            title = 'New Workspace %s' % self.n_new_workspace
+            self.n_new_workspace += 1
+
         scroll_area = AxWorkflowWidget()
         wrapper = AxNodeWidgetContainer(scroll_area)
         scroll_area.setWidget(wrapper)
@@ -583,3 +599,14 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         logging.getLogger('creator').debug('Closing main window..')
         for n in range(0, self.tab_bar.count() - 1):
             self.tab_closed(n)
+
+        logging.getLogger('creator').debug('Saving settings...')
+        with open(self.pref.get_settings_file('mainwindow.geo'), 'wb') as f:
+            f.write(self.saveGeometry().data())
+
+    def restore_window_settings(self):
+        if os.path.exists(self.pref.get_settings_file('mainwindow.geo')):
+            logging.getLogger('creator').debug('Restoring geometry...')
+
+            with open(self.pref.get_settings_file('mainwindow.geo'), 'rb') as f:
+                self.restoreGeometry(f.read())

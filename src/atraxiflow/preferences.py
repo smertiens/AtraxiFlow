@@ -28,10 +28,10 @@ class PreferencesProvider:
         self.settings[name] = val
 
     def load(self):
-        if not os.path.exists(self._get_settings_file('settings.json')):
+        if not os.path.exists(self.get_settings_file('settings.json')):
             return
 
-        with open(self._get_settings_file('settings.json'), 'r') as f:
+        with open(self.get_settings_file('settings.json'), 'r') as f:
             try:
                 obj = json.load(f)
                 self.settings = obj
@@ -40,12 +40,12 @@ class PreferencesProvider:
                 return
 
     def save(self):
-        with open(self._get_settings_file('settings.json'), 'w') as f:
+        with open(self.get_settings_file('settings.json'), 'w') as f:
             json.dump(self.settings, f)
 
         self.get_logger().debug('Settings saved')
 
-    def _get_settings_file(self, fname=''):
+    def get_settings_file(self, fname=''):
 
         if 'AXFLOW_SETTINGS_FILE' in os.environ:
             return os.environ['AXFLOW_SETTINGS_FILE']

@@ -16,7 +16,7 @@ setuptools.setup(
     packages=setuptools.find_packages(basepath + 'src'),
     package_dir={'': basepath + 'src'},
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 3 - Alpha',
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Operating System :: OS Independent",
@@ -30,7 +30,7 @@ setuptools.setup(
     license='AGPL-3.0',
     author='Sean Mertiens',
     author_email='sean@atraxi-flow.com',
-    description='Flow based workflows',
+    description='The flexible Python workflow tool',
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=requirements,

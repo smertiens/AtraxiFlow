@@ -325,6 +325,7 @@ class AxNodeWidget(QtWidgets.QFrame):
             offset_y += subnode.height()
             subnode = subnode.dock_child_widget
 
+        # Resize parent to the new node position
         br = QtCore.QPoint(self.x() + self.width(), offset_y)
         parent_w = br.x() + 10 if br.x() > self.parent().width() + 10 else self.parent().width()
         parent_h = br.y() + 10 if br.y() > self.parent().height() + 10 else self.parent().height()
@@ -409,9 +410,18 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
     def discover_nodes(self):
         self.nodes.clear()
 
+        w = 0
+        h = 0
+
         for child in self.children():
             if isinstance(child, AxNodeWidget):
                 self.nodes.append(child)
+
+                # Resize to fit node position
+                w = child.pos().x() + child.rect().width() + 10 if w < child.pos().x() + child.rect().width() + 10 else w
+                h = child.pos().y() + child.rect().height() + 10 if h < child.pos().y() + child.rect().height() + 10 else h
+
+        self.resize(w, h)
 
     def get_nodes(self):
         return self.nodes

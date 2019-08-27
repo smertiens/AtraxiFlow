@@ -136,7 +136,7 @@ def reset_settings():
         return
 
     pref = PreferencesProvider()
-    f = pref._get_settings_file('settings.json')
+    f = pref.get_settings_file('settings.json')
 
     if os.path.exists(f):
         os.unlink(f)
