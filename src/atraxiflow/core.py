@@ -270,6 +270,20 @@ class WorkflowContext:
         self._symbol_table = {}
         self.ui_env = False
         self.load_extensions()
+        self.collected_core_commands = {}
+
+    def get_collected_core_commands(self):
+        return self.collected_core_commands
+
+    def reset_collected_core_commands(self):
+        self.collected_core_commands.clear()
+
+    def add_core_command(self, cmd: str, args: dict, when = 'postrun'):
+        if cmd in self.collected_core_commands:
+            self.get_logger().warning('Core command %s already in queue.' % cmd)
+            return
+
+        self.collected_core_commands[cmd] = args
 
     def autodiscover_nodes(self, root_package: str) -> list:
         """
@@ -396,6 +410,8 @@ class Workflow(EventObject):
     EVENT_NODE_RUN_STARTED = "EVENT_NODE_RUN_STARTED"
     EVENT_NODE_RUN_FINISHED = "EVENT_NODE_RUN_FINISHED"
 
+    CORE_CMD_GOTO_NODE = 'goto_node'
+
     def __init__(self, nodes: List[Node] = None):
         self._nodes = nodes if isinstance(nodes, list) else []
         self._ctx = WorkflowContext()
@@ -441,8 +457,10 @@ class Workflow(EventObject):
         nodes_processed = 0
         prev_node = None
 
-        for node in self._nodes:
+        while self._pos < len(self._nodes) - 1:
             self._pos += 1
+
+            node = self._nodes[self._pos]
 
             if prev_node is not None:
                 node.set_input(prev_node)
@@ -461,6 +479,31 @@ class Workflow(EventObject):
                 self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
                 logging.getLogger('core').error('Stopping workflow execution due to an unexpected exception.')
                 return False
+
+            # Process core commands
+            for cmd, args in self._ctx.get_collected_core_commands().items():
+                if cmd == self.CORE_CMD_GOTO_NODE:
+                    # reset node index to given node reference
+                    if len(args) != 1:
+                        logging.getLogger('core').error('Invalid number of arguments for %s' % cmd)
+                        continue
+
+                    if not isinstance(args[0], Node):
+                        logging.getLogger('core').error('Invalid argument (1): Expected node reference.')
+                        continue
+
+                    # find node reference and reset
+                    try:
+                        new_index = self._nodes.index(args[0])
+                        self._pos = new_index - 1
+                    except ValueError:
+                        logging.getLogger('core').error('Invalid node reference. Node not found in current workflow.')
+
+                else:
+                    logging.getLogger('core').error('Unknown core command "%s".' % cmd)
+
+            # clear command list on context
+            self._ctx.reset_collected_core_commands()
 
             self.fire_event(self.EVENT_NODE_RUN_FINISHED, {'node': node})
 
@@ -521,7 +564,6 @@ def get_node_info(node_object: object) -> dict:
         if not k in result:
             raise KeyError('Unknown key: "%s"' % k)
 
-        # TODO: reformat accepts/return
         result[k] = val
 
     return result

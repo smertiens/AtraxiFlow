@@ -64,7 +64,15 @@ class Property:
         return self._required
 
     def validate(self, value) -> bool:
-        return type(value) in self._type
+        if type(value) in self._type:
+            return True
+
+        # also allow subclassing of allowed types
+        for tp in self._type:
+            if isinstance(value, tp):
+                return True
+
+        return False
 
 
 class MissingRequiredValue:
