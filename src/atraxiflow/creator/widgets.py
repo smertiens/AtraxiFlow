@@ -472,6 +472,9 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
         lower.dock_parent_widget = None
 
     def dock_neighbours(self, widget: AxNodeWidget):
+        if isinstance(widget, AxWorkflowNodeWidget):
+            return
+
         radius = 10
 
         for node in self.nodes:
@@ -483,8 +486,8 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
                 QtCore.QSize(node.rect().width() + 2 * radius, 4 * radius)
             )
 
-            if hot_area.contains(widget.pos()) or hot_area.contains(widget.rect().topRight()) and (
-                    node.dock_child_widget is None):
+            if hot_area.contains(widget.pos()) or hot_area.contains(widget.rect().topRight()) \
+                    and (node.dock_child_widget is None):
                 self.dock(node, widget)
             else:
                 if node == widget.dock_parent_widget:
