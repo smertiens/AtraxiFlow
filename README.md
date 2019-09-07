@@ -7,7 +7,7 @@ The flexible python workflow tool - create workflows within minutes, visually or
 This is the first alpha release of AtraxiFlow 2.0. AtraxiFlow 2.0 scripts and nodes are not compatible with the 1.0
 branch. Here are some of the new features:
 
-* Simpler node structure  that result in even shorter scripts
+* Simpler node structure that results in even shorter scripts
 * Introduction of inputs and outputs
 * AtraxiCreator has been completely rewritten and is now a part of the AtraxiFlow core package
 * Streams are now called Workflows

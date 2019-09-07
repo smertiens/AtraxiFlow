@@ -145,9 +145,6 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         menu_file_quit.setShortcut(QtGui.QKeySequence(QtGui.QKeySequence.Quit))
         self.file_menu.addAction(menu_file_quit)
 
-        # Edit
-        # delete node
-
         # View
         view_menu = QtWidgets.QMenu('&View')
         action_show_node_list = QtWidgets.QAction('Show node list', view_menu)
@@ -165,11 +162,15 @@ class CreatorMainWindow(QtWidgets.QMainWindow):
         view_menu.addAction(action_show_node_list)
         view_menu.addAction(action_show_node_results)
 
-        # Workflow
+        # Help menu
         help_menu = QtWidgets.QMenu('&Help')
         self.action_about = QtWidgets.QAction('About...', help_menu)
         self.action_about.connect(QtCore.SIGNAL('triggered()'), self.show_about_dlg)
         help_menu.addAction(self.action_about)
+        self.action_report_bug = QtWidgets.QAction('Report a bug...', help_menu)
+        self.action_report_bug.connect(QtCore.SIGNAL('triggered()'), lambda: QtGui.QDesktopServices.openUrl(
+            QtCore.QUrl('https://github.com/smertiens/AtraxiFlow/issues')))
+        help_menu.addAction(self.action_report_bug)
 
         menu_bar.addMenu(self.file_menu)
         menu_bar.addMenu(view_menu)

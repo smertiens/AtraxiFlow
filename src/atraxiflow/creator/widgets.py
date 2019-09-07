@@ -105,7 +105,7 @@ class AxListWidget(QtWidgets.QWidget):
         self.layout().setSpacing(0)
 
         self.list_widget = QtWidgets.QListWidget()
-        self.list_widget.setFixedHeight(140)
+        self.list_widget.setFixedHeight(100)
         self.list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
 
         self.toolbar = QtWidgets.QToolBar()
