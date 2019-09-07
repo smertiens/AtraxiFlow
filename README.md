@@ -1,7 +1,7 @@
 # AtraxiFlow 2.0
 The flexible python workflow tool - create workflows within minutes, visually or in pure python.
 
-[![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=develop)](https://travis-ci.org/smertiens/AtraxiFlow)
+[![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
 [![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)
 
 This is the first alpha release of AtraxiFlow 2.0. AtraxiFlow 2.0 scripts and nodes are not compatible with the 1.0
@@ -26,7 +26,7 @@ The latest 1.0 version version can be found here: https://pypi.org/project/atrax
 The easiest way to install AtraxiFlow is via pip:
 
 ```
-pip install atraxi-flow
+pip install atraxi-flow==2.0.0a1
 ```
 
 If you want to play around with some nodes, you can start the visual workflow editor called "Creator":
