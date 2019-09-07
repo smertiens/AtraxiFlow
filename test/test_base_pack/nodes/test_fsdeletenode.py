@@ -72,7 +72,7 @@ def test_delete_symlink(tmpdir):
     f1.write('')
     assert os.path.exists(str(tmpdir.join('file1')))
 
-    os.symlink(str(f1), tmpdir.join('f1.link'))
+    os.symlink(str(f1), str(tmpdir.join('f1.link')))
 
     assert os.path.exists(str(tmpdir.join('f1.link')))
     assert os.path.islink(str(tmpdir.join('f1.link')))
@@ -83,4 +83,3 @@ def test_delete_symlink(tmpdir):
 
     assert Workflow.create([get_files, del_node]).run()
     assert not os.path.exists(str(tmpdir.join('f1.link')))
-    assert not os.path.exists(str(tmpdir.join('file1')))
