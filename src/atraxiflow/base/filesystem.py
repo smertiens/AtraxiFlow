@@ -457,7 +457,8 @@ class FSCopyNode(Node):
     def __init__(self, properties: dict = None):
         node_properties = {
             'dest': Property(expected_type=str, required=True, label='Destination',
-                             hint='The destination on the filesystem to copy the source to', display_options={'role':'folder'}),
+                             hint='The destination on the filesystem to copy the source to',
+                             display_options={'role': 'folder'}),
             'create_if_missing': Property(expected_type=bool, required=False, label='Create missing folders',
                                           hint='Creates the destination path if it is missing', default=True),
             'dry': Property(expected_type=bool, required=False, default=False, label='Dry run',
@@ -525,11 +526,13 @@ class FSMoveNode(Node):
 
     def __init__(self, properties=None):
         node_properties = {
-            'dest': Property(expected_type=str, required=True, label='Destination', hint='The directoy to move the files to',
-                                 display_options={'role': 'folder'}),
+            'dest': Property(expected_type=str, required=True, label='Destination',
+                             hint='The directoy to move the files to',
+                             display_options={'role': 'folder'}),
             'create_dirs': Property(expected_type=bool, required=False, label='Create destination directories',
                                     hint='Create missing destination paths', default=False),
-            'dry': Property(expected_type=bool, required=False, label='Dry', hint='Simulate file operation', default=False)
+            'dry': Property(expected_type=bool, required=False, label='Dry', hint='Simulate file operation',
+                            default=False)
         }
         super().__init__(node_properties, properties)
 
@@ -746,5 +749,77 @@ class FSRenameNode(Node):
                 os.rename(res.get_absolute_path(), new_name)
                 self.output.add(FilesystemResource(new_name))
                 ctx.get_logger().debug("Renamed {0} to {1}".format(res.get_absolute_path(), new_name))
+
+        return True
+
+
+class FSDeleteNode(Node):
+    """
+    @Name: Delete files
+    """
+
+    def __init__(self, properties=None):
+        node_properties = {
+            'del_nonempty_dirs': Property(expected_type=bool, required=False, label='Delete non-empty directories',
+                                          default=False),
+            'dry': Property(expected_type=bool, required=False, label='Dry', hint='Simulate file operation',
+                            default=False)
+        }
+        super().__init__(node_properties, properties)
+
+    def run(self, ctx: WorkflowContext):
+        super().run(ctx)
+
+        # In case the node is run multiple times, we will empty the output container
+        self.output.clear()
+
+        resources = self.get_input().find('atraxiflow.FilesystemResource')
+        for res in resources:
+            del_okay = False
+
+            assert isinstance(res, FilesystemResource)  # helps with autocompletion
+
+            if res.is_symlink():
+                if self.property('dry').value():
+                    ctx.get_logger().debug('DRY RUN: Deleting symlink "%s"' % res.get_absolute_path())
+                    del_okay = True
+                else:
+                    ctx.get_logger().debug('Deleting symlink "%s"' % res.get_absolute_path())
+                    os.unlink(res.get_absolute_path())
+                    del_okay = True
+
+            elif res.is_file():
+                if self.property('dry').value():
+                    ctx.get_logger().debug('DRY RUN: Deleting file "%s"' % res.get_absolute_path())
+                    del_okay = True
+                else:
+                    ctx.get_logger().debug('Deleting file "%s"' % res.get_absolute_path())
+                    os.unlink(res.get_absolute_path())
+                    del_okay = True
+
+            elif res.is_folder():
+                if self.property('dry').value():
+                    ctx.get_logger().debug('DRY RUN: Deleting directory "%s"' % res.get_absolute_path())
+                    del_okay = True
+                else:
+                    try:
+                        ctx.get_logger().debug('Deleting directory "%s"' % res.get_absolute_path())
+                        os.rmdir(res.get_absolute_path())
+                        del_okay = True
+
+                    except OSError:
+                        # might be a non-empty directory, try again if needed
+                        if self.property('del_nonempty_dirs').value():
+                            ctx.get_logger().debug('Directory is not empty. Deleting all contents.')
+                            shutil.rmtree(res.get_absolute_path())
+                            del_okay = True
+
+                        else:
+                            ctx.get_logger().warning(
+                                'Could not delete directory "%s", might be not empty (see del_nonempty_dirs option)' %
+                                res.get_absolute_path())
+
+            if del_okay:
+                self.output.add(FilesystemResource(res.get_absolute_path()))
 
         return True
