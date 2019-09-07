@@ -38,7 +38,7 @@ atraxi-flow creator
 **Build workflows visually**
 
 You can use Creator to visually edit your workflows. Doubleclick the "workflow" item in the node list
-on the right and add nodes (also by doubleclicking them). Drag the nodes close to the bottom edge of the
+on the left and add nodes (also by doubleclicking them). Drag the nodes close to the bottom edge of the
 desired parent node to dock (and thus connect) them.
 
 ![Creator UI](https://media.atraxi-flow.com/demo_ui.png)
