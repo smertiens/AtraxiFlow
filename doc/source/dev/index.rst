@@ -6,4 +6,3 @@ Developer manual
     :caption: Contents:
 
     node
-    utils

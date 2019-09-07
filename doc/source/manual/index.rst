@@ -8,4 +8,3 @@ User manual
     streams
     resources
     nodes/index
-    gui

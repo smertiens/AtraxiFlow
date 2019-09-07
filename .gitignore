@@ -8,9 +8,13 @@ doc/source/api/*
 playground
 fileformat.txt
 dist
-build
+build*
 demo_*
 build_*.sh
 test/htmlcov
 test/.coverage
 .pytest_cache
+qt-project
+src/*.egg-info
+*_private*
+.coverage

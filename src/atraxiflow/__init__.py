@@ -4,29 +4,14 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
+from atraxiflow.logging import *
+from atraxiflow import util
+import logging
 
 
-import os, platform, logging, sys
+__version__ = '2.0.0a1'
 
-AXF_VERSION = '1.0.1'
-
-### Initialize environment ###
-
-axf_user_dir = os.path.expanduser('~')
-
-if platform.system() == 'Windows':
-    axf_user_dir = os.path.join(axf_user_dir, "axtraxi-flow")
+if util.is_debug():
+    setup_loggers(logging.DEBUG)
 else:
-    axf_user_dir = os.path.join(axf_user_dir, ".atraxi-flow")
-
-if not os.path.exists(axf_user_dir):
-    logging.debug('User dir "{0}" does not exist. Creating.'.format(axf_user_dir))
-    os.makedirs(axf_user_dir)
-
-node_dir = os.path.join(axf_user_dir, "nodes")
-if os.path.exists(node_dir):
-    if not node_dir in sys.path:
-        sys.path.append(node_dir)
-        logging.debug('Added "{0}" to path.'.format(node_dir))
-else:
-    logging.debug('Node dir "{0}" not found.'.format(node_dir))
+    setup_loggers()

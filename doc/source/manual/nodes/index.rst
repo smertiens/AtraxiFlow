@@ -40,5 +40,3 @@ when it's a dictionary.
     common
     filesystem
     text
-    gui
-    graphics

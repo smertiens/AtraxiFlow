@@ -1,46 +1,77 @@
-# AtraxiFlow
-The flexible python workflow tool
+# AtraxiFlow 2.0
+The flexible python workflow tool - create workflows within minutes, visually or in pure python.
 
 [![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
-[![Documentation Status](https://readthedocs.org/projects/atraxiflow/badge/?version=latest)](https://atraxiflow.readthedocs.io/en/latest/?badge=latest)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/smertiens/AtraxiFlow.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/smertiens/AtraxiFlow/context:python)
 [![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)
 
-## Note: AtraxiFlow 2.0 is coming up
+This is the first alpha release of AtraxiFlow 2.0. AtraxiFlow 2.0 scripts and nodes are not compatible with the 1.0
+branch. Here are some of the new features:
 
-AtraxiFlow 2.0 will not be backward-compatible, existing nodes can still be easily rewritten. Some of the new key features
-are:
-
-* Simpler node structure  that result in even shorter scripts
+* Simpler node structure that results in even shorter scripts
 * Introduction of inputs and outputs
-* AtraxiCreator has been completely rewritten and is now a part of the AtraxiFlow Core package
+* AtraxiCreator has been completely rewritten and is now a part of the AtraxiFlow core package
 * Streams are now called Workflows
 * Improved logging
 
----
+A lot of work went into rewriting the core and especially the redesign of Creator, so 
+documentation of the 2.0 version is a bit behind. 
+I will make tutorial videos available as soon as possible to demonstrate core features including
+the creation of custom nodes. Proper online documentation will follow. For a (very basic) idea
+of AtraxiFlow's ability refer to the screenshots/code samples below.
 
-* Create easy-to-read automation scripts in minutes - work with files, folders, images or anything else 
-* Add your own logic as AtraxiFlow node and share it with others
-* Use a console for in- and output or add one of the UI nodes to show graphical messages and input forms 
-built with Qt5
-
-**Learn**
-
-* See what you can do and check out the [examples](https://github.com/smertiens/AtraxiExamples)
-* Get started with the [user manual](https://atraxiflow.readthedocs.io/en/latest/manual)
-* Learn how to write your own nodes in minutes with the [developer manual](https://atraxiflow.readthedocs.io/en/latest/dev)
+The latest 1.0 version version can be found here: https://pypi.org/project/atraxi-flow/1.0.3/
 
 **Install**
+
+The easiest way to install AtraxiFlow is via pip:
+
 ```
 pip install atraxi-flow
 ```
 
+If you want to play around with some nodes, you can start the visual workflow editor called "Creator":
+
+```
+atraxi-flow creator
+```
+
+**Build workflows visually**
+
+You can use Creator to visually edit your workflows. Doubleclick the "workflow" item in the node list
+on the left and add nodes (also by doubleclicking them). Drag the nodes close to the bottom edge of the
+desired parent node to dock (and thus connect) them.
+
+![Creator UI](https://media.atraxi-flow.com/demo_ui.png)
+
+You can save your workflows in a way-file that can then be loaded in Creator again or be run
+directly from the console.
+
+```
+atraxi-flow run demo.way
+```
+
+Wayfiles can contain more than one workflow. 
+
+![Creator UI](https://media.atraxi-flow.com/demo_console.png)
+
+
+**Build workflows in pure python**
+
+```python
+from atraxiflow.core import *
+from atraxiflow.base.common import *
+
+hello_world_node = EchoOutputNode({'msg': 'Hello World!'})
+Workflow.create([hello_world_node]).run()
+```
+
 **Requirements**
 
-* Python 3.4 or higher
-* If you want to use the UI nodes and functions, you will need to install [Pyside2](https://pypi.org/project/PySide2/) (optional)
+* Python 3.5 or higher
 
 **Latest Changes**
+
+_2.0.0a1:_ First alpha release of the 2.0 branch
 
 _1.0.3:_ New nodes: TextFileInputNode, TextFileOutputNode. Fixes for ShellExecNode on Windows. New convenience node-function: "echo()".
 
@@ -50,21 +81,3 @@ _1.0.1:_ ShellExecNode: new options "echo_command" and "echo_output"
 
 _1.0.0:_ First production release  
 
-
-**Example script**
-
-```python
-from atraxiflow.nodes.common import CLIInputNode, EchoOutputNode
-from atraxiflow.nodes.text import TextValidatorNode
-from atraxiflow.core.stream import *
-
-get_name = CLIInputNode('node', {'prompt': "What's your name? ", 'save_to': 'username' })
-get_greeting = CLIInputNode('node', {'prompt': "And your favourite greeting? ", 'save_to': 'usergreeting' })
-
-# let's make sure we have a name and a greeting
-check_input = TextValidatorNode({'sources': 'Text:user*', 'rules': {'not_empty': {}}})
-out = EchoOutputNode({'msg': '{Text:usergreeting} {Text:username}, nice to meet you!'})
-
-# let's go!
-Stream.create() >> get_name >> get_greeting >> check_input >> out >> flow()
-```
