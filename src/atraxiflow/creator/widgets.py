@@ -105,7 +105,7 @@ class AxListWidget(QtWidgets.QWidget):
         self.layout().setSpacing(0)
 
         self.list_widget = QtWidgets.QListWidget()
-        self.list_widget.setFixedHeight(140)
+        self.list_widget.setFixedHeight(100)
         self.list_widget.setSelectionMode(QtWidgets.QListWidget.ExtendedSelection)
 
         self.toolbar = QtWidgets.QToolBar()
@@ -512,7 +512,7 @@ class AxWorkflowNodeWidget(AxNodeWidget):
         self.action_rename.connect(QtCore.SIGNAL('triggered()'), self.rename_node)
         self.action_run = QtWidgets.QAction('Run workflow')
         self.action_run.setIcon(QtGui.QIcon(assets.get_asset('icons8-play-50.png')))
-        self.action_run.connect(QtCore.SIGNAL('triggered()'), lambda: self.run_triggered.emit())
+        self.action_run.connect(QtCore.SIGNAL('triggered()'), lambda wf_widget=self: wf_widget.run_triggered.emit())
 
         toolbar = QtWidgets.QToolBar()
         toolbar.setIconSize(QtCore.QSize(20, 20))
