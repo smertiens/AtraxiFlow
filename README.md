@@ -26,7 +26,7 @@ The latest 1.0 version version can be found here: https://pypi.org/project/atrax
 The easiest way to install AtraxiFlow is via pip:
 
 ```
-pip install atraxi-flow
+pip install atraxi-flow==2.0.0a1
 ```
 
 If you want to play around with some nodes, you can start the visual workflow editor called "Creator":
