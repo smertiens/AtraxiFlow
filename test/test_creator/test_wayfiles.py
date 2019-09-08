@@ -10,3 +10,5 @@ import pytest
 import atraxiflow.creator.wayfiles as wf
 from atraxiflow.creator.wayfiles import *
 from atraxiflow.base.common import *
+
+# Todo: Wayfile tests
