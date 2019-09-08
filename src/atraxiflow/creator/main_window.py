@@ -7,10 +7,12 @@
 
 import logging
 import sys
+import os
+from PySide2 import QtGui
 
 from atraxiflow import util
 from atraxiflow.base.filesystem import *
-from atraxiflow.core import Node
+from atraxiflow.core import Node, WorkflowContext, get_node_info
 from atraxiflow.creator import assets, tasks
 from atraxiflow.creator.about_dialog import *
 from atraxiflow.creator.nodes import WorkflowNode

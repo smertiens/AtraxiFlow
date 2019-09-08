@@ -249,7 +249,7 @@ class Node:
         if isinstance(self._input, Node):
             return self._input.get_output()
         else:
-            raise ValueError('Input has to be a node')
+            raise ValueError('Input has to be a node, got: %s' % self._input)
 
     def has_input(self) -> bool:
         return self._input is not None
@@ -426,6 +426,9 @@ class Workflow(EventObject):
     def add_node(self, node: Node):
         self._nodes.append(node)
 
+    def add_workflow(self, wf):
+        self._nodes.append(wf)
+
     @staticmethod
     def create(nodes: List[Node] = None):
         """ Convenience function to create a new stream """
@@ -451,10 +454,11 @@ class Workflow(EventObject):
 
         :return: bool - If false, errors have occured while processing the stream
         """
-        self._ctx.get_logger().info("Starting processing")
+        self._ctx.get_logger().info("Running workflow...")
         self.fire_event(self.EVENT_RUN_STARTED)
         self._pos = -1
         nodes_processed = 0
+        workflows_processed = 0
         prev_node = None
 
         while self._pos < len(self._nodes) - 1:
@@ -462,64 +466,78 @@ class Workflow(EventObject):
 
             node = self._nodes[self._pos]
 
-            if prev_node is not None:
-                node.set_input(prev_node)
+            if isinstance(node, Workflow):
+                logging.getLogger('core').debug("Running workflow...")
+                res = node.run()
+                workflows_processed += 1
 
-            self.fire_event(self.EVENT_NODE_RUN_STARTED, {'node': node})
-            if self.get_context().ui_env:
-                logging.getLogger('core').debug(
-                    'Workflow started in UI environment, running apply_ui_data() on node...')
-                node.apply_ui_data()
+                if res == False:
+                    logging.getLogger('core').warning("Encapsulated workflow failed.")
+                    return False
 
-            logging.getLogger('core').debug("Running node {0}...".format(node.__class__.__name__))
-            try:
-                res = node.run(self._ctx)
-            except Exception as e:
-                logging.getLogger('core').error(e.__class__.__name__ + ': ' + str(e))
-                self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
-                logging.getLogger('core').error('Stopping workflow execution due to an unexpected exception.')
-                return False
+            elif isinstance(node, Node):
 
-            # Process core commands
-            for cmd, args in self._ctx.get_collected_core_commands().items():
-                if cmd == self.CORE_CMD_GOTO_NODE:
-                    # reset node index to given node reference
-                    if len(args) != 1:
-                        logging.getLogger('core').error('Invalid number of arguments for %s' % cmd)
-                        continue
+                if prev_node is not None:
+                    node.set_input(prev_node)
 
-                    if not isinstance(args[0], Node):
-                        logging.getLogger('core').error('Invalid argument (1): Expected node reference.')
-                        continue
+                self.fire_event(self.EVENT_NODE_RUN_STARTED, {'node': node})
+                if self.get_context().ui_env:
+                    logging.getLogger('core').debug(
+                        'Workflow started in UI environment, running apply_ui_data() on node...')
+                    node.apply_ui_data()
 
-                    # find node reference and reset
-                    try:
-                        new_index = self._nodes.index(args[0])
-                        self._pos = new_index - 1
-                    except ValueError:
-                        logging.getLogger('core').error('Invalid node reference. Node not found in current workflow.')
+                logging.getLogger('core').debug("Running node {0}...".format(node.__class__.__name__))
+                try:
+                    res = node.run(self._ctx)
+                except Exception as e:
+                    logging.getLogger('core').error(e.__class__.__name__ + ': ' + str(e))
+                    self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
+                    logging.getLogger('core').error('Stopping workflow execution due to an unexpected exception.')
+                    return False
 
-                else:
-                    logging.getLogger('core').error('Unknown core command "%s".' % cmd)
+                # Process core commands
+                for cmd, args in self._ctx.get_collected_core_commands().items():
+                    if cmd == self.CORE_CMD_GOTO_NODE:
+                        # reset node index to given node reference
+                        if len(args) != 1:
+                            logging.getLogger('core').error('Invalid number of arguments for %s' % cmd)
+                            continue
 
-            # clear command list on context
-            self._ctx.reset_collected_core_commands()
+                        if not isinstance(args[0], Node):
+                            logging.getLogger('core').error('Invalid argument (1): Expected node reference.')
+                            continue
 
-            self.fire_event(self.EVENT_NODE_RUN_FINISHED, {'node': node})
+                        # find node reference and reset
+                        try:
+                            new_index = self._nodes.index(args[0])
+                            self._pos = new_index - 1
+                        except ValueError:
+                            logging.getLogger('core').error('Invalid node reference. Node not found in current workflow.')
 
-            prev_node = node
-            nodes_processed += 1
+                    else:
+                        logging.getLogger('core').error('Unknown core command "%s".' % cmd)
 
-            if res is False:
-                logging.getLogger('core').warning("Node failed.")
-                logging.getLogger('core').info(
-                    "Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
-                self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
+                # clear command list on context
+                self._ctx.reset_collected_core_commands()
 
-                return False
+                self.fire_event(self.EVENT_NODE_RUN_FINISHED, {'node': node})
 
-        logging.getLogger('core').info("Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
-        self.fire_event(self.EVENT_RUN_FINISHED, {'errors': False, 'nodes_processed': nodes_processed})
+                prev_node = node
+                nodes_processed += 1
+
+                if res is False:
+                    logging.getLogger('core').warning("Node failed.")
+                    logging.getLogger('core').info(
+                        "Finished processing {0}/{1} nodes".format(nodes_processed, len(self._nodes)))
+                    self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
+
+                    return False
+            else:
+                raise ExecutionException('Cannot process entity: %s' % node)
+
+        logging.getLogger('core').info("Finished processing {0} nodes/{1} workflows".format(nodes_processed, workflows_processed))
+        self.fire_event(self.EVENT_RUN_FINISHED, {'errors': False, 'nodes_processed': nodes_processed,
+                                                  'workflows_processed': workflows_processed})
         return True
 
 

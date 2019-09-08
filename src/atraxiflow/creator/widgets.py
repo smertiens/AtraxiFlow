@@ -11,7 +11,7 @@ import uuid
 
 from PySide2 import QtCore, QtWidgets, QtGui
 
-from atraxiflow.core import Node, get_node_info
+from atraxiflow.core import Node, get_node_info, Workflow
 from atraxiflow.creator import assets
 from atraxiflow.exceptions import *
 
@@ -163,6 +163,7 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.dock_child_widget = None
         self.click_pos = QtCore.QPoint(0, 0)
         self.dock_parent_at_click = None
+        self.controls_widget = QtWidgets.QWidget()
 
         self.setLayout(QtWidgets.QVBoxLayout())
         self.setAutoFillBackground(True)
@@ -175,6 +176,14 @@ class AxNodeWidget(QtWidgets.QFrame):
         self.title_label.setAlignment(QtCore.Qt.AlignLeft)
         self.title_label.setObjectName('node_title')
         self.title_label.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+
+        self.btn_minimize = QtWidgets.QPushButton()
+        self.btn_minimize.setIcon(QtGui.QIcon(assets.get_asset('icons8-delete-64.png')))
+        self.btn_minimize.setObjectName('node_minimize_btn')
+        self.btn_minimize.connect(QtCore.SIGNAL('pressed()'), self.minimize)
+        self.btn_minimize.setSizePolicy(QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Preferred)
+        self.btn_minimize.setFlat(True)
+
         self.btn_close = QtWidgets.QPushButton()
         self.btn_close.setIcon(QtGui.QIcon(assets.get_asset('icons8-delete-64.png')))
         self.btn_close.setObjectName('node_remove_btn')
@@ -186,6 +195,9 @@ class AxNodeWidget(QtWidgets.QFrame):
         title_layout.addWidget(self.title_label)
         title_layout.addWidget(self.btn_close)
 
+        # Under development
+        #title_layout.addWidget(self.btn_minimize)
+
         # Add to window
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().setSpacing(0)
@@ -196,6 +208,13 @@ class AxNodeWidget(QtWidgets.QFrame):
         win_width = 400
         self.setMinimumWidth(win_width)
         self.setMaximumWidth(win_width)
+
+    def minimize(self):
+        if self.controls_widget.isVisible():
+            self.controls_widget.hide()
+            self.setFixedHeight(40)
+        else:
+            self.controls_widget.show()
 
     def modified(self):
         try:
@@ -303,6 +322,22 @@ class AxNodeWidget(QtWidgets.QFrame):
                     if isinstance(prop.value(), float):
                         control.setValue(prop.value())
 
+                elif prop.get_expected_type()[0] == Workflow:
+                    control = QtWidgets.QComboBox()
+                    control.setEditable(False)
+
+                    assert isinstance(self.parent(), AxNodeWidgetContainer)
+
+                    def update_wf_list(control: QtWidgets.QComboBox):
+                        control.clear()
+
+                        for wf in self.parent().get_workflow_nodes():
+                            assert isinstance(wf, AxWorkflowNodeWidget)
+                            control.addItem(wf.title_label.text(), wf)
+
+                    update_wf_list(control)
+                    self.parent().nodes_changed.connect(lambda control=control: update_wf_list(control))
+
                 elif prop.get_expected_type()[0] == list:
                     raise NodeUIException(
                         'Properties of type dict need to define a custom ui (for example using AxListWidget).')
@@ -320,13 +355,13 @@ class AxNodeWidget(QtWidgets.QFrame):
         return widget
 
     def build_node_ui(self):
-        widget = self.node.get_ui(self)
+        self.controls_widget = self.node.get_ui(self)
 
-        if widget is None:
-            widget = self.get_default_controls()
+        if self.controls_widget is None:
+            self.controls_widget = self.get_default_controls()
 
-        widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        self.layout().addWidget(widget)
+        self.controls_widget.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        self.layout().addWidget(self.controls_widget)
 
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         self.click_pos = event.pos()
@@ -363,6 +398,8 @@ class AxNodeWidget(QtWidgets.QFrame):
 
 
 class AxNodeWidgetContainer(QtWidgets.QWidget):
+
+    nodes_changed = QtCore.Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -434,6 +471,18 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
         for node in self.nodes:
             node.deselect()
 
+    def emit_node_changed(self):
+        self.nodes_changed.emit()
+
+    def get_workflow_nodes(self) -> list:
+
+        wf_nodes = []
+        for node in self.nodes:
+            if isinstance(node, AxWorkflowNodeWidget):
+                wf_nodes.append(node)
+
+        return wf_nodes
+
     def discover_nodes(self):
         self.nodes.clear()
 
@@ -449,6 +498,7 @@ class AxNodeWidgetContainer(QtWidgets.QWidget):
                 h = child.pos().y() + child.rect().height() + 10 if h < child.pos().y() + child.rect().height() + 10 else h
 
         self.resize(w, h)
+        self.nodes_changed.emit()
 
     def get_nodes(self):
         return self.nodes
@@ -525,6 +575,15 @@ class AxWorkflowNodeWidget(AxNodeWidget):
         match = re.match(r'^[\w+ \._\-]+$', name)
         return match is not None
 
+    def get_workflow_node(self):
+        assert isinstance(self.parent(), AxNodeWidgetContainer)
+        nodes = self.parent().extract_node_hierarchy_from_widgets(self)
+
+        # remove first node (WorkflowNode)
+        nodes.pop(0)
+
+        return Workflow()
+
     def rename_node(self):
         new_name, okay = QtWidgets.QInputDialog.getText(self, 'Rename workflow', 'Please enter the new workflow name',
                                                         text=self.node.property('name').value())
@@ -542,6 +601,9 @@ class AxWorkflowNodeWidget(AxNodeWidget):
             workflow_widget = self.parent().parent().parent()
             assert isinstance(workflow_widget, AxWorkflowWidget)
             workflow_widget.set_modified(True)
+
+            assert isinstance(self.parent(), AxNodeWidgetContainer)
+            self.parent().emit_node_changed()
 
 
 class AxWorkflowWidget(QtWidgets.QScrollArea):

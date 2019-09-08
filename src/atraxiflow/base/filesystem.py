@@ -20,6 +20,9 @@ from atraxiflow.data import DatetimeProcessor, StringValueProcessor
 from atraxiflow.exceptions import FilesystemException
 from atraxiflow.properties import *
 
+__all__ = ['LoadFilesNode', 'FileFilterNode', 'FSChangeCWDNode', 'FSCopyNode', 'FSDeleteNode', 'FSMoveNode',
+           'FSRenameNode']
+
 
 class LoadFilesNode(Node):
     """
@@ -832,7 +835,8 @@ class FSChangeCWDNode(Node):
 
     def __init__(self, properties=None):
         node_properties = {
-            'cwd': Property(expected_type=str, required=True, label='New working directory', display_options={'role':'folder'})
+            'cwd': Property(expected_type=str, required=True, label='New working directory',
+                            display_options={'role': 'folder'})
         }
         super().__init__(node_properties, properties)
 

@@ -14,5 +14,6 @@ def boot(ctx: WorkflowContext):
     ctx.publish_nodes('AtraxiFlow', {
         'Common': ctx.autodiscover_nodes('atraxiflow.base.common'),
         'Filesystem': ctx.autodiscover_nodes('atraxiflow.base.filesystem'),
-        'Text': ctx.autodiscover_nodes('atraxiflow.base.text')
+        'Text': ctx.autodiscover_nodes('atraxiflow.base.text'),
+        'Flow tools': ctx.autodiscover_nodes('atraxiflow.base.tools')
     })
