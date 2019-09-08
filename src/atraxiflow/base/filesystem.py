@@ -823,3 +823,30 @@ class FSDeleteNode(Node):
                 self.output.add(FilesystemResource(res.get_absolute_path()))
 
         return True
+
+
+class FSChangeCWDNode(Node):
+    """
+    @Name: Change current directory
+    """
+
+    def __init__(self, properties=None):
+        node_properties = {
+            'cwd': Property(expected_type=str, required=True, label='New working directory', display_options={'role':'folder'})
+        }
+        super().__init__(node_properties, properties)
+
+    def run(self, ctx: WorkflowContext):
+        super().run(ctx)
+
+        # In case the node is run multiple times, we will empty the output container
+        self.output.clear()
+
+        if not os.path.exists(self.property('cwd').value()):
+            ctx.get_logger().error('Invalid directory path: %s' % self.property('cwd').value())
+            return False
+
+        os.chdir(self.property('cwd').value())
+        self.output.add(FilesystemResource(self.property('cwd').value()))
+
+        return True
