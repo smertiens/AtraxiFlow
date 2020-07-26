@@ -18,3 +18,4 @@ qt-project
 src/*.egg-info
 *_private*
 .coverage
+*.code-workspace
