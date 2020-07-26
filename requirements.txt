@@ -1,4 +1,3 @@
 contemply
 click
-Pyside2
 colorama

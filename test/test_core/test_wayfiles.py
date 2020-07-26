@@ -5,7 +5,10 @@
 # For more information on licensing see LICENSE file
 #
 import os
+import pytest
 
-def get_asset(path):
-    dirname = os.path.dirname(__file__)
-    return os.path.realpath(os.path.join(dirname, path))
+import atraxiflow.wayfiles as wf
+from atraxiflow.wayfiles import *
+from atraxiflow.base.common import *
+
+# Todo: Wayfile tests

@@ -7,6 +7,7 @@
 
 from atraxiflow.atraxiflow_cli import *
 from atraxiflow.base.common import *
+from atraxiflow import wayfiles
 from click.testing import CliRunner
 
 
@@ -24,6 +25,10 @@ def test_version():
 
     assert result.exit_code == 0
     assert result.output == ax_version + '\n'
+
+def test_server():
+    runner = CliRunner()
+    #result = runner.invoke(creator)
 
 """
 def test_run(tmp_path):

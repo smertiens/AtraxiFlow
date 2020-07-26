@@ -4,7 +4,7 @@
 # Copyright (C) 2019  Sean Mertiens
 # For more information on licensing see LICENSE file
 #
-from atraxiflow.logging import *
+from atraxiflow.axlogging import *
 from atraxiflow import util
 import logging
 

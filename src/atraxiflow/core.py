@@ -12,8 +12,6 @@ import pkgutil
 import re
 from typing import List, Any, Dict
 
-from PySide2 import QtWidgets
-
 from atraxiflow.events import EventObject
 from atraxiflow.exceptions import *
 from atraxiflow.preferences import PreferencesProvider
@@ -169,27 +167,6 @@ class Node:
         from a file). It can be used to fill custom widgets.
         """
         pass
-
-    def get_ui(self, node_widget) -> QtWidgets.QWidget:
-        """
-        Override this function to create the user interface of your node in Creator completely by yourself.
-        Remember to also override :py:meth:`apply_ui_data` and :py:meth:`load_ui_data` to keep node properties
-        and user interface in sync.
-
-        :param AxNodeWidget node_widget: The parent widget of the node's ui
-        :return: The node's user interface
-        """
-        return None
-
-    def get_field_ui(self, field_name: str, node_widget) -> QtWidgets.QWidget:
-        """
-        Overrides Creators default field for a property.
-
-        :param str field_name: The name of the property whose ui is requested
-        :param AxNodeWidget node_widget: The parent widget of the node's ui
-        :return: Returns the ui for a single field
-        """
-        return None
 
     def get_properties(self) -> Dict[str, Property]:
         return self.properties

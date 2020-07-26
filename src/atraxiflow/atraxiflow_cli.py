@@ -5,7 +5,11 @@
 # For more information on licensing see LICENSE file
 #
 
-import logging
+# DEBUG
+import sys
+sys.path.insert(0, '/Users/mephisto/python_projects/atraxi-flow/src')
+
+#import logging
 import os
 
 import click
@@ -15,11 +19,11 @@ from contemply.frontend import TemplateParser
 
 from atraxiflow import __version__ as ax_version
 from atraxiflow.core import WorkflowContext, Workflow
-from atraxiflow.creator import creator as ax_creator
-from atraxiflow.creator.wayfiles import Wayfile, WayDefaultWorkflow
+from atraxiflow.wayfiles import Wayfile, WayDefaultWorkflow
 from atraxiflow.exceptions import *
-from atraxiflow.logging import set_level
+from atraxiflow.axlogging import set_level
 from atraxiflow.preferences import PreferencesProvider
+from atraxiflow.creator_server import server
 
 
 @click.group()
@@ -33,7 +37,8 @@ def creator(verbose):
     if verbose:
         set_level(logging.DEBUG)
 
-    ax_creator.launch_app()
+    srv = server.CreatorServer()
+    srv.start()
 
 
 @cli.command('run')
