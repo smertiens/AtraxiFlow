@@ -1,12 +1,12 @@
 language: python
 python:     # will be tested on default linux system
-  #- "3.4"
   - "3.5"
   - "3.5-dev"
   - "3.6"
   - "3.6-dev"
   - "3.7-dev"
   - "3.7"
+  - "3.8"
 dist: xenial
 
 matrix:
@@ -14,7 +14,7 @@ matrix:
     - name: "Python 3.7 on Xenial Linux"
       python: "3.7"
       dist: xenial
-    - name: "Python 3.7.2 on macOS"
+    - name: "Python on macOS"
       os: osx
       osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
       language: shell       # 'language: python' is an error on Travis CI macOS
@@ -24,11 +24,11 @@ matrix:
         - pip3 install pytest-cov
         - python3 setup.py install
 
-    - name: "Python 3.7.3 on Windows"
+    - name: "Python on Windows"
       os: windows
       language: shell       # 'language: python' is an error on Travis CI Windows
       before_install: choco install python
-      env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
 
 install:
     - pip3 install coverage

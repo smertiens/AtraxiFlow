@@ -1,5 +1,5 @@
 # AtraxiFlow 2.0
-The flexible python workflow tool - create workflows within minutes, visually or in pure python.
+The flexible python workflow tool - create workflows within minutes.
 
 [![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
 [![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)

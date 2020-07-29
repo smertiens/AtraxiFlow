@@ -5,17 +5,16 @@
 # For more information on licensing see LICENSE file
 #
 
-# DEBUG
-import sys
-sys.path.insert(0, '/Users/mephisto/python_projects/atraxi-flow/src')
-
 import logging
-import os
+import os, sys
 
 import click
 import colorama
 from contemply.cli import prompt, user_input
 from contemply.frontend import TemplateParser
+
+if 'AX_DEBUG' in os.environ and os.environ['AX_DEBUG'] == 'TRUE':
+    sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
 
 from atraxiflow import __version__ as ax_version
 from atraxiflow.core import WorkflowContext, Workflow
@@ -30,16 +29,16 @@ from atraxiflow.creator_server import server
 def cli():
     pass
 
+if 'AX_DEBUG' in os.environ and os.environ['AX_DEBUG'] == 'TRUE':
+    @cli.command('creator')
+    @click.option('--port', '-p', default=8000, help='The port to start the server on')
+    @click.option('--verbose', '-v', type=click.BOOL, is_flag=True, help='Increase verbosity')
+    def creator(port, verbose):
+        if verbose:
+            set_level(logging.DEBUG)
 
-@cli.command('creator')
-@click.option('--port', '-p', default=8000, help='The port to start the server on')
-@click.option('--verbose', '-v', type=click.BOOL, is_flag=True, help='Increase verbosity')
-def creator(port, verbose):
-    if verbose:
-        set_level(logging.DEBUG)
-
-    srv = server.CreatorServer(port)
-    srv.start()
+        srv = server.CreatorServer(port)
+        srv.start()
 
 
 @cli.command('run')
