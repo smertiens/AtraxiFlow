@@ -9,7 +9,7 @@
 import sys
 sys.path.insert(0, '/Users/mephisto/python_projects/atraxi-flow/src')
 
-#import logging
+import logging
 import os
 
 import click
@@ -32,12 +32,13 @@ def cli():
 
 
 @cli.command('creator')
+@click.option('--port', '-p', default=8000, help='The port to start the server on')
 @click.option('--verbose', '-v', type=click.BOOL, is_flag=True, help='Increase verbosity')
-def creator(verbose):
+def creator(port, verbose):
     if verbose:
         set_level(logging.DEBUG)
 
-    srv = server.CreatorServer()
+    srv = server.CreatorServer(port)
     srv.start()
 
 

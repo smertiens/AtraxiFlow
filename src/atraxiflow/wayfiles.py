@@ -1,7 +1,7 @@
 #
 # AtraxiFlow - Flexible python workflow tool
 #
-# Copyright (C) 2019  Sean Mertiens
+# Copyright (C) 2019 - 2020 Sean Mertiens
 # For more information on licensing see LICENSE file
 #
 
@@ -148,6 +148,9 @@ class Wayfile:
         }
 
         return data
+
+    def create_node_from_raw_data(self, raw_node: dict) -> Node:
+        return self._create_and_setup_nodes_from_raw_data(raw_node)
 
     def _create_and_setup_nodes_from_raw_data(self, raw_node: dict) -> Node:
         mod = raw_node['node_class'][:raw_node['node_class'].rfind('.')]

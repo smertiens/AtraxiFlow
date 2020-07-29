@@ -13,6 +13,18 @@ __all__ = ['AxLoggingConsoleFormatter', 'setup_loggers', 'set_level']
 
 AXFLOW_LOGGING_SETUP = False
 
+class AxLoggingListHandler(logging.Handler):
+    records = []
+
+    def __init__(self, level):
+        super().__init__(level)
+        self.records = []
+
+    def handle(self, record):
+        self.records.append(self.format(record))
+
+    def get_records(self):
+        return self.records
 
 class AxLoggingConsoleFormatter(logging.Formatter):
 

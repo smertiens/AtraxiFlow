@@ -37,6 +37,16 @@ class Property:
         self._default = default
         self._display_options = display_options
 
+    def to_dict(self) -> Dict:
+        return {
+            'type': self._type,
+            'label': self._label,
+            'hint': self._hint,
+            'required': self._required,
+            'display_options': self._display_options,
+            'default': self._default
+        }
+
     def get_display_options(self) -> Dict[str, Any]:
         return self._display_options
 
