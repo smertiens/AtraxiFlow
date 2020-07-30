@@ -231,7 +231,6 @@ class WorkflowContext:
         self.preferences = PreferencesProvider()
         self._nodes = {}
         self._symbol_table = {}
-        self.ui_env = False
         self.load_extensions()
         self.collected_core_commands = {}
 
@@ -429,10 +428,6 @@ class Workflow(EventObject):
                 node.set_input(prev_node)
 
             self.fire_event(self.EVENT_NODE_RUN_STARTED, {'node': node})
-            if self.get_context().ui_env:
-                logging.getLogger('core').debug(
-                    'Workflow started in UI environment, running apply_ui_data() on node...')
-                node.apply_ui_data()
 
             logging.getLogger('core').debug("Running node {0}...".format(node.__class__.__name__))
             try:

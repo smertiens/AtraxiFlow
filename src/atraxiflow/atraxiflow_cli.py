@@ -10,12 +10,12 @@ import os, sys
 
 import click
 import colorama
-from contemply.cli import prompt, user_input
-from contemply.frontend import TemplateParser
 
 if 'AX_DEBUG' in os.environ and os.environ['AX_DEBUG'] == 'TRUE':
     sys.path.insert(0, os.path.realpath(os.path.join(os.path.dirname(__file__), '..')))
 
+from contemply.cli import prompt, user_input
+from contemply.frontend import TemplateParser
 from atraxiflow import __version__ as ax_version
 from atraxiflow.core import WorkflowContext, Workflow
 from atraxiflow.wayfiles import Wayfile, WayDefaultWorkflow

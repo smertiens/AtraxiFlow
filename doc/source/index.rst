@@ -7,8 +7,4 @@ Welcome to AtraxiFlow documentation, the flexible workflow tool for python.
     :maxdepth: 3
     :caption: Contents:
 
-    basics
-    gettingstarted
-    manual/index
-    dev/index
-    api/modules
+    auto/index

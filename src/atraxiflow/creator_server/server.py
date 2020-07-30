@@ -68,10 +68,16 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
     routes = {
         '/axflow/nodes': 'node_list',
         '/axflow/run': 'run_nodes',
-        '/axflow/filebrowser': 'filebrowser'
+        '/axflow/filebrowser': 'filebrowser',
+        '/axflow/ping': 'ping'
     }
 
     request = Request()
+
+    def ping(self):
+        self.send_json_response(json.dumps({
+            'status': 'ok'
+        }))
 
     def filebrowser(self):
         path = '' if 'path' not in self.request.query else self.request.query['path'].strip('/\\')

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('./../../src'))
 # -- Project information -----------------------------------------------------
 
 project = 'AtraxiFlow'
-copyright = '2019, Sean Mertiens'
+copyright = '2019 - 2020, Sean Mertiens'
 author = 'Sean Mertiens'
 
 # The short X.Y version
@@ -197,4 +197,3 @@ todo_include_todos = True
 
 # autodoc will otherwise crash
 autodoc_mock_imports = []
-autodoc_mock_imports.append('PySide2')

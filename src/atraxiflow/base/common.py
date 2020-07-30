@@ -129,10 +129,7 @@ class NullNode(Node):
 
 
 class CLIInputNode(Node):
-    """
-    @Name: Get user input from console
-    """
-
+    
     def __init__(self, properties=None):
         user_properties = {
             'prompt': Property(expected_type=str, required=False, label='Prompt',
