@@ -6,7 +6,7 @@
 #
 
 import os
-import pytest
+import pytest, sys
 from atraxiflow.base.filesystem import *
 
 @pytest.fixture
@@ -78,6 +78,13 @@ def test_copy_dir_correct(make_fixtures):
     assert not os.path.exists(str(os.path.join(dest, "testfile.txt")))
 
     src = LoadFilesNode({'paths': [str(make_fixtures)]})
+
+    if sys.version_info.major == 3 and sys.version_info.minor == 8 and sys.version_info.micro == 0:
+        # prevents the test from failing due to to bug in Python 3.8.0
+        # See FSCopyNode code for details.
+        assert not Workflow.create([src, cp]).run()
+        return
+    
     assert Workflow.create([src, cp]).run()
 
     assert os.path.exists(str(os.path.join(dest, "folder")))

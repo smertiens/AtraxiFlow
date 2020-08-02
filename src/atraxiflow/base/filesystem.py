@@ -5,7 +5,7 @@
 # For more information on licensing see LICENSE file
 #
 import glob
-import os
+import os, sys
 import re
 import shutil
 from pathlib import Path
@@ -253,8 +253,17 @@ class FSCopyNode(Node):
             # When trying to copy from a directory to another directory contained in the first one
             # an inifinte loop can occur. This is due to a bug introduced in Python 3.8.0, see here:
             # https://bugs.python.org/issue38688.
-            # After determining which versions are affected, we should issue a warning and 
-            # ask the user to update his Python version.
+            # The bug is fixed in 3.8.1
+            if sys.version_info.major == 3 and \
+                sys.version_info.minor == 8 and \
+                sys.version_info.micro == 0:
+
+                self._ctx.get_logger().warn('Your Python version is 3.8.0. Trying to copy a directory tree in ' + 
+                    'this version will cause an error (see here for details: https://bugs.python.org/issue38688. ' + 
+                    'Please consider updating to Python 3.8.1 or greater.')
+                self._ctx.get_logger().error('Skipping copy operation (see notice above).')
+                return False
+                
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
             self.output.add(FilesystemResource(str(dest_p.absolute())))
 
