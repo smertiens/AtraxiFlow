@@ -17,6 +17,11 @@ from atraxiflow.properties import Property
 from atraxiflow.wayfiles import Wayfile
 from atraxiflow.axlogging import AxLoggingListHandler
 
+server_config_storage = {
+    'port': 8000,
+    'orig_cwd': ''
+}
+
 class NodeJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if inspect.isclass(o):
@@ -82,12 +87,11 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def filebrowser(self):
         path = '' if 'path' not in self.request.query else self.request.query['path'].strip('/\\')
         filter = '' if 'filter' not in self.request.query else self.request.query['filter']
-
-        local_path = os.path.realpath(os.path.join(os.getcwd(), path))
+        
+        # files will be accessible starting from the directory creator was started in
+        local_path = os.path.realpath(os.path.join(server_config_storage['orig_cwd'], path))
         filtered_dirs = []
         
-        print(local_path)
-
         if os.path.exists(local_path):
             dirs = os.listdir(local_path)
             dirs.sort()
@@ -144,7 +148,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         stderr_buf = io.StringIO()
         sys.stdout = stdout_buf
         sys.stderr = stdout_buf
-
+        
+        # TODO: Run in a separate thread 
         wf.run()
 
         sys.stdout = sys.__stdout__
@@ -170,7 +175,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def send_json_response(self, data):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', 'http://localhost:8080')
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:%s' % server_config_storage['port'])
         self.end_headers()
 
         self.wfile.write(bytearray(data, "utf-8"))
@@ -187,19 +192,20 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         self.request = Request(frag.path, frag.query, frag.fragment, content)
 
         if self.request.path not in self.routes:
-            print('No matching route for "%s" found.' % self.request.path)
-            self.send_error(404, 'Not found', 'The resource for "%s" could not be found' % self.request.path)
+            # try to serve from directory
+            return super().do_GET()
+
         else:
             a = getattr(self, self.routes[self.request.path])
             a()
 
     def do_GET(self):
         self._handle_request()
-        #self.log_request()
+        self.log_request()
 
     def do_POST(self):
         self._handle_request()
-        #self.log_request()
+        self.log_request()
         
 class CreatorServer:
 
@@ -208,25 +214,32 @@ class CreatorServer:
 
     def __init__(self, port = 8000):
         self.port = port
-        
-        try:
-            from axcreator.creator import WEB_PATH
-            self.creator_path = WEB_PATH
-        except ImportError:
-            logging.getLogger('core').error('Could not find AtraxiCreator installation. Install it with pip3 install atraxi-creator')
-            sys.exit(1)
 
     def start(self):
+        try:
+            from atraxicreator import WEB_PATH
+            
+            if not os.path.exists(WEB_PATH):
+                logging.getLogger('core').error('Creator web path is invalid.')
+                sys.exit(1)
+
+            server_config_storage['orig_cwd'] = os.getcwd()
+            os.chdir(WEB_PATH)
+
+        except ImportError:
+            logging.getLogger('core').error('Could not find AtraxiCreator installation. ' +
+                            'Install it with pip3 install atraxi-creator-web.')
+            sys.exit(1)
+            
         srv = http.server.HTTPServer(('', self.port), RequestHandler)
         print("Started server on http://localhost:%s" % (self.port))
+
+        server_config_storage['port'] = self.port
         
         try:
             srv.serve_forever()
         except KeyboardInterrupt:
             print("Exiting.")
 
-
-if __name__ == "__main__":
-
-    srv = CreatorServer()
-    srv.start()    
+        if server_config_storage['orig_cwd'] != '':
+            os.chdir(server_config_storage['orig_cwd'])

@@ -12,7 +12,7 @@ with open(basepath + 'requirements.txt', 'r') as fh:
 
 setuptools.setup(
     name='atraxi-flow',
-    version='2.0.0a1',
+    version='2.0.0a2',
     packages=setuptools.find_packages(basepath + 'src'),
     package_dir={'': basepath + 'src'},
     classifiers=[
@@ -21,9 +21,9 @@ setuptools.setup(
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
         "Operating System :: OS Independent",
     ],
-    url='https://atraxi-flow.com',
+    url='https://github.com/smertiens/AtraxiFlow',
     project_urls={
-        'Documentation': 'https://docs.atraxi-flow.com/',
+        'Documentation': 'https://atraxiflow.readthedocs.io/en/latest/',
         'Github': 'https://github.com/smertiens/AtraxiFlow',
     },
     keywords='workflow automation nodebased flow',
