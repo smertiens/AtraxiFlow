@@ -18,4 +18,5 @@ qt-project
 src/*.egg-info
 *_private*
 .coverage
-.venv
+.venv*
+.python-version

@@ -249,6 +249,12 @@ class FSCopyNode(Node):
                 return False
 
             self._ctx.get_logger().debug("Copying directory: {0} -> {1}".format(src_p, dest_p))
+
+            # When trying to copy from a directory to another directory contained in the first one
+            # an inifinte loop can occur. This is due to a bug introduced in Python 3.8.0, see here:
+            # https://bugs.python.org/issue38688.
+            # After determining which versions are affected, we should issue a warning and 
+            # ask the user to update his Python version.
             shutil.copytree(str(src_p.absolute()), str(dest_p.absolute()))
             self.output.add(FilesystemResource(str(dest_p.absolute())))
 

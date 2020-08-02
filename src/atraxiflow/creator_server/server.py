@@ -63,7 +63,7 @@ class Request:
             kv = item.split('=')
             self.query[kv[0]] = kv[1]
 
-class RequestHandler(http.server.BaseHTTPRequestHandler):
+class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
     routes = {
         '/axflow/nodes': 'node_list',
@@ -204,9 +204,17 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 class CreatorServer:
 
     port = 8000
+    creator_path = ''
 
     def __init__(self, port = 8000):
         self.port = port
+        
+        try:
+            from axcreator.creator import WEB_PATH
+            self.creator_path = WEB_PATH
+        except ImportError:
+            logging.getLogger('core').error('Could not find AtraxiCreator installation. Install it with pip3 install atraxi-creator')
+            sys.exit(1)
 
     def start(self):
         srv = http.server.HTTPServer(('', self.port), RequestHandler)

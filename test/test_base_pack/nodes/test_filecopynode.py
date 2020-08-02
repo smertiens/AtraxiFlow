@@ -11,6 +11,8 @@ from atraxiflow.base.filesystem import *
 
 @pytest.fixture
 def make_fixtures(tmpdir_factory):
+    # tmpdir_factory: session-scoped fixture
+    
     path = tmpdir_factory.mktemp('data')
     path.mkdir('folder')
     p = path.join('testfile.txt')
