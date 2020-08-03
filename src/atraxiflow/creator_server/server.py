@@ -11,15 +11,16 @@ import inspect
 import re, os, logging, sys, io
 from urllib.parse import urlparse
 
+from atraxiflow.creator_server import runner
 from atraxiflow.core import WorkflowContext, Workflow
 from atraxiflow.core import Node, MissingRequiredValue
 from atraxiflow.properties import Property
-from atraxiflow.wayfiles import Wayfile
-from atraxiflow.axlogging import AxLoggingListHandler
 
-server_config_storage = {
+server_state = {
     'port': 8000,
-    'orig_cwd': ''
+    'cors_port': 8000,
+    'orig_cwd': '',
+    'current_wf_thread': None
 }
 
 class NodeJSONEncoder(json.JSONEncoder):
@@ -73,6 +74,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     routes = {
         '/axflow/nodes': 'node_list',
         '/axflow/run': 'run_nodes',
+        '/axflow/execstatus': 'execution_status',
         '/axflow/filebrowser': 'filebrowser',
         '/axflow/ping': 'ping'
     }
@@ -89,7 +91,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         filter = '' if 'filter' not in self.request.query else self.request.query['filter']
         
         # files will be accessible starting from the directory creator was started in
-        local_path = os.path.realpath(os.path.join(server_config_storage['orig_cwd'], path))
+        local_path = os.path.realpath(os.path.join(server_state['orig_cwd'], path))
         filtered_dirs = []
         
         if os.path.exists(local_path):
@@ -134,38 +136,42 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def run_nodes(self):
         nodes = json.loads(self.request.content)
-        wf = Workflow()
-        f = Wayfile()
-
-        for node in nodes:
-            wf.add_node(f.create_node_from_raw_data(node))
-
-        h = AxLoggingListHandler(logging.DEBUG)
-        logging.getLogger('core').addHandler(h)
-        logging.getLogger('workflow_ctx').addHandler(h)
-
-        stdout_buf = io.StringIO()
-        stderr_buf = io.StringIO()
-        sys.stdout = stdout_buf
-        sys.stderr = stdout_buf
         
-        # TODO: Run in a separate thread 
-        wf.run()
-
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
-        stdout_buf.seek(0)
-        stderr_buf.seek(0)
-
-        logging.getLogger('core').removeHandler(h)
-        logging.getLogger('workflow_ctx').removeHandler(h)
+        server_state['current_wf_thread'] = runner.WorkflowThread()
+        server_state['current_wf_thread'].set_nodes(nodes)
+        server_state['current_wf_thread'].start()
 
         self.send_json_response(json.dumps({
             'status': 'ok',
-            'messages': h.get_records(),
-            'stdout': stdout_buf.readlines(),
-            'stderr': stderr_buf.readlines()
         }))
+
+    def execution_status(self):
+        data = {}
+
+        if server_state['current_wf_thread'] == None:
+            data = {
+                'status': 'not_started',
+                'messages': [],
+                'stdout': [],
+                'stderr': []
+            }
+        elif server_state['current_wf_thread'].is_running():
+            data = {
+                'status': 'running',
+                'messages': server_state['current_wf_thread'].get_log_records(),
+                'stdout': server_state['current_wf_thread'].get_stdout_buffer().readlines(),
+                'stderr': server_state['current_wf_thread'].get_stderr_buffer().readlines()
+            }
+        else:
+            data = {
+                'status': 'done',
+                'messages': server_state['current_wf_thread'].get_log_records(),
+                'stdout': server_state['current_wf_thread'].get_stdout_buffer().readlines(),
+                'stderr': server_state['current_wf_thread'].get_stderr_buffer().readlines()
+            }
+
+        self.send_json_response(json.dumps(data))
+        
 
     def node_list(self):
         wfc = WorkflowContext()
@@ -175,7 +181,7 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
     def send_json_response(self, data):
         self.send_response(200)
         self.send_header('Content-type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', 'http://localhost:%s' % server_config_storage['port'])
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:%s' % server_state['cors_port'])
         self.end_headers()
 
         self.wfile.write(bytearray(data, "utf-8"))
@@ -212,8 +218,9 @@ class CreatorServer:
     port = 8000
     creator_path = ''
 
-    def __init__(self, port = 8000):
+    def __init__(self, port = 8000, cors_port = None):
         self.port = port
+        server_state['cors_port'] = cors_port if cors_port is not None else self.port
 
     def start(self):
         try:
@@ -223,7 +230,7 @@ class CreatorServer:
                 logging.getLogger('core').error('Creator web path is invalid.')
                 sys.exit(1)
 
-            server_config_storage['orig_cwd'] = os.getcwd()
+            server_state['orig_cwd'] = os.getcwd()
             os.chdir(WEB_PATH)
 
         except ImportError:
@@ -234,12 +241,12 @@ class CreatorServer:
         srv = http.server.HTTPServer(('', self.port), RequestHandler)
         print("Started server on http://localhost:%s" % (self.port))
 
-        server_config_storage['port'] = self.port
+        server_state['port'] = self.port
         
         try:
             srv.serve_forever()
         except KeyboardInterrupt:
             print("Exiting.")
 
-        if server_config_storage['orig_cwd'] != '':
-            os.chdir(server_config_storage['orig_cwd'])
+        if server_state['orig_cwd'] != '':
+            os.chdir(server_state['orig_cwd'])

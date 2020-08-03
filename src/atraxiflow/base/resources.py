@@ -9,7 +9,6 @@ from datetime import datetime
 
 from atraxiflow.core import Resource
 
-
 class TextResource(Resource):
     '''
     A resource holding a text

@@ -32,12 +32,13 @@ def cli():
 if 'AX_DEBUG' in os.environ and os.environ['AX_DEBUG'] == 'TRUE':
     @cli.command('creator')
     @click.option('--port', '-p', default=8000, help='The port to start the server on')
+    @click.option('--cors-port', default=8000, help='Use a different port for CORS header (for development purposes)')
     @click.option('--verbose', '-v', type=click.BOOL, is_flag=True, help='Increase verbosity')
-    def creator(port, verbose):
+    def creator(port, verbose, cors_port):
         if verbose:
             set_level(logging.DEBUG)
 
-        srv = server.CreatorServer(port)
+        srv = server.CreatorServer(port, cors_port)
         srv.start()
 
 
