@@ -6,6 +6,7 @@
 #
 import builtins
 from atraxiflow.base.common import *
+from atraxiflow.base.filesystem import LoadFilesNode
 from atraxiflow.core import *
 
 
@@ -38,13 +39,25 @@ def test_msg_out(capsys):
     captured = capsys.readouterr()
     assert captured[0] == 'Hello World\n'
 
+def test_print_resources(capsys):
+
+    Workflow.create([
+        LoadFilesNode({'paths': ['./*']}),
+        EchoOutputNode({'print_resources': True})
+    ]).run()
+
+    captured = capsys.readouterr()
+    assert 'input resources found.' in captured[0]
+
+
+# TODO: reimplement test
 """
 def test_execnode_basic(capsys):
     def callback():
         print('Hello callback!')
         return 'done'
 
-    ex = ExecNode({'callable': 'callback'})
+    ex = ShellExecNode({'callable': 'callback'})
     assert Workflow.create([ex]).run()
     assert ex.get_output() == 'done'
 

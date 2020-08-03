@@ -1,5 +1,12 @@
 # Changes
 
+## 2.0.0 alpha 2
+* Creator switched from Qt to browser-based app
+* Added passthru option for all nodes
+* Added FlowControlNode
+* EchoOutputNode has a new option ('Print resources'). If true, it will all print a list of all resources, even if msg is not empty
+* A PropertyException will be thrown when a property name is not recognized
+
 ## 2.0.0 alpha 1
 * Simpler node structure  that result in even shorter scripts
 * Introduction of inputs and outputs

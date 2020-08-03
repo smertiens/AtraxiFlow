@@ -60,8 +60,15 @@ class Container:
     def clear(self):
         self._items.clear()
 
-    def add(self, item: Resource):
-        self._items.append(item)
+    def add(self, item: Any):
+        if isinstance(item, Resource):
+            # add resource
+            self._items.append(item)
+        elif isinstance(item, Container):
+            # merge container
+            self._items += item._items
+        else:
+            raise ValueError('You can only add Resource and Container instances. Containers will be merged with the current one.')
 
     def items(self) -> List[Resource]:
         return self._items
@@ -139,9 +146,16 @@ class Node:
     def __init__(self, node_properties: Dict, user_properties: Dict, id: str = ''):
         self._input = None
         self.id = id if id != '' else '%s.%s' % (self.__module__, self.__class__.__name__)
+        self.passthru = False
         self.output = Container()
         self.properties = node_properties
         self.apply_properties(user_properties)
+
+    def set_passthru(self, val : bool):
+        self.passthru = val
+
+    def get_passthru(self) -> bool:
+        return self.passthru        
 
     def serialize_properties(self) -> dict:
         """
@@ -170,12 +184,17 @@ class Node:
         if properties is None:
             properties = {}
 
+        for name, property in properties.items():
+            if name not in self.properties:
+                raise PropertyException("Unknown property '%s'" % name)
+
         for name, property in self.properties.items():
             if not isinstance(property, Property):
                 raise ValueError()
 
             if name not in properties and property.is_required():
                 self.property(name).set_value(MissingRequiredValue())
+
             elif name not in properties:
                 self.property(name).set_value(property.get_default())
 
@@ -184,6 +203,7 @@ class Node:
                     raise PropertyException('Invalid value for %s' % name)
 
                 self.property(name).set_value(properties[name])
+
 
     def property(self, name) -> Property:
         if not name in self.properties:
@@ -432,6 +452,7 @@ class Workflow(EventObject):
             logging.getLogger('core').debug("Running node {0}...".format(node.__class__.__name__))
             try:
                 res = node.run(self._ctx)
+
             except Exception as e:
                 logging.getLogger('core').error(e.__class__.__name__ + ': ' + str(e))
                 self.fire_event(self.EVENT_RUN_FINISHED, {'errors': True, 'nodes_processed': nodes_processed})
@@ -464,6 +485,10 @@ class Workflow(EventObject):
             self._ctx.reset_collected_core_commands()
 
             self.fire_event(self.EVENT_NODE_RUN_FINISHED, {'node': node})
+
+            # passthru values if necessary
+            if node.get_passthru() and node.has_input():
+                node.output.add(node.get_input())
 
             prev_node = node
             nodes_processed += 1

@@ -80,19 +80,70 @@ class EchoOutputNode(Node):
 
     def __init__(self, properties=None):
         node_properties = {
-            'msg': Property(expected_type=str, required=False, hint='Text to output', label='Message')
+            'msg': Property(expected_type=str, required=False, hint='Text to output', label='Message'),
+            'print_resources': Property(expected_type=bool, required=False, hint='Prints information about all input resources', 
+                            label='Print resources', default=False)
         }
         super().__init__(node_properties, properties)
 
     def run(self, ctx: WorkflowContext):
         super().run(ctx)
 
+        if self.has_input() and self.property('print_resources').value():
+            r = self.get_input().find('*')
+
+            print('%i input resources found.' % len(r))
+
+            for res in r:
+                print('%s -> "%s"' % (type(res), res.get_value()))
+
         if self.property('msg').value() is not None:
             print(ctx.process_str(self.property('msg').value()))
 
+        return True
+
+
+class FlowControlNode(Node):
+    """
+    @Name: Filter resources
+    """
+
+    def __init__(self, properties=None):
+        node_properties = {
+            'query': Property(expected_type=str, required=False, default='*', 
+                            hint='Filter string to filter input resources', label='Query'),
+
+            'action': Property(expected_type=str, required=False, default='passthru', 
+                            hint='The action to be applied on all matching resources', label='Action',
+                            display_options={
+                                'options' : {
+                                    'passthru': 'Pass through selection',
+                                    'remove': 'Remove selection, pass through rest'
+                                }
+                            }),
+        }
+        super().__init__(node_properties, properties)
+
+    def run(self, ctx: WorkflowContext):
+        super().run(ctx)
+
+        # ignore passthru option -  we will add input resources ourself
+        self.set_passthru(False)
+
         if self.has_input():
-            for res in self.get_input().find('*'):
-                print(res)
+            r = self.get_input().find(self.property('query').value())
+            
+            if self.property('action').value() == 'passthru':
+                for res in r:
+                    self.output.add(res)
+            
+            elif self.property('action').value() == 'remove':
+                for res in self.get_input().find('*'):
+                    if res not in r:
+                        self.output.add(res)
+
+            else:
+                raise PropertyException('Invalid value for property "action": "%s"' % self.property('action').value())
 
         return True
 

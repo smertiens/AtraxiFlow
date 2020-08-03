@@ -88,7 +88,6 @@ def test_rule_regex_must_not_match():
 
 def test_rule_regex_must_match():
     node = TextValidatorNode({
-        'sources': 'Text:neg',
         'rules': {
             'regex': {
                 'pattern': r'\w+\s+\w+!',
