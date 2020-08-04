@@ -24,17 +24,20 @@ class WayfileException(Exception):
 
 class WayNode:
 
-    def __init__(self, node: Node, data=None):
+    node_data = {}
+    node = None
+
+    def __init__(self, data: dict, node: Node = None):
+        self.node_data = data
+        self.node = node
+
+    @staticmethod
+    def create_from_axnode(ax_node: Node, data=None):
+
         if data is None:
             data = {}
 
-        self.node_data = self._build_data_from_node(node, data)
-
-        self.node = node
-        self.data = data
-
-    def _build_data_from_node(self, ax_node: Node, data: dict) -> dict:
-        return {
+        node_data = {
             'creator:id': data['creator_id'] if 'creator_id' in data else None,
             'creator:pos': data['creator_pos'] if 'creator_pos' in data else None,
             'creator:parent': data['creator_parent'] if 'creator_parent' in data else None,
@@ -42,7 +45,23 @@ class WayNode:
             'node_class': ax_node.__class__.__module__ + '.' + ax_node.__class__.__name__,
             'properties': ax_node.serialize_properties(),
         }
+        
+        return WayNode(node_data, ax_node)
 
+    @staticmethod
+    def create_from_array(node: dict):
+
+        node_data = {
+            'creator:id': node['creator_id'] if 'creator_id' in node else None,
+            'creator:pos': node['creator_pos'] if 'creator_pos' in node else None,
+            'creator:parent': node['creator_parent'] if 'creator_parent' in node else None,
+            'creator:child': node['creator_child'] if 'creator_child' in node else None,
+            'node_class': node['node_class'],
+            'properties': node['properties'],
+        }
+
+        return WayNode(node_data)
+    
 
 class WayWorkflow:
 
@@ -91,6 +110,9 @@ class Wayfile:
             if 'creator:pos' in workflow:
                 data['creator_pos'] = workflow['creator:pos']
 
+            if 'creator:id' in workflow:
+                data['creator_id'] = workflow['creator:id']
+
             if wf_id == '@default':
                 wf = WayDefaultWorkflow(workflow['name'], data)
             else:
@@ -99,7 +121,7 @@ class Wayfile:
             # load nodes
             for raw_node in workflow['nodes']:
                 node_inst = self._create_and_setup_nodes_from_raw_data(raw_node)
-                way_node = WayNode(node_inst, {
+                way_node = WayNode.create_from_axnode(node_inst, {
                     'creator_id': raw_node['creator:id'] if 'creator:id' in raw_node else None,
                     'creator_parent': raw_node['creator:parent'] if 'creator:parent' in raw_node else None,
                     'creator_child': raw_node['creator:child'] if 'creator:child' in raw_node else None,
@@ -128,7 +150,8 @@ class Wayfile:
                 data['workflows'][wf_id] = {
                     'nodes': data_wf_node,
                     'name': wf.name,
-                    'creator:pos': wf.data['creator_pos'] if 'creator_pos' in wf.data else None
+                    'creator:pos': wf.data['creator_pos'] if 'creator_pos' in wf.data else None,
+                    'creator:id': wf.data['creator_id'] if 'creator_id' in wf.data else None
                 }
 
         logging.getLogger('creator').debug('Saving workflow to file %s' % filename)

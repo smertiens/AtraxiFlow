@@ -15,6 +15,7 @@ from atraxiflow.creator_server import runner
 from atraxiflow.core import WorkflowContext, Workflow
 from atraxiflow.core import Node, MissingRequiredValue
 from atraxiflow.properties import Property
+from atraxiflow import wayfiles
 
 server_state = {
     'port': 8000,
@@ -76,7 +77,8 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         '/axflow/run': 'run_nodes',
         '/axflow/execstatus': 'execution_status',
         '/axflow/filebrowser': 'filebrowser',
-        '/axflow/ping': 'ping'
+        '/axflow/ping': 'ping',
+        '/axflow/save': 'save_file'
     }
 
     request = Request()
@@ -85,6 +87,60 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_json_response(json.dumps({
             'status': 'ok'
         }))
+
+    def save_file(self):
+        data = None
+
+        try:
+            data = json.loads(self.request.content)
+        except json.JSONDecodeError:
+            self.send_json_response(json.dumps({
+                'status': 'error',
+                'msg': 'Corrupted data'
+            }))
+            return
+
+        nodes = data['data']
+        relpath = os.path.join(data['file']['path'], data['file']['filename']).lstrip(os.path.sep)
+        savepath = os.path.realpath(os.path.join(server_state['orig_cwd'], relpath))
+
+        if savepath == '':
+            self.send_json_response(json.dumps({
+                'status': 'error',
+                'msg': 'Invalid directory'
+            }))
+            return
+        
+        way = wayfiles.Wayfile()
+
+        wf_nodes = []
+
+        for id, node in nodes.items():
+            if node['node_class'] == '@Workflow':
+                wf_nodes.append(node)
+        
+        for wf_node in wf_nodes:
+            wf = wayfiles.WayWorkflow(wf_node['creator_label'], {
+                'creator_id': wf_node['creator_id'],
+                'creator_pos': wf_node['creator_pos']
+            })
+
+            if wf_node['creator_child'] is not None:
+                self._add_wf_nodes_recursive(wf, nodes[wf_node['creator_child']], nodes)
+
+            way.add_workflow(wf)
+        
+        way.save(savepath)
+
+        self.send_json_response(json.dumps({
+            'status': 'ok'
+        }))
+
+    def _add_wf_nodes_recursive(self, wf: wayfiles.WayWorkflow, node: dict, nodes):
+        wf.add_node(wayfiles.WayNode.create_from_array(node))
+
+        if node['creator_child'] is not None:
+            self._add_wf_nodes_recursive(wf, nodes[node['creator_child']], nodes)
 
     def filebrowser(self):
         path = '' if 'path' not in self.request.query else self.request.query['path'].strip('/\\')
@@ -155,16 +211,9 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
                 'stdout': [],
                 'stderr': []
             }
-        elif server_state['current_wf_thread'].is_running():
-            data = {
-                'status': 'running',
-                'messages': server_state['current_wf_thread'].get_log_records(),
-                'stdout': server_state['current_wf_thread'].get_stdout_buffer().readlines(),
-                'stderr': server_state['current_wf_thread'].get_stderr_buffer().readlines()
-            }
         else:
             data = {
-                'status': 'done',
+                'status': 'running' if server_state['current_wf_thread'].is_running() else 'done',
                 'messages': server_state['current_wf_thread'].get_log_records(),
                 'stdout': server_state['current_wf_thread'].get_stdout_buffer().readlines(),
                 'stderr': server_state['current_wf_thread'].get_stderr_buffer().readlines()
@@ -204,6 +253,16 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
         else:
             a = getattr(self, self.routes[self.request.path])
             a()
+
+    def do_OPTIONS(self):
+        # TODO: Review correct CORS protocal usage - works for now
+        # see here: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS#Preflighted_requests
+        self.send_response(204)
+        self.send_header('Access-Control-Allow-Origin', 'http://localhost:%s' % server_state['cors_port'])
+        self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers()
+        self.log_request()
 
     def do_GET(self):
         self._handle_request()
@@ -246,7 +305,7 @@ class CreatorServer:
         try:
             srv.serve_forever()
         except KeyboardInterrupt:
-            print("Exiting.")
+            print("Goodbye.")
 
         if server_state['orig_cwd'] != '':
             os.chdir(server_state['orig_cwd'])

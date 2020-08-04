@@ -23,8 +23,11 @@ class AxLoggingListHandler(logging.Handler):
     def handle(self, record):
         self.records.append(self.format(record))
 
-    def get_records(self):
-        return self.records
+    def get_records(self, offset = 0):
+        return self.records[offset:]
+
+    def clear_records(self):
+        self.records.clear()
 
 class AxLoggingConsoleFormatter(logging.Formatter):
 

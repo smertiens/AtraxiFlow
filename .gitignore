@@ -20,3 +20,4 @@ src/*.egg-info
 .coverage
 .venv*
 .python-version
+test-folder

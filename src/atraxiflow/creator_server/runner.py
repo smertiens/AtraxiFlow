@@ -14,6 +14,7 @@ class WorkflowThread(Thread):
     _nodes = []
     _log_handler = None
     _running = False
+    _log_record_offset = 0
 
     def __init__(self):
         super().__init__()
@@ -21,13 +22,16 @@ class WorkflowThread(Thread):
         self._stdout_buf = io.StringIO()
         self._stderr_buf = io.StringIO()
         self._log_handler = AxLoggingListHandler(logging.DEBUG)
+        self._log_record_offset = 0
         self._running = False
 
     def set_nodes(self, nodes):
         self._nodes = nodes
 
     def get_log_records(self):
-        return self._log_handler.get_records()
+        r = self._log_handler.get_records(self._log_record_offset)
+        self._log_record_offset += len(r)
+        return r
 
     def get_stdout_buffer(self):
         return self._stdout_buf
