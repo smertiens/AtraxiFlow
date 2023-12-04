@@ -1,8 +1,7 @@
 # AtraxiFlow 2.0
 The flexible python workflow tool - create workflows within minutes, visually or in pure python.
 
-[![Build Status](https://travis-ci.org/smertiens/AtraxiFlow.svg?branch=master)](https://travis-ci.org/smertiens/AtraxiFlow)
-[![PyPI version](https://badge.fury.io/py/atraxi-flow.svg)](https://badge.fury.io/py/atraxi-flow)
+Status: Not actively under development.
 
 This is the first alpha release of AtraxiFlow 2.0. AtraxiFlow 2.0 scripts and nodes are not compatible with the 1.0
 branch. Here are some of the new features:
